@@ -29,4 +29,4 @@ RUN cargo fetch --manifest-path src-tauri/Cargo.toml
 
 COPY . .
 
-CMD ["bash", "-c", "npm run build && cargo fmt --manifest-path src-tauri/Cargo.toml --all -- --check && cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings && cargo test --manifest-path src-tauri/Cargo.toml"]
+CMD ["bash", "scripts/check.sh"]
