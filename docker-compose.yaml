@@ -1,0 +1,6 @@
+services:
+  app-checks:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: human-controller-checks
