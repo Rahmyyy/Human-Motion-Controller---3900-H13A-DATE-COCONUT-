@@ -19,3 +19,5 @@ patients to control existing PC games during rehabilitation exercises.
 
 - `main` contains stable, tested demo ready code.
 - Feature branches should be linked to Jira Tickets - `feature/H13ADATE-51-Tauri-Setup`
+
+See [INSTALLATION.md](INSTALLATION.md) for Docker verification and native development setup.
