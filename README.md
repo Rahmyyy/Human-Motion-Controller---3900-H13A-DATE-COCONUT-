@@ -4,7 +4,7 @@ Webcam-based motion mapping software for accessible rehabilitation gaming.
 
 ## Goal
 
-This project maps therapeutic body movements detected through a webcam to keyboard inputs, allowing 
+This project maps therapeutic body movements detected through a webcam to keyboard inputs, allowing
 patients to control existing PC games during rehabilitation exercises.
 
 ## Tech Stack
