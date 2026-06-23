@@ -51,7 +51,7 @@ winget install --id OpenJS.NodeJS.LTS
 winget install --id Rustlang.Rustup
 
 // you need desktop dev with c++ package as well here, see Tauri prereqs guide for windows at bottom of the installation guide.
-winget install --id Microsoft.VisualStudio.2022.BuildTools 
+winget install --id Microsoft.VisualStudio.2022.BuildTools
 ```
 
 Restart Windows or close and reopen PowerShell after installation. Then select Rust's stable MSVC
