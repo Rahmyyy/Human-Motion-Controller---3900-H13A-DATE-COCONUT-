@@ -1,7 +1,39 @@
 .page {
+  display: grid;
   width: 100%;
+  padding: 2rem;
+  gap: 1.5rem;
+  justify-items: center;
 }
 
 .page h1 {
   margin: 0;
+}
+
+.controls {
+  display: grid;
+  justify-items: center;
+  gap: 0.75rem;
+}
+
+.controls button {
+  padding: 0.65rem 1rem;
+  border: 0;
+  border-radius: 0.5rem;
+  color: white;
+  background: #2563eb;
+  cursor: pointer;
+  font: inherit;
+}
+
+.controls button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.error {
+  max-width: 36rem;
+  margin: 0;
+  color: #b91c1c;
+  text-align: center;
 }
