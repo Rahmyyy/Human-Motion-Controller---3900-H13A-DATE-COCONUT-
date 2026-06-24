@@ -1,9 +1,9 @@
-import SessionPage from "../features/session/SessionPage";
+import PresetSelectionPage from "@/features/presets/PresetSelectionPage";
 
 export default function App() {
   return (
     <main>
-      <SessionPage />
+      <PresetSelectionPage />
     </main>
   );
 }

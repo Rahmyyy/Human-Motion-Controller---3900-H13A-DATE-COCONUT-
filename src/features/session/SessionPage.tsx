@@ -21,7 +21,6 @@ export default function SessionPage() {
           <Button type="button" onClick={() => void start()} disabled={status === "starting"}>
             {status === "starting" ? "Starting camera…" : "Start camera"}
           </Button>
-    
         )}
 
         {error && (
