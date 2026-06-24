@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import CameraPreview from "../camera/CameraPreview";
 import { useCamera } from "../camera/useCamera";
 import styles from "./SessionPage.module.css";
@@ -13,13 +14,14 @@ export default function SessionPage() {
 
       <div className={styles.controls}>
         {status === "active" ? (
-          <button type="button" onClick={stop}>
+          <Button type="button" onClick={stop} variant="destructive">
             Stop camera
-          </button>
+          </Button>
         ) : (
-          <button type="button" onClick={() => void start()} disabled={status === "starting"}>
+          <Button type="button" onClick={() => void start()} disabled={status === "starting"}>
             {status === "starting" ? "Starting camera…" : "Start camera"}
-          </button>
+          </Button>
+    
         )}
 
         {error && (
