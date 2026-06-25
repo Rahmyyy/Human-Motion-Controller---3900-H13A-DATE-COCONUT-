@@ -1,0 +1,12 @@
+* text=auto eol=lf
+
+# Keep CRLF only for genuinely Windows-only scripts
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Mark binaries so they're never touched
+*.png binary
+*.jpg binary
+*.ico binary
+*.woff2 binary
