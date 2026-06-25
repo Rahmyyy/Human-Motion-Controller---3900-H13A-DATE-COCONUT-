@@ -1,4 +1,14 @@
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
+import { useNavigate } from "react-router";
+
 export default function CustomPresetPage() {
+  const navigate = useNavigate();
+
+  function handleAddNewMovement() {
+    navigate("/session");
+  }
+
   return (
     <section className="min-h-screen bg-background px-8 py-10">
       <div className="mx-auto max-w-6xl">
@@ -11,6 +21,11 @@ export default function CustomPresetPage() {
               Configure and monitor keybindings for patient physical therapy movements.
             </p>
           </div>
+
+          <Button type="button" size="lg" className="shadow-sm" onClick={handleAddNewMovement}>
+            <Plus className="size-4" aria-hidden="true" />
+            Add New Movement
+          </Button>
         </header>
       </div>
     </section>
