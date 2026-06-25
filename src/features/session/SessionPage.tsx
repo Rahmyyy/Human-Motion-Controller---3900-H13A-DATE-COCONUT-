@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import CameraPreview from "../camera/CameraPreview";
 import { useCamera } from "../camera/useCamera";
+import MappingDetailsPanel from "./MappingDetailsPanel";
 
 function SessionHeader() {
   return (
@@ -33,7 +34,10 @@ export default function SessionPage() {
   return (
     <main className="grid h-screen w-full grid-rows-[auto_minmax(0,1fr)_auto] gap-4 overflow-hidden bg-slate-50 p-8">
       <SessionHeader />
-      <SessionCameraPanel stream={stream} />
+      <div className="grid min-h-0 gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
+        <SessionCameraPanel stream={stream} />
+        <MappingDetailsPanel />
+      </div>
 
       <div className="grid w-full justify-items-start gap-3">
         {status === "active" ? (
