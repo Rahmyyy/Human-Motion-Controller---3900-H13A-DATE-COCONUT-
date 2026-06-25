@@ -14,12 +14,12 @@ export default function MappingDetailsPanel() {
 
       <div className="grid gap-1.5">
         <span className="text-xs font-medium text-muted-foreground">Movement Name</span>
-        <Input />
+        <Input placeholder="Name this movement"/>
       </div>
 
       <div className="grid gap-1.5">
         <span className="text-xs font-medium text-muted-foreground">Target Key Action</span>
-        <Input />
+        <Input placeholder="Press a key to bind"/>
       </div>
     </section>
   );
