@@ -1,8 +1,12 @@
-# Force LF on shell scripts and other LF-sensitive files
-*.sh text eol=lf
-Dockerfile text eol=lf
-*.yml text eol=lf
-*.yaml text eol=lf
+* text=auto eol=lf
 
-# Let Git auto-handle everything else
-* text=auto
+# Keep CRLF only for genuinely Windows-only scripts
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Mark binaries so they're never touched
+*.png binary
+*.jpg binary
+*.ico binary
+*.woff2 binary
