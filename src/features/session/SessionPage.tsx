@@ -21,7 +21,7 @@ interface SessionCameraPanelProps {
 
 function SessionCameraPanel({ stream }: SessionCameraPanelProps) {
   return (
-    <section className="grid min-w-0" aria-label="Movement camera preview">
+    <section className="grid min-h-0 min-w-0" aria-label="Movement camera preview">
       <CameraPreview stream={stream} />
     </section>
   );
@@ -31,13 +31,11 @@ export default function SessionPage() {
   const { stream, status, error, start, stop } = useCamera();
 
   return (
-    <main className="grid min-h-screen w-full content-start gap-4 bg-slate-50 p-8">
-      <div className="grid w-full max-w-3xl gap-4">
-        <SessionHeader />
-        <SessionCameraPanel stream={stream} />
-      </div>
+    <main className="grid h-screen w-full grid-rows-[auto_minmax(0,1fr)_auto] gap-4 overflow-hidden bg-slate-50 p-8">
+      <SessionHeader />
+      <SessionCameraPanel stream={stream} />
 
-      <div className="grid w-full max-w-3xl justify-items-start gap-3">
+      <div className="grid w-full justify-items-start gap-3">
         {status === "active" ? (
           <Button type="button" onClick={stop} variant="destructive">
             Stop camera
