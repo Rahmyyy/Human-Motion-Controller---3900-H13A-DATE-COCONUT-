@@ -12,7 +12,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Info, Play, Plus } from "lucide-react";
 import { useState } from "react";
-import { Link } from "react-router";
+import { useNavigate } from "react-router";
 
 type PresetStartMode = "template" | "custom";
 
@@ -38,6 +38,13 @@ function PresetActionBar() {
 
 function CreatePresetDialog() {
   const [selectedMode, setSelectedMode] = useState<PresetStartMode | null>(null);
+  const navigate = useNavigate();
+
+  function handleContinue() {
+    if (selectedMode === "custom") {
+      navigate("/presets/custom");
+    }
+  }
 
   return (
     <Dialog>
@@ -92,8 +99,8 @@ function CreatePresetDialog() {
               Cancel
             </Button>
           </DialogClose>
-          <Button asChild>
-            <Link to="/session">Continue</Link>
+          <Button type="button" disabled={!selectedMode} onClick={handleContinue}>
+            Continue
           </Button>
         </DialogFooter>
       </DialogContent>
