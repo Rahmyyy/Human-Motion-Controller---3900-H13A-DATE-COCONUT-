@@ -9,8 +9,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { cn } from "@/lib/utils";
 import { Info, Play, Plus } from "lucide-react";
+import { useState } from "react";
 import { Link } from "react-router";
+
+type PresetStartMode = "template" | "custom";
 
 function PresetActionBar() {
   return (
@@ -33,6 +37,8 @@ function PresetActionBar() {
 }
 
 function CreatePresetDialog() {
+  const [selectedMode, setSelectedMode] = useState<PresetStartMode | null>(null);
+
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -49,14 +55,30 @@ function CreatePresetDialog() {
         </DialogHeader>
 
         <div className="grid gap-3 sm:grid-cols-2">
-          <button type="button" className="rounded-lg border p-4 text-left hover:bg-muted/50">
+          <button
+            type="button"
+            aria-pressed={selectedMode === "template"}
+            onClick={() => setSelectedMode("template")}
+            className={cn(
+              "rounded-lg border p-4 text-left hover:bg-muted/50",
+              selectedMode === "template" && "border-primary bg-primary/5 ring-1 ring-primary",
+            )}
+          >
             <div className="font-medium">Use Existing Template</div>
             <p className="mt-2 text-sm text-muted-foreground">
               Start from a predefined movement mapping.
             </p>
           </button>
 
-          <button type="button" className="rounded-lg border p-4 text-left hover:bg-muted/50">
+          <button
+            type="button"
+            aria-pressed={selectedMode === "custom"}
+            onClick={() => setSelectedMode("custom")}
+            className={cn(
+              "rounded-lg border p-4 text-left hover:bg-muted/50",
+              selectedMode === "custom" && "border-primary bg-primary/5 ring-1 ring-primary",
+            )}
+          >
             <div className="font-medium">Create Custom Preset</div>
             <p className="mt-2 text-sm text-muted-foreground">
               Start from scratch with a blank configuration.
