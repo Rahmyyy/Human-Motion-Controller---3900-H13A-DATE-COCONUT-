@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import BackButton from "@/components/BackButton";
 import { Plus } from "lucide-react";
 import { Link } from "react-router";
 
@@ -16,12 +17,15 @@ export default function PresetMappingsPage() {
             </p>
           </div>
 
-          <Button asChild size="lg">
-            <Link to="/session">
-              <Plus className="size-4" aria-hidden="true" />
-              Add New Movement
-            </Link>
-          </Button>
+          <div className="flex items-center gap-3">
+            <BackButton />
+            <Button asChild size="lg">
+              <Link to="/session">
+                <Plus className="size-4" aria-hidden="true" />
+                Add New Movement
+              </Link>
+            </Button>
+          </div>
         </header>
       </div>
     </section>

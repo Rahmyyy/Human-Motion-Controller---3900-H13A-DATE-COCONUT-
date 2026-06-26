@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import BackButton from "@/components/BackButton";
 import {
   Dialog,
   DialogClose,
@@ -115,7 +116,10 @@ export default function PresetSelectionPage() {
             </p>
           </div>
 
-          <CreatePresetDialog />
+          <div className="flex items-center gap-3">
+            <BackButton />
+            <CreatePresetDialog />
+          </div>
         </header>
 
         <section className="mt-12">
