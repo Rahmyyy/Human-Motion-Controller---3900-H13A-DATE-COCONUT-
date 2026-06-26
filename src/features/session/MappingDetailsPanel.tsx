@@ -1,7 +1,10 @@
 import { Input } from "@/components/ui/input";
-import { SlidersHorizontal } from "lucide-react";
+import { Pencil, SlidersHorizontal } from "lucide-react";
+import { useState } from "react";
 
 export default function MappingDetailsPanel() {
+  const [movementName, setMovementName] = useState("");
+
   return (
     <section className="grid content-start gap-4 rounded-lg border bg-background p-5 shadow-sm">
       <header className="grid gap-1">
@@ -13,13 +16,40 @@ export default function MappingDetailsPanel() {
       </header>
 
       <div className="grid gap-1.5">
-        <span className="text-xs font-medium text-muted-foreground">Movement Name</span>
-        <Input placeholder="Name this movement" />
+        <label className="text-xs font-medium text-muted-foreground" htmlFor="movement-name">
+          Movement Name
+        </label>
+        <div className="relative">
+          <Input
+            id="movement-name"
+            value={movementName}
+            onChange={(event) => setMovementName(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") {
+                event.currentTarget.blur();
+              }
+            }}
+            placeholder="Name this movement"
+            className="pr-9"
+          />
+          <Pencil
+            className="pointer-events-none absolute top-1/2 right-2.5 size-3.5 -translate-y-1/2 text-muted-foreground"
+            aria-hidden="true"
+          />
+        </div>
       </div>
 
       <div className="grid gap-1.5">
-        <span className="text-xs font-medium text-muted-foreground">Target Key Action</span>
-        <Input placeholder="Press a key to bind" />
+        <label className="text-xs font-medium text-muted-foreground" htmlFor="target-key-action">
+          Target Key Action
+        </label>
+        <div className="relative">
+          <Input id="target-key-action" placeholder="Press a key to bind" className="pr-9" />
+          <Pencil
+            className="pointer-events-none absolute top-1/2 right-2.5 size-3.5 -translate-y-1/2 text-muted-foreground"
+            aria-hidden="true"
+          />
+        </div>
       </div>
     </section>
   );
