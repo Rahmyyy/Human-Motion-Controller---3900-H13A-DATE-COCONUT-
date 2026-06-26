@@ -93,7 +93,7 @@ function CreatePresetDialog() {
             </Button>
           </DialogClose>
           <Button asChild>
-            <Link to="/session">Continue</Link>
+            <Link to="/preset/edit">Continue</Link>
           </Button>
         </DialogFooter>
       </DialogContent>
