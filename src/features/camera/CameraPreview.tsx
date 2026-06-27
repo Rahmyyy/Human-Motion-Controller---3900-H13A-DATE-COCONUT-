@@ -1,35 +1,56 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { invoke, Channel } from "@tauri-apps/api/core";
 import styles from "./CameraPreview.module.css";
 
-interface CameraPreviewProps {
-  stream: MediaStream | null;
-}
 
-export default function CameraPreview({ stream }: CameraPreviewProps) {
-  const videoRef = useRef<HTMLVideoElement>(null);
+export default function CameraPreview() {
+    const [imgSrc, setImgSrc] = useState<string>("");
+    const prevUrlRef = useRef<string>("");
 
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
 
-    video.srcObject = stream;
+    const startStream = async () => {
+        try {
+            const channel = new Channel<Uint8Array>();
 
-    return () => {
-      video.srcObject = null;
+            channel.onmessage = (frameBytes) => {
+                const pngBytes = new Uint8Array(frameBytes);
+
+                const blob = new Blob([pngBytes], { type: "image/jpeg" });
+                const newUrl = URL.createObjectURL(blob);
+                setImgSrc(newUrl);
+
+                // Clean up previous blob
+                if (prevUrlRef.current) {
+                    URL.revokeObjectURL(prevUrlRef.current);
+                }
+                prevUrlRef.current = newUrl;
+
+            };
+
+            // Initate channel on load
+            await invoke("webcam_handler", { channel });
+
+        } catch (error) {
+            console.error("Stream Failed:", error);
+        }
     };
-  }, [stream]);
 
-  return (
-    <div className={styles.preview}>
-      <video
-        ref={videoRef}
-        className={styles.video}
-        autoPlay
-        muted
-        playsInline
-        aria-label="Live webcam preview"
-      />
-      {!stream && <p className={styles.placeholder}>Camera preview is off</p>}
-    </div>
-  );
+    useEffect(() => {
+        startStream();
+
+        return () => {
+            if (prevUrlRef.current) {
+                URL.revokeObjectURL(prevUrlRef.current);
+            }
+        };
+    }, []);
+
+    return (
+        <div className={styles.preview}>
+            <img
+                src={imgSrc}
+                alt="Webcam Feed"
+            />
+        </div>
+    );
 }
