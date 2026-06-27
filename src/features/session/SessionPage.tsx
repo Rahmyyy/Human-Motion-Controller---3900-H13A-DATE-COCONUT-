@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { invoke } from "@tauri-apps/api/core";
 import CameraPreview from "../camera/CameraPreview";
 import { useCamera } from "../camera/useCamera";
 import styles from "./SessionPage.module.css";
@@ -28,6 +29,10 @@ export default function SessionPage() {
             {error}
           </p>
         )}
+
+        <Button type="button" onClick={() => void invoke("press_key")}>
+          Test W key
+        </Button>
       </div>
     </section>
   );
