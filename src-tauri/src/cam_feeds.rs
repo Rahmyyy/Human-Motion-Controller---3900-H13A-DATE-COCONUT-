@@ -14,7 +14,7 @@ use tokio::sync::mpsc;
 use nokhwa::utils::{CameraFormat, FrameFormat, Resolution};
 use tauri::ipc::Channel;
 
-use crate::{mediapipe::LandmarkerThreadCommand};
+use crate::mediapipe::LandmarkerThreadCommand;
 
 pub fn get_all_cameras() -> Vec<CameraInfo> {
     nokhwa::query(Auto).unwrap_or(vec![])

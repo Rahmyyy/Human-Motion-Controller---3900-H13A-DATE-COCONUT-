@@ -231,15 +231,7 @@ fn mask_image(image: &RgbaImage, mask: &image::GrayImage) -> RgbaImage {
 pub fn annotate_frame(
     frame: RgbaImage,
     pose: &PoseLandmarks,
-    visability_mask: ImageBuffer<image::Luma<u8>, Vec<u8>>,
+    _visability_mask: ImageBuffer<image::Luma<u8>, Vec<u8>>,
 ) -> RgbaImage {
-    let image = pose.annotate(frame);
-
-    let visability_mask_scaled = image::imageops::resize(
-        &visability_mask,
-        image.width(),
-        image.height(),
-        ::image::imageops::FilterType::Triangle,
-    );
-    mask_image(&image, &visability_mask_scaled)
+    pose.annotate(frame)
 }

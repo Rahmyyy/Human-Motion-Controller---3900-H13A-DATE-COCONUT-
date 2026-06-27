@@ -47,6 +47,7 @@ export default function AnnotatedPreview() {
     return (
         <div className={styles.preview}>
             <img
+                className={styles.img}
                 src={imgSrc}
                 alt="Annotated Feed"
             />

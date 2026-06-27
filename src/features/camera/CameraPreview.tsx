@@ -48,6 +48,7 @@ export default function CameraPreview() {
     return (
         <div className={styles.preview}>
             <img
+                className={styles.img}
                 src={imgSrc}
                 alt="Webcam Feed"
             />
