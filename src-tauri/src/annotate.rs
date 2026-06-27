@@ -1,18 +1,15 @@
 use ab_glyph::{FontRef, PxScale};
-use std::{
-    collections::HashMap,
-    time::{self, Duration},
-};
+use std::collections::HashMap;
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 
-use image::{Rgba, RgbaImage};
+use image::{ImageBuffer, Rgba, RgbaImage};
 use imageproc::drawing::{
     draw_antialiased_line_segment_mut, draw_filled_circle_mut, draw_text_mut,
 };
 
 #[derive(Debug, Clone, Copy, EnumIter, Eq, PartialEq, Hash)]
-enum Landmarks {
+pub enum Landmarks {
     Nose,
     LeftEyeInner,
     LeftEye,
@@ -95,25 +92,29 @@ const LANDMARK_LINKS: &[(Landmarks, Landmarks)] = &[
 ];
 
 #[derive(Debug, Clone, Copy, PartialEq)]
-struct LandmarkPoint {
-    x: f32,
-    y: f32,
-    z: f32,
-    visibility: f32,
-    presence: f32,
+pub struct LandmarkPoint {
+    pub x: f32,
+    pub y: f32,
+    pub z: f32,
+    pub visibility: f32,
+    pub presence: f32,
 }
 
 const TEXT_SCALE: ab_glyph::PxScale = PxScale { x: 20.0, y: 10.0 };
 
+pub fn sigmoid(x: f32) -> f32 {
+    1.0 / (1.0 + (-x).exp())
+}
+
 impl LandmarkPoint {
     pub fn new(x: f32, y: f32, z: f32, visibility: f32, presence: f32) -> Self {
         Self {
-            x: x / 255.0,
-            y: y / 255.0,
-            z: z / 255.0,
+            x,
+            y,
+            z,
             // TODO: Change these to be in bounds [min_float, max_float]
-            visibility: visibility / 255.0,
-            presence: presence / 255.0,
+            visibility: sigmoid(visibility),
+            presence: sigmoid(presence),
         }
     }
 
@@ -122,10 +123,14 @@ impl LandmarkPoint {
         let y = (self.y * image.height() as f32).round() as i32;
         (x, y)
     }
+
+    pub fn visable(&self) -> bool {
+        self.visibility > 0.5 && self.presence > 0.5
+    }
 }
 
 #[derive(Debug, Clone)]
-pub struct PoseLandmarks(HashMap<Landmarks, LandmarkPoint>);
+pub struct PoseLandmarks(pub(crate) HashMap<Landmarks, LandmarkPoint>);
 
 impl PoseLandmarks {
     // Associated function acting as a constructor
@@ -137,9 +142,9 @@ impl PoseLandmarks {
             let pose_points = &points[base..(base + 5)];
 
             let landmark = LandmarkPoint::new(
-                pose_points[0],
-                pose_points[1],
-                pose_points[2],
+                pose_points[0] / 255.0,
+                pose_points[1] / 255.0,
+                pose_points[2] / 255.0,
                 pose_points[3],
                 pose_points[4],
             );
@@ -155,7 +160,7 @@ impl PoseLandmarks {
         out
     }
 
-    pub fn annotate(&self, mut frame: image::RgbaImage) -> image::RgbaImage {
+    fn annotate(&self, mut frame: image::RgbaImage) -> image::RgbaImage {
         for (landmark, point) in &self.0 {
             annotate_point(&mut frame, point, &format!("{:?}", landmark));
         }
@@ -173,28 +178,42 @@ impl PoseLandmarks {
 }
 
 fn annotate_point(image: &mut RgbaImage, point: &LandmarkPoint, text: &str) {
+    if !point.visable() {
+        return;
+    }
+
     let (x, y) = point.image_point(image);
 
     // let font = FontRef::try_from_slice(include_bytes!("../icons/font.ttf")).unwrap();
 
     draw_filled_circle_mut(image, (x, y), 5, Rgba([0u8, 0u8, 255u8, 255u8]));
 
-    // draw_text_mut(image, Rgb([0u8, 0u8, 255u8]), x, y, TEXT_SCALE, &font, text);
+    // draw_text_mut(
+    //     image,
+    //     Rgba([0u8, 0u8, 255u8, 255u8]),
+    //     x,
+    //     y,
+    //     TEXT_SCALE,
+    //     &font,
+    //     text,
+    // );
 
     draw_filled_circle_mut(image, (x, y), 5, Rgba([0u8, 0u8, 255u8, 255u8]));
 }
 
 fn link_points(frame: &mut RgbaImage, point1: &LandmarkPoint, point2: &LandmarkPoint) {
-    draw_antialiased_line_segment_mut(
-        frame,
-        point1.image_point(frame),
-        point2.image_point(frame),
-        Rgba([255u8, 0u8, 0u8, 255u8]),
-        imageproc::pixelops::interpolate,
-    );
+    if point1.visable() && point2.visable() {
+        draw_antialiased_line_segment_mut(
+            frame,
+            point1.image_point(frame),
+            point2.image_point(frame),
+            Rgba([255u8, 0u8, 0u8, 255u8]),
+            imageproc::pixelops::interpolate,
+        );
+    }
 }
 
-pub fn mask_image(image: &RgbaImage, mask: &image::GrayImage) -> RgbaImage {
+fn mask_image(image: &RgbaImage, mask: &image::GrayImage) -> RgbaImage {
     let mask_rgb = image::DynamicImage::ImageLuma8(mask.clone()).to_rgba8();
 
     image::ImageBuffer::from_fn(image.width(), image.height(), |x, y| {
@@ -207,4 +226,20 @@ pub fn mask_image(image: &RgbaImage, mask: &image::GrayImage) -> RgbaImage {
             ((rgb[3] as u16 * mask as u16) / 255) as u8,
         ])
     })
+}
+
+pub fn annotate_frame(
+    frame: RgbaImage,
+    pose: &PoseLandmarks,
+    visability_mask: ImageBuffer<image::Luma<u8>, Vec<u8>>,
+) -> RgbaImage {
+    let image = pose.annotate(frame);
+
+    let visability_mask_scaled = image::imageops::resize(
+        &visability_mask,
+        image.width(),
+        image.height(),
+        ::image::imageops::FilterType::Triangle,
+    );
+    mask_image(&image, &visability_mask_scaled)
 }
