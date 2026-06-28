@@ -2,7 +2,9 @@ import BackButton from "@/components/BackButton";
 import type { PoseFrame } from "../camera/poseFrame";
 import MediaPipePosePreview from "../camera/MediaPipePosePreview";
 import MappingDetailsPanel from "./MappingDetailsPanel";
+import PoseReplay from "./PoseReplay";
 import RecordingControls from "./RecordingControls";
+import type { RecordingState } from "./usePoseRecording";
 import { usePoseRecording } from "./usePoseRecording";
 
 function SessionHeader() {
@@ -21,10 +23,20 @@ function SessionHeader() {
   );
 }
 
-function SessionCameraPanel({ onPoseFrame }: { onPoseFrame: (frame: PoseFrame) => void }) {
+interface SessionCameraPanelProps {
+  frames: PoseFrame[];
+  onPoseFrame: (frame: PoseFrame) => void;
+  recordingState: RecordingState;
+}
+
+function SessionCameraPanel({ frames, onPoseFrame, recordingState }: SessionCameraPanelProps) {
   return (
     <section className="grid min-h-0 min-w-0" aria-label="Movement camera preview">
-      <MediaPipePosePreview onPoseFrame={onPoseFrame} />
+      {recordingState === "recorded" ? (
+        <PoseReplay frames={frames} />
+      ) : (
+        <MediaPipePosePreview onPoseFrame={onPoseFrame} />
+      )}
     </section>
   );
 }
@@ -52,7 +64,11 @@ export default function SessionPage() {
     <main className="grid h-screen w-full grid-rows-[auto_minmax(0,1fr)] gap-4 overflow-hidden bg-slate-50 p-8">
       <SessionHeader />
       <div className="grid min-h-0 gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
-        <SessionCameraPanel onPoseFrame={recordFrame} />
+        <SessionCameraPanel
+          frames={recordedFrames}
+          onPoseFrame={recordFrame}
+          recordingState={recordingState}
+        />
         <div className="grid min-h-0 content-start gap-4">
           <MappingDetailsPanel />
           <RecordingControls
