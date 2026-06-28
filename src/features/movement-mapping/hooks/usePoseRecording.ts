@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from "react";
-import type { PoseFrame } from "../camera/poseFrame";
+import type { PoseFrame } from "@/features/camera/poseFrame";
 
 export type RecordingState = "idle" | "recording" | "recorded";
 

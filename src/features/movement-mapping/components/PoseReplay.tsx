@@ -1,6 +1,6 @@
 import { PoseLandmarker } from "@mediapipe/tasks-vision";
 import { useEffect, useRef } from "react";
-import type { PoseFrame, PoseLandmark } from "../camera/poseFrame";
+import type { PoseFrame, PoseLandmark } from "@/features/camera/poseFrame";
 
 const MIN_VISIBILITY = 0.5;
 

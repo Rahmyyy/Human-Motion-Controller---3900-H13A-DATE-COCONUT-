@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Circle, RotateCcw, Save, Square } from "lucide-react";
-import type { RecordingState } from "./usePoseRecording";
 import { useNavigate } from "react-router";
+import type { RecordingState } from "../hooks/usePoseRecording";
 
 interface RecordingControlsProps {
   state: RecordingState;
