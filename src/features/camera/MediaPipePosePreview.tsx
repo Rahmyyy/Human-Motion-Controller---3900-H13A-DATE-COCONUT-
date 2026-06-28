@@ -125,11 +125,6 @@ export default function MediaPipePosePreview() {
 
   return (
     <section className={styles.panel} aria-label="MediaPipe pose preview">
-      <div className={styles.header}>
-        <h2>Frontend MediaPipe</h2>
-        <span className={styles.status}>{status}</span>
-      </div>
-
       <div className={styles.stage}>
         <video ref={videoRef} className={styles.video} playsInline muted aria-label="Camera feed" />
         <canvas ref={canvasRef} className={styles.overlay} />
