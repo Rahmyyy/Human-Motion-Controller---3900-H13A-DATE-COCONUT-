@@ -2,6 +2,8 @@ import { PoseLandmarker } from "@mediapipe/tasks-vision";
 import { useEffect, useRef } from "react";
 import type { PoseFrame, PoseLandmark } from "@/features/camera/poseFrame";
 
+// Replays a recorded movement from PoseFrame landmarks only.
+// No video is stored; the skeleton is redrawn on canvas from saved landmarks.
 const MIN_VISIBILITY = 0.5;
 
 interface PoseReplayProps {

@@ -3,6 +3,7 @@ import type { PoseFrame } from "@/features/camera/poseFrame";
 import PoseReplay from "./PoseReplay";
 import type { RecordingState } from "../hooks/usePoseRecording";
 
+// Shows live pose capture until recording stops, then swaps to replay.
 interface MovementCameraPanelProps {
   frames: PoseFrame[];
   onPoseFrame: (frame: PoseFrame) => void;

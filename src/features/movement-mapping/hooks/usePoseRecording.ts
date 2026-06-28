@@ -1,6 +1,8 @@
 import { useCallback, useRef, useState } from "react";
 import type { PoseFrame } from "@/features/camera/poseFrame";
 
+// Stores recorded PoseFrame data without re-rendering on every camera frame.
+// React state is updated only when the recording state changes.
 export type RecordingState = "idle" | "recording" | "recorded";
 
 export function usePoseRecording() {

@@ -1,5 +1,7 @@
 import type { NormalizedLandmark } from "@mediapipe/tasks-vision";
 
+// Shared pose data shape used by recording, replay, recognition, and persistence.
+// Keep app code dependent on PoseFrame rather than raw MediaPipe result objects.
 export type PoseLandmark = {
   index: number;
   x: number;

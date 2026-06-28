@@ -35,6 +35,7 @@ pub fn start_webcam(cam_index: CameraIndex) -> Result<Camera, NokhwaError> {
 }
 
 #[derive(Clone)]
+#[allow(dead_code)]
 pub enum WebcamThreadCommand {
     SetCamera(CameraIndex),
     SetChannel(Channel<Vec<u8>>),

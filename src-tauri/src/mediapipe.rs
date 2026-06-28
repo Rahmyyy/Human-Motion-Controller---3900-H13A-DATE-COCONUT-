@@ -246,7 +246,6 @@ pub async fn landmarker_thread(
                     }
                 };
 
-
                 // Transform frame to be in reference to the person for best detection
                 let input_frame = geometric_transformations::warp(
                     &frame,

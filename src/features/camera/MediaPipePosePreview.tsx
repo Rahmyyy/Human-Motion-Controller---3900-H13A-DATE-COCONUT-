@@ -3,6 +3,8 @@ import { FilesetResolver, type NormalizedLandmark, PoseLandmarker } from "@media
 import { toPoseFrame, type PoseFrame } from "./poseFrame";
 import styles from "./MediaPipePosePreview.module.css";
 
+// Owns the browser camera + MediaPipe model lifecycle and emits PoseFrame data.
+// Recording/replay/mapping state should stay outside this component.
 const MEDIAPIPE_VERSION = "0.10.35";
 const WASM_ASSET_PATH = `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${MEDIAPIPE_VERSION}/wasm`;
 const POSE_MODEL_PATH =
