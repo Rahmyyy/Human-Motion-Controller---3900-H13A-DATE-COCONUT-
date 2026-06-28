@@ -1,20 +1,25 @@
 import { useCallback, useRef, useState } from "react";
 import type { PoseFrame } from "../camera/poseFrame";
 
+export type RecordingState = "idle" | "recording" | "recorded";
+
 export function usePoseRecording() {
-  const [isRecording, setIsRecording] = useState(false);
+  const [recordingState, setRecordingState] = useState<RecordingState>("idle");
+  const [recordedFrames, setRecordedFrames] = useState<PoseFrame[]>([]);
   const isRecordingRef = useRef(false);
   const framesRef = useRef<PoseFrame[]>([]);
 
   const startRecording = useCallback(() => {
     framesRef.current = [];
+    setRecordedFrames([]);
     isRecordingRef.current = true;
-    setIsRecording(true);
+    setRecordingState("recording");
   }, []);
 
   const stopRecording = useCallback(() => {
     isRecordingRef.current = false;
-    setIsRecording(false);
+    setRecordedFrames(framesRef.current);
+    setRecordingState("recorded");
     return framesRef.current;
   }, []);
 
@@ -24,5 +29,20 @@ export function usePoseRecording() {
     }
   }, []);
 
-  return { isRecording, startRecording, stopRecording, recordFrame };
+  const resetRecording = useCallback(() => {
+    framesRef.current = [];
+    setRecordedFrames([]);
+    isRecordingRef.current = false;
+    setRecordingState("idle");
+  }, []);
+
+  return {
+    isRecording: recordingState === "recording",
+    recordedFrames,
+    recordingState,
+    recordFrame,
+    resetRecording,
+    startRecording,
+    stopRecording,
+  };
 }

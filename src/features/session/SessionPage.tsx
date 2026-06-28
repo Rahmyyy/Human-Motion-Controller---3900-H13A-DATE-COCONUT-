@@ -30,15 +30,22 @@ function SessionCameraPanel({ onPoseFrame }: { onPoseFrame: (frame: PoseFrame) =
 }
 
 export default function SessionPage() {
-  const { isRecording, startRecording, stopRecording, recordFrame } = usePoseRecording();
+  const {
+    recordFrame,
+    recordedFrames,
+    recordingState,
+    resetRecording,
+    startRecording,
+    stopRecording,
+  } = usePoseRecording();
 
-  const handleToggleRecording = () => {
-    if (isRecording) {
-      const frames = stopRecording();
-      console.log(`Recorded ${frames.length} pose frames`, frames);
-    } else {
-      startRecording();
-    }
+  const handleStopRecording = () => {
+    const frames = stopRecording();
+    console.log(`Recorded ${frames.length} pose frames`, frames);
+  };
+
+  const handleSaveMapping = () => {
+    console.log("Save mapping clicked", { frames: recordedFrames });
   };
 
   return (
@@ -48,7 +55,13 @@ export default function SessionPage() {
         <SessionCameraPanel onPoseFrame={recordFrame} />
         <div className="grid min-h-0 content-start gap-4">
           <MappingDetailsPanel />
-          <RecordingControls isRecording={isRecording} onToggle={handleToggleRecording} />
+          <RecordingControls
+            state={recordingState}
+            onReRecord={resetRecording}
+            onSave={handleSaveMapping}
+            onStart={startRecording}
+            onStop={handleStopRecording}
+          />
         </div>
       </div>
     </main>
