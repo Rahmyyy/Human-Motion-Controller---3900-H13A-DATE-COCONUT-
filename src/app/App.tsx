@@ -1,6 +1,6 @@
 import { HashRouter, Route, Routes } from "react-router";
 import MovementMappingPage from "@/features/movement-mapping/MovementMappingPage";
-import PresetMappingsPage from "@/features/presets/PresetMappingsPage";
+import PresetMappingsPage from "@/features/preset-mapping/PresetMappingsPage";
 import PresetSelectionPage from "@/features/presets/PresetSelectionPage";
 
 export default function App() {
