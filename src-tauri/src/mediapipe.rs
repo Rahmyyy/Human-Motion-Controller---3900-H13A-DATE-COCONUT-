@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use anyhow::Result as AnyhowResult;
 
-use log::{debug, error, info, warn};
+use log::{info, warn};
 use ort::{
     self, ep,
     session::{builder::GraphOptimizationLevel, Session},
@@ -12,16 +12,19 @@ use tauri::ipc::Channel;
 use tokio::sync::mpsc;
 
 use crate::{
-    annotate::{self, sigmoid, PoseLandmarks},
+    annotate::{self, PoseLandmarks},
     cam_feeds::SenderThreadCommand,
 };
 
 use image::{DynamicImage, ImageBuffer, Rgba};
 
+type VisibilityMask = ImageBuffer<image::Luma<u8>, Vec<u8>>;
+type LandmarkerOutput = (PoseLandmarks, VisibilityMask);
+
 fn run_landmarker(
     model: &mut Session,
     image: ImageBuffer<image::Rgba<u8>, Vec<u8>>,
-) -> AnyhowResult<(PoseLandmarks, ImageBuffer<image::Luma<u8>, Vec<u8>>), anyhow::Error> {
+) -> AnyhowResult<LandmarkerOutput, anyhow::Error> {
     let resized = DynamicImage::ImageRgba8(image.clone())
         .resize_exact(256, 256, image::imageops::FilterType::Triangle)
         .to_rgb8();
@@ -59,6 +62,7 @@ pub enum LandmarkerThreadCommand {
     SetModel(PathBuf),
     InputFrame(ImageBuffer<Rgba<u8>, Vec<u8>>),
     SetChannel(Channel<Vec<u8>>),
+    #[allow(dead_code)]
     Stop,
 }
 

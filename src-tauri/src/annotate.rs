@@ -1,9 +1,11 @@
+#[allow(unused_imports)]
 use ab_glyph::{FontRef, PxScale};
 use std::collections::HashMap;
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 
 use image::{ImageBuffer, Rgba, RgbaImage};
+#[allow(unused_imports)]
 use imageproc::drawing::{
     draw_antialiased_line_segment_mut, draw_filled_circle_mut, draw_text_mut,
 };
@@ -100,6 +102,7 @@ pub struct LandmarkPoint {
     pub presence: f32,
 }
 
+#[allow(dead_code)]
 const TEXT_SCALE: ab_glyph::PxScale = PxScale { x: 20.0, y: 10.0 };
 
 pub fn sigmoid(x: f32) -> f32 {
@@ -177,7 +180,7 @@ impl PoseLandmarks {
     }
 }
 
-fn annotate_point(image: &mut RgbaImage, point: &LandmarkPoint, text: &str) {
+fn annotate_point(image: &mut RgbaImage, point: &LandmarkPoint, _text: &str) {
     if !point.visable() {
         return;
     }
@@ -241,5 +244,6 @@ pub fn annotate_frame(
         image.height(),
         ::image::imageops::FilterType::Triangle,
     );
+
     mask_image(&image, &visability_mask_scaled)
 }

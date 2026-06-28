@@ -1,5 +1,5 @@
 use image::ImageBuffer;
-use log::{debug, error, info, trace, warn};
+use log::{info, warn};
 use nokhwa::{
     self, nokhwa_initialize,
     pixel_format::RgbAFormat,
@@ -14,8 +14,9 @@ use tokio::sync::mpsc;
 use nokhwa::utils::{CameraFormat, FrameFormat, Resolution};
 use tauri::ipc::Channel;
 
-use crate::{mediapipe::LandmarkerThreadCommand};
+use crate::mediapipe::LandmarkerThreadCommand;
 
+#[allow(dead_code)]
 pub fn get_all_cameras() -> Vec<CameraInfo> {
     nokhwa::query(Auto).unwrap_or(vec![])
 }
@@ -33,6 +34,7 @@ pub fn start_webcam(cam_index: CameraIndex) -> Camera {
     camera
 }
 
+#[allow(dead_code)]
 pub fn send_frame_to_channel(
     channel: Channel<Vec<u8>>,
     image_buffer: ImageBuffer<image::Rgb<u8>, Vec<u8>>,
@@ -61,6 +63,7 @@ pub fn send_frame_to_channel(
 pub enum WebcamThreadCommand {
     SetCamera(CameraIndex),
     SetChannel(Channel<Vec<u8>>),
+    #[allow(dead_code)]
     Stop,
 }
 
@@ -130,6 +133,7 @@ pub enum SenderThreadCommand {
         format: image::ImageFormat,
         size: Option<(i32, i32)>,
     },
+    #[allow(dead_code)]
     Stop,
 }
 

@@ -2,7 +2,6 @@ mod annotate;
 mod cam_feeds;
 mod mediapipe;
 
-use log::{debug, error, info, trace, warn};
 use std::sync::OnceLock;
 
 use tauri::{async_runtime::spawn, ipc::Channel, path::BaseDirectory, Manager};
