@@ -121,8 +121,8 @@ const LANDMARK_LINKS: &[(Landmarks, Landmarks)] = &[
 ];
 
 const IGNORE_RENDER_LANDMARKS: &[Landmarks] = &[
-    Hip,
-    Head,
+    // Hip,
+    // Head,
     HandExtra1Right,
     HandExtra2Right,
     HandExtra1Left,
@@ -149,8 +149,8 @@ pub struct LandmarkPoint {
     pub presence: f32,
 }
 
-const VISIBILITY_THRESHOLD: f32 = 0.5;
-const PRESENCE_THRESHOLD: f32 = 0.5;
+const VISIBILITY_THRESHOLD: f32 = 0.;
+const PRESENCE_THRESHOLD: f32 = 0.;
 
 pub fn sigmoid(x: f32) -> f32 {
     1.0 / (1.0 + (-x).exp())
@@ -273,7 +273,7 @@ impl PoseLandmarks {
 }
 
 fn link_points(frame: &mut RgbaImage, point1: &LandmarkPoint, point2: &LandmarkPoint) {
-    if point1.visable() && point2.visable() {
+    if point1.visable() || point2.visable() {
         draw_antialiased_line_segment_mut(
             frame,
             point1.image_point(frame),
@@ -320,7 +320,12 @@ impl BoundingBox {
 pub fn annotate_frame(
     frame: RgbaImage,
     pose: &PoseLandmarks,
-    visability_mask: GrayImage,
+    visability_mask: Option<GrayImage>,
 ) -> RgbaImage {
-    pose.annotate(mask_image(&frame, &visability_mask))
+    let frame = match visability_mask {
+        Some(mask) => mask_image(&frame, &mask),
+        None => frame,
+    };
+
+    pose.annotate(frame)
 }

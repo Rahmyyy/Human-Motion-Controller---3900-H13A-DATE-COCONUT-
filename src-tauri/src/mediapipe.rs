@@ -1,12 +1,13 @@
 use core::f32;
 use std::path::PathBuf;
 
-use anyhow::Result as AnyhowResult;
+use anyhow::{Error, Result as AnyhowResult};
 
 use imageproc::geometric_transformations::{self, Projection};
 use log::{error, info, warn};
 use ort::{
-    self, ep,
+    self,
+    ep::{self, ExecutionProvider},
     session::{builder::GraphOptimizationLevel, Session},
     value::Tensor,
 };
@@ -14,11 +15,11 @@ use tauri::ipc::Channel;
 use tokio::sync::mpsc;
 
 use crate::{
-    annotate::{self, sigmoid, BoundingBox, PoseLandmarks},
+    annotate::{self, sigmoid, BoundingBox, Landmarks, PoseLandmarks},
     cam_feeds::SenderThreadCommand,
 };
 
-use image::{DynamicImage, GrayImage, Luma, Rgba, RgbaImage};
+use image::{DynamicImage, GrayImage, Luma, RgbaImage};
 
 fn run_landmarker(
     model: &mut Session,
@@ -63,7 +64,7 @@ fn run_landmarker(
     Ok((pose, visability_mask))
 }
 
-const MIN_SCORE_THRESHOLD_DETECTION: f32 = 0.75;
+const MIN_SCORE_THRESHOLD_DETECTION: f32 = 0.5;
 
 fn run_detector(
     model: &mut Session,
@@ -130,24 +131,45 @@ fn run_detector(
     let x1 = all_point1.iter().map(|kp| kp.0).sum::<f32>() / all_point1.len() as f32;
     let y1 = all_point1.iter().map(|kp| kp.1).sum::<f32>() / all_point1.len() as f32;
 
+    // let median = |in_vec: Vec<(f32, f32)>| {
+    //     let mut v = in_vec.iter().map(|kp| kp.0).collect::<Vec<_>>();
+    //     v.sort_by(|a, b| a.partial_cmp(b).unwrap());
+    //     let l = v.len();
+
+    //     let o1 = v.get(l / 2).unwrap();
+
+    //     let mut v = in_vec.iter().map(|kp| kp.1).collect::<Vec<_>>();
+    //     v.sort_by(|a, b| a.partial_cmp(b).unwrap());
+    //     let l = v.len();
+
+    //     (*o1, *v.get(l / 2).unwrap())
+    // };
+
+    // let (xc, yc) = median(all_center);
+    // let (x1, y1) = median(all_point1);
+
     let centre = (xc, yc);
     let point1 = (x1, y1);
 
-    let scale = ((centre.0 - point1.0).powi(2) + (centre.1 - point1.1).powi(2)).sqrt() * 2.0 * 1.5;
+    Some(get_projection(frame, centre, point1))
+}
+
+fn get_projection(frame: &RgbaImage, centre: (f32, f32), point1: (f32, f32)) -> Projection {
+    let scale =
+        ((centre.0 - point1.0).powi(2) + (centre.1 - point1.1).powi(2)).sqrt() * 2.0 * 1.5 * 0.9; // Magic numbers from existing alternative implementations
     let theta = (point1.0 - centre.0).atan2(point1.1 - centre.1) - std::f32::consts::PI;
 
-    let xc = xc * frame.width() as f32;
-    let yc = yc * frame.height() as f32;
+    let scale = scale.clamp(0.5, 2.0);
+
+    let xc = centre.0 * frame.width() as f32;
+    let yc = centre.1 * frame.height() as f32;
 
     // Applies from bottom up
-    let projection = {
-        Projection::translate(0.5 * frame.width() as f32, 0.5 * frame.height() as f32)
-            * Projection::scale(1. / scale, 1. / scale)
-            * Projection::rotate(theta)
-            * Projection::translate(-xc, -yc)
-    };
 
-    Some(projection)
+    Projection::translate(0.5 * frame.width() as f32, 0.5 * frame.height() as f32)
+        * Projection::scale(1. / scale, 1. / scale)
+        * Projection::rotate(theta)
+        * Projection::translate(-xc, -yc)
 }
 
 #[derive(Clone)]
@@ -159,7 +181,60 @@ pub enum LandmarkerThreadCommand {
     Stop,
 }
 
-const DETECTOR_MISSED_DISABLE_THRESHOLD: u32 = 10000;
+macro_rules! check_backend {
+    ($($backend:expr),+) => {[
+        $(
+            if $backend.is_available().unwrap_or(false) {
+            info!("Using {} backend", stringify!($backend));
+            Some($backend.build())
+        } else {
+            None
+        }
+    ),+].into_iter()
+    .flatten()
+    .collect::<Vec<_>>()
+    };
+}
+
+fn load_model(model_path: &PathBuf) -> Result<Session, Error> {
+    info!("Loading model from {:?}", model_path);
+
+    let err_handler = |e: ort::Error<ort::session::builder::SessionBuilder>| {
+        anyhow::anyhow!("Failed to load model: {}", e)
+    };
+
+    let mut builder = Session::builder()
+        .unwrap()
+        .with_execution_providers(check_backend![
+            ep::CoreML::default(),
+            ep::XNNPACK::default(),
+            ep::DirectML::default()
+        ])
+        .map_err(err_handler)?
+        .with_optimization_level(GraphOptimizationLevel::Level3)
+        .map_err(err_handler)?
+        .with_intra_threads(4)
+        .map_err(err_handler)?;
+
+    let model = match builder.commit_from_file(model_path) {
+        Ok(model) => model,
+        Err(e) => {
+            error!("Failed to load model: {}", e);
+            return Err(anyhow::anyhow!("Failed to load model: {}", e));
+        }
+    };
+
+    info!("Model loaded successfully");
+
+    Ok(model)
+}
+
+enum ProjectionState {
+    HighQuality(Projection),
+    LowQuality(Projection),
+}
+
+use ProjectionState::*;
 
 pub async fn landmarker_thread(
     mut command_rx: mpsc::Receiver<LandmarkerThreadCommand>,
@@ -167,63 +242,46 @@ pub async fn landmarker_thread(
     detector_model_path: PathBuf,
     anchor_path: PathBuf,
 ) {
-    let mut detector_model = Session::builder()
-        .unwrap()
-        .with_execution_providers([
-            // ep::CoreML::default().build(),
-            // ep::WebGPU::default().build(),
-            ep::XNNPACK::default().build(),
-        ])
-        .unwrap()
-        .with_optimization_level(GraphOptimizationLevel::Level3)
-        .unwrap()
-        .with_intra_threads(4)
-        .unwrap()
-        .commit_from_file(&detector_model_path)
-        .unwrap();
+    info!("Starting detector model...");
+    let mut detector_model = match load_model(&detector_model_path) {
+        Ok(model) => model,
+        Err(e) => {
+            error!("Failed to load detector model: {}", e);
+            return;
+        }
+    };
 
     let anchors_matrix: ndarray::Array2<f64> = ndarray_npy::read_npy(anchor_path).unwrap();
 
     let mut model_saved: Option<Session> = None;
     let mut frame_sender_channel_saved: Option<Channel<Vec<u8>>> = None;
-    let mut projection_saved: Option<(Projection, u32)> = None;
+    let mut projection_saved: Option<ProjectionState> = None;
 
     loop {
         match command_rx.recv().await.unwrap() {
             LandmarkerThreadCommand::SetModel(model_path) => {
-                model_saved = Some(
-                    Session::builder()
-                        .unwrap()
-                        .with_execution_providers([
-                            // ep::CoreML::default().build(),
-                            // ep::WebGPU::default().build(),
-                            ep::XNNPACK::default().build(),
-                        ])
-                        .unwrap()
-                        .with_optimization_level(GraphOptimizationLevel::Level3)
-                        .unwrap()
-                        .with_intra_threads(4)
-                        .unwrap()
-                        .commit_from_file(&model_path)
-                        .unwrap(),
-                );
-                info!("Model loaded successfully from {:?}", model_path);
+                info!("Loading landmarker model from {:?}", model_path);
+                model_saved = match load_model(&model_path) {
+                    Ok(model) => Some(model),
+                    Err(e) => {
+                        error!("Failed to load detector model: {}", e);
+                        continue;
+                    }
+                };
             }
             LandmarkerThreadCommand::Stop => break,
             LandmarkerThreadCommand::SetChannel(channel) => {
                 frame_sender_channel_saved = Some(channel);
             }
             LandmarkerThreadCommand::InputFrame(frame) => {
-                // let start = std::time::Instant::now();
-
                 let new_projection = run_detector(&mut detector_model, &frame, &anchors_matrix);
 
-                // Detector is more sensitive than the landmarker, so can keep running on existing projection for a bit
                 projection_saved = match (new_projection, projection_saved) {
-                    (Some(new_proj), _) => Some((new_proj, 0)),
-                    (None, None) => None,
-                    (None, Some((_, count))) if count > DETECTOR_MISSED_DISABLE_THRESHOLD => None,
-                    (None, Some((existing_proj, count))) => Some((existing_proj, count + 1)),
+                    (_, Some(HighQuality(existing_proj))) => Some(HighQuality(existing_proj)),
+                    (Some(new_proj), Some(LowQuality(_))) | (Some(new_proj), None) => {
+                        Some(LowQuality(new_proj))
+                    }
+                    (None, _) => None,
                 };
 
                 // Check if everything is valid otherwise skip
@@ -232,9 +290,14 @@ pub async fn landmarker_thread(
                     &frame_sender_channel_saved,
                     &projection_saved,
                 ) {
-                    (Some(model), Some(frame_sender_channel), Some((projection, _))) => {
-                        (model, frame_sender_channel, projection)
-                    }
+                    (Some(model), Some(frame_sender_channel), Some(projection)) => (
+                        model,
+                        frame_sender_channel,
+                        match projection {
+                            HighQuality(projection) => projection,
+                            LowQuality(projection) => projection,
+                        },
+                    ),
                     (model, channel, projection) => {
                         warn!(
                             "Landmarker frame skipped due to: model={}, channel={}, projection={}",
@@ -246,16 +309,16 @@ pub async fn landmarker_thread(
                     }
                 };
 
-
                 // Transform frame to be in reference to the person for best detection
                 let input_frame = geometric_transformations::warp(
                     &frame,
                     *proj,
                     imageproc::geometric_transformations::Interpolation::Bilinear,
-                    imageproc::geometric_transformations::Border::Constant(Rgba([0, 0, 0, 255])),
+                    imageproc::geometric_transformations::Border::Replicate,
+                    // imageproc::geometric_transformations::Border::Constant(Rgba([0, 0, 0, 255])),
                 );
 
-                let (mut pose, mask) = match run_landmarker(model, input_frame) {
+                let (mut pose, mask) = match run_landmarker(model, input_frame.clone()) {
                     Ok(result) => result,
                     Err(e) => {
                         error!("Error occurred while running landmarker: {}", e);
@@ -264,10 +327,21 @@ pub async fn landmarker_thread(
                 };
 
                 let inv_proj = proj.invert();
-
                 let (width, height) = (frame.width(), frame.height());
 
+                // let mut annotated_frame = annotate::annotate_frame(frame, &pose, None);
+
+                // USED FOR ALTERNATIVE ANNOTATION VIEW
                 pose.fix_transform(&inv_proj, (width, height));
+
+                let centre = pose.get(&Landmarks::Hip);
+                let point1 = pose.get(&Landmarks::Head);
+
+                projection_saved = Some(HighQuality(get_projection(
+                    &frame,
+                    (centre.x, centre.y),
+                    (point1.x, point1.y),
+                )));
 
                 let mask = geometric_transformations::warp(
                     &mask,
@@ -276,13 +350,12 @@ pub async fn landmarker_thread(
                     imageproc::geometric_transformations::Border::Constant(Luma([0])),
                 );
 
-                let mut annotated_frame = annotate::annotate_frame(frame, &pose, mask);
+                let mut annotated_frame = annotate::annotate_frame(frame, &pose, Some(mask));
 
                 let edges = [(0.0, 0.0), (0.0, 1.0), (1.0, 0.0), (1.0, 1.0)]
                     .iter()
                     .map(|(x, y)| inv_proj * ((*x * width as f32), *y * height as f32))
                     .collect::<Vec<_>>();
-
                 BoundingBox::new(edges[0], edges[1], edges[2], edges[3]).draw(&mut annotated_frame);
 
                 match frame_sender_tx

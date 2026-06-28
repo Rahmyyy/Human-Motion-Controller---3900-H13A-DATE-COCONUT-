@@ -84,8 +84,7 @@ pub fn run() {
                 let list_items: Vec<MenuItem<_>> = ids
                     .iter()
                     .zip(names)
-                    .enumerate()
-                    .map(|(i, (id, name))| {
+                    .map(|(id, name)| {
                         MenuItemBuilder::with_id(id, name)
                             // .checked(i == 0)
                             .enabled(true)
