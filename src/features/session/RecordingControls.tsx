@@ -1,16 +1,18 @@
 import { Button } from "@/components/ui/button";
 import { Square, Circle } from "lucide-react";
-import { useState } from "react";
 
-export default function RecordingControls() {
-  const [isRecording, setIsRecording] = useState(false);
+interface RecordingControlsProps {
+  isRecording: boolean;
+  onToggle: () => void;
+}
 
+export default function RecordingControls({ isRecording, onToggle }: RecordingControlsProps) {
   return (
     <Button
       type="button"
       variant={isRecording ? "destructive" : "default"}
       className="w-full"
-      onClick={() => setIsRecording((current) => !current)}
+      onClick={onToggle}
     >
       {isRecording ? (
         <>

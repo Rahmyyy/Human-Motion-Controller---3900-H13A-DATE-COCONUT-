@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { FilesetResolver, type NormalizedLandmark, PoseLandmarker } from "@mediapipe/tasks-vision";
-import { toPoseFrame } from "./poseFrame";
+import { toPoseFrame, type PoseFrame } from "./poseFrame";
 import styles from "./MediaPipePosePreview.module.css";
 
 const MEDIAPIPE_VERSION = "0.10.35";
@@ -11,16 +11,25 @@ const MIN_VISIBILITY = 0.5;
 
 type PreviewStatus = "loading" | "running" | "error";
 
-export default function MediaPipePosePreview() {
+type MediaPipePosePreviewProps = {
+  onPoseFrame?: (frame: PoseFrame) => void;
+};
+
+export default function MediaPipePosePreview({ onPoseFrame }: MediaPipePosePreviewProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const landmarkerRef = useRef<PoseLandmarker | null>(null);
   const frameRequestRef = useRef<number | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const lastVideoTimeRef = useRef<number>(-1);
+  const onPoseFrameRef = useRef(onPoseFrame);
 
   const [status, setStatus] = useState<PreviewStatus>("loading");
   const [error, setError] = useState<string>("");
+
+  useEffect(() => {
+    onPoseFrameRef.current = onPoseFrame;
+  }, [onPoseFrame]);
 
   useEffect(() => {
     let cancelled = false;
@@ -101,7 +110,7 @@ export default function MediaPipePosePreview() {
         const result = landmarker.detectForVideo(video, now);
         const landmarks = result.landmarks[0] ?? [];
         const poseFrame = toPoseFrame(now, landmarks);
-        void poseFrame;
+        onPoseFrameRef.current?.(poseFrame);
 
         drawPose(canvas, landmarks);
       }
