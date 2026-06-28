@@ -55,14 +55,14 @@ pub fn run() {
                 anchor_path,
             ));
 
-            tauri::async_runtime::block_on(async {
-                webcam_tx
-                    .send(WebcamThreadCommand::SetCamera(
-                        nokhwa::utils::CameraIndex::Index(0),
-                    ))
-                    .await
-                    .unwrap();
-            });
+            // tauri::async_runtime::block_on(async {
+            //     webcam_tx
+            //         .send(WebcamThreadCommand::SetCamera(
+            //             nokhwa::utils::CameraIndex::Index(0),
+            //         ))
+            //         .await
+            //         .unwrap();
+            // });
 
             let model_path = app
                 .path()
