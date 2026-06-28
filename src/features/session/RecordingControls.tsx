@@ -23,10 +23,14 @@ export default function RecordingControls({
   if (state === "recorded") {
     return (
       <div className="grid gap-2">
-        <Button type="button" className="w-full" onClick={() => {
-          onSave();
-          navigate(-1);
-        }}>
+        <Button
+          type="button"
+          className="w-full"
+          onClick={() => {
+            onSave();
+            navigate(-1);
+          }}
+        >
           <Save className="size-4" aria-hidden="true" />
           Save Mapping
         </Button>
