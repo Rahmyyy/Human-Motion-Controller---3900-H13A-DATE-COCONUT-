@@ -1,7 +1,7 @@
 import { HashRouter, Route, Routes } from "react-router";
+import MovementMappingPage from "@/features/movement-mapping/MovementMappingPage";
 import PresetMappingsPage from "@/features/presets/PresetMappingsPage";
 import PresetSelectionPage from "@/features/presets/PresetSelectionPage";
-import SessionPage from "@/features/session/SessionPage";
 
 export default function App() {
   return (
@@ -9,7 +9,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<PresetSelectionPage />} />
         <Route path="/preset/edit" element={<PresetMappingsPage />} />
-        <Route path="/session" element={<SessionPage />} />
+        <Route path="/session" element={<MovementMappingPage />} />
       </Routes>
     </HashRouter>
   );
