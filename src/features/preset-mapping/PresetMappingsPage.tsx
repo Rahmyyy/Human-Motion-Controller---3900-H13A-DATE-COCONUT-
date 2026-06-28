@@ -2,6 +2,21 @@ import { Button } from "@/components/ui/button";
 import BackButton from "@/components/BackButton";
 import { Plus } from "lucide-react";
 import { Link } from "react-router";
+import PresetMappingCollection from "./components/PresetMappingCollection";
+import type { PresetMappingCardData } from "./types";
+
+const previewMappings: PresetMappingCardData[] = [
+  {
+    id: "preview-1",
+    keybind: "Spacebar",
+    name: "Jump",
+  },
+  {
+    id: "preview-2",
+    keybind: "Arrow Left",
+    name: "Lean Left",
+  },
+];
 
 export default function PresetMappingsPage() {
   return (
@@ -27,6 +42,8 @@ export default function PresetMappingsPage() {
             </Button>
           </div>
         </header>
+
+        <PresetMappingCollection mappings={previewMappings} />
       </div>
     </section>
   );
