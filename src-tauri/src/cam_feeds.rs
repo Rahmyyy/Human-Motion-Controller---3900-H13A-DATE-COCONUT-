@@ -1,10 +1,10 @@
-use image::ImageBuffer;
-use log::{info, warn};
+use image::RgbaImage;
+use log::{error, info, warn};
 use nokhwa::{
     self, nokhwa_initialize,
     pixel_format::RgbAFormat,
     utils::{ApiBackend::Auto, CameraIndex, CameraInfo, RequestedFormat, RequestedFormatType},
-    Camera,
+    Camera, NokhwaError,
 };
 
 use std::time::Duration;
@@ -21,42 +21,17 @@ pub fn get_all_cameras() -> Vec<CameraInfo> {
     nokhwa::query(Auto).unwrap_or(vec![])
 }
 
-pub fn start_webcam(cam_index: CameraIndex) -> Camera {
+pub fn start_webcam(cam_index: CameraIndex) -> Result<Camera, NokhwaError> {
     // let requested =
     //     RequestedFormat::new::<RgbAFormat>(RequestedFormatType::AbsoluteHighestFrameRate);
     let requested = RequestedFormat::new::<RgbAFormat>(RequestedFormatType::Exact(
         CameraFormat::new(Resolution::new(640, 480), FrameFormat::MJPEG, 30),
     ));
 
-    let mut camera = Camera::new(cam_index, requested).unwrap();
-    camera.open_stream().unwrap();
+    let mut camera = Camera::new(cam_index, requested)?;
+    camera.open_stream()?;
 
-    camera
-}
-
-#[allow(dead_code)]
-pub fn send_frame_to_channel(
-    channel: Channel<Vec<u8>>,
-    image_buffer: ImageBuffer<image::Rgb<u8>, Vec<u8>>,
-) {
-    // let resized =
-    //     image::imageops::resize(&image, 640, 480, ::image::imageops::FilterType::Triangle);
-
-    // Encode the ImageBuffer directly into compressed JPEG bytes
-    let mut encoder_buffer = Vec::new();
-    encoder_buffer.clear();
-    let mut cursor = std::io::Cursor::new(&mut encoder_buffer);
-
-    if image_buffer
-        .write_to(&mut cursor, image::ImageFormat::Jpeg)
-        .is_ok()
-    {
-        // Push the raw Vec<u8> directly down the Tauri channel to the frontend
-        if channel.send(encoder_buffer.clone()).is_err() {
-            // If the frontend closed the channel or component unmounted, stop streaming
-            warn!("Failed to send frame through channel");
-        }
-    }
+    Ok(camera)
 }
 
 #[derive(Clone)]
@@ -79,7 +54,7 @@ pub async fn webcam_thread(
     let mut interval = tokio::time::interval(Duration::from_millis(10)); // 30 FPS
 
     // let mut camera: Option<Camera> = None;
-    let mut camera: Option<Camera> = Some(start_webcam(CameraIndex::Index(0)));
+    let mut camera: Option<Camera> = None;
     let mut frame_sender_channel: Option<Channel<Vec<u8>>> = None;
 
     loop {
@@ -110,11 +85,17 @@ pub async fn webcam_thread(
             match command {
                 WebcamThreadCommand::SetCamera(cam_index) => {
                     info!("Switching to camera {:?}", cam_index);
-                    camera = Some(start_webcam(cam_index.clone()));
+                    camera = match start_webcam(cam_index) {
+                        Ok(cam) => Some(cam),
+                        Err(e) => {
+                            error!("Failed to start webcam: {}", e);
+                            None
+                        }
+                    };
                 }
                 WebcamThreadCommand::SetChannel(channel) => {
                     info!("Setting new channel for webcam thread");
-                    frame_sender_channel = Some(channel.clone());
+                    frame_sender_channel = Some(channel);
                 }
                 WebcamThreadCommand::Stop => {
                     info!("Stopping webcam thread");
@@ -128,7 +109,7 @@ pub async fn webcam_thread(
 #[derive(Clone)]
 pub enum SenderThreadCommand {
     SendFrame {
-        frame: ImageBuffer<image::Rgba<u8>, Vec<u8>>,
+        frame: RgbaImage,
         channel: Channel<Vec<u8>>,
         format: image::ImageFormat,
         size: Option<(i32, i32)>,
@@ -155,7 +136,7 @@ pub async fn frame_sender_thread(mut frame_rx: mpsc::Receiver<SenderThreadComman
                 encoder_buffer.clear();
                 let mut cursor = std::io::Cursor::new(&mut encoder_buffer);
 
-                let frame = match size {
+                let mut frame = match size {
                     Some((width, height)) => image::imageops::resize(
                         &frame,
                         width as u32,
@@ -164,6 +145,8 @@ pub async fn frame_sender_thread(mut frame_rx: mpsc::Receiver<SenderThreadComman
                     ),
                     None => frame,
                 };
+
+                image::imageops::flip_horizontal_in_place(&mut frame);
 
                 let frame = image::DynamicImage::ImageRgba8(frame);
 
