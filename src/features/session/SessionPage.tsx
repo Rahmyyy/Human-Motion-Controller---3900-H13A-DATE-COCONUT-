@@ -1,6 +1,7 @@
 import BackButton from "@/components/BackButton";
 import MediaPipePosePreview from "../camera/MediaPipePosePreview";
 import MappingDetailsPanel from "./MappingDetailsPanel";
+import RecordingControls from "./RecordingControls";
 
 function SessionHeader() {
   return (
@@ -32,7 +33,10 @@ export default function SessionPage() {
       <SessionHeader />
       <div className="grid min-h-0 gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <SessionCameraPanel />
-        <MappingDetailsPanel />
+        <div className="grid min-h-0 content-start gap-4">
+          <MappingDetailsPanel />
+          <RecordingControls />
+        </div>
       </div>
     </main>
   );
