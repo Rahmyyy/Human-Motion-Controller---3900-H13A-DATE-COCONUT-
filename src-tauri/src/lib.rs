@@ -5,23 +5,22 @@ mod mediapipe;
 use std::sync::OnceLock;
 
 use tauri::{async_runtime::spawn, ipc::Channel, path::BaseDirectory, Manager};
-use tokio::sync::{mpsc, Mutex};
+use tokio::sync::mpsc;
 
 use crate::{cam_feeds::WebcamThreadCommand, mediapipe::LandmarkerThreadCommand};
 
-static WEBCAM_TX: OnceLock<Mutex<mpsc::Sender<WebcamThreadCommand>>> = OnceLock::new();
-
-static ANNOTATED_TX: OnceLock<Mutex<mpsc::Sender<LandmarkerThreadCommand>>> = OnceLock::new();
+static WEBCAM_TX: OnceLock<mpsc::Sender<WebcamThreadCommand>> = OnceLock::new();
+static ANNOTATED_TX: OnceLock<mpsc::Sender<LandmarkerThreadCommand>> = OnceLock::new();
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    let (webcam_tx, webcam_rx) = mpsc::channel::<WebcamThreadCommand>(50);
+    let (webcam_tx, webcam_rx) = mpsc::channel::<WebcamThreadCommand>(5);
 
-    let _ = WEBCAM_TX.set(Mutex::new(webcam_tx));
+    let _ = WEBCAM_TX.set(webcam_tx.clone());
 
-    let (annotated_tx, annotated_rx) = mpsc::channel::<LandmarkerThreadCommand>(1);
+    let (annotated_tx, annotated_rx) = mpsc::channel::<LandmarkerThreadCommand>(5);
 
-    let _ = ANNOTATED_TX.set(Mutex::new(annotated_tx.clone()));
+    let _ = ANNOTATED_TX.set(annotated_tx.clone());
 
     tauri::Builder::default()
         .plugin(
@@ -29,7 +28,7 @@ pub fn run() {
                 .level(tauri_plugin_log::log::LevelFilter::Info)
                 .build(),
         )
-        .setup(|app| {
+        .setup(move |app| {
             let (frame_sender_tx, frame_sender_rx) =
                 mpsc::channel::<cam_feeds::SenderThreadCommand>(1);
 
@@ -38,20 +37,26 @@ pub fn run() {
             spawn(cam_feeds::webcam_thread(
                 webcam_rx,
                 frame_sender_tx.clone(),
-                annotated_tx,
+                annotated_tx.clone(),
             ));
+
+            let detector_model_path = app
+                .path()
+                .resolve("models/MediaPipePoseDetector.onnx", BaseDirectory::Resource)?;
+
+            let anchor_path = app
+                .path()
+                .resolve("models/anchors_pose.npy", BaseDirectory::Resource)?;
 
             spawn(mediapipe::landmarker_thread(
                 annotated_rx,
                 frame_sender_tx.clone(),
+                detector_model_path,
+                anchor_path,
             ));
 
             tauri::async_runtime::block_on(async {
-                WEBCAM_TX
-                    .get()
-                    .unwrap()
-                    .lock()
-                    .await
+                webcam_tx
                     .send(WebcamThreadCommand::SetCamera(
                         nokhwa::utils::CameraIndex::Index(0),
                     ))
@@ -64,11 +69,7 @@ pub fn run() {
                 .resolve("models/pose_landmark_heavy.onnx", BaseDirectory::Resource)?;
 
             tauri::async_runtime::block_on(async {
-                ANNOTATED_TX
-                    .get()
-                    .unwrap()
-                    .lock()
-                    .await
+                annotated_tx
                     .send(LandmarkerThreadCommand::SetModel(model_path))
                     .await
                     .unwrap();
@@ -108,8 +109,6 @@ async fn webcam_handler(channel: Channel<Vec<u8>>) {
     WEBCAM_TX
         .get()
         .unwrap()
-        .lock()
-        .await
         .send(WebcamThreadCommand::SetChannel(channel))
         .await
         .unwrap();
@@ -120,8 +119,6 @@ async fn annotated_handler(channel: Channel<Vec<u8>>) {
     ANNOTATED_TX
         .get()
         .unwrap()
-        .lock()
-        .await
         .send(LandmarkerThreadCommand::SetChannel(channel))
         .await
         .unwrap();
