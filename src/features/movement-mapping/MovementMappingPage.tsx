@@ -1,10 +1,16 @@
+import { useNavigate } from "react-router";
+import { useState } from "react";
 import MappingDetailsPanel from "./components/MappingDetailsPanel";
+import type { Keybind } from "./components/MappingDetailsPanel";
 import MovementCameraPanel from "./components/MovementCameraPanel";
 import MovementMappingHeader from "./components/MovementMappingHeader";
 import RecordingControls from "./components/RecordingControls";
 import { usePoseRecording } from "./hooks/usePoseRecording";
 
 export default function MovementMappingPage() {
+  const navigate = useNavigate();
+  const [movementName, setMovementName] = useState("");
+  const [keybind, setKeybind] = useState<Keybind | null>(null);
   const {
     recordFrame,
     recordedFrames,
@@ -20,7 +26,12 @@ export default function MovementMappingPage() {
   };
 
   const handleSaveMapping = () => {
-    console.log("Save mapping clicked", { frames: recordedFrames });
+    console.log("Save mapping clicked", {
+      frames: recordedFrames,
+      keybind,
+      name: movementName,
+    });
+    navigate(-1);
   };
 
   return (
@@ -33,7 +44,12 @@ export default function MovementMappingPage() {
           recordingState={recordingState}
         />
         <div className="grid min-h-0 content-start gap-4">
-          <MappingDetailsPanel />
+          <MappingDetailsPanel
+            keybind={keybind}
+            movementName={movementName}
+            onKeybindChange={setKeybind}
+            onMovementNameChange={setMovementName}
+          />
           <RecordingControls
             state={recordingState}
             onReRecord={resetRecording}
