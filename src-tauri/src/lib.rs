@@ -1,35 +1,21 @@
-mod annotate;
-mod cam_feeds;
 mod mediapipe;
+mod streams;
 
-use std::sync::OnceLock;
-
-use log::{debug, warn};
+use log::{error, warn};
 use nokhwa::utils::CameraIndex;
+use std::path::PathBuf;
 use tauri::{
-    async_runtime::spawn,
-    ipc::Channel,
     menu::{AboutMetadata, MenuBuilder, MenuItem, MenuItemBuilder, SubmenuBuilder},
     path::BaseDirectory,
     App, AppHandle, Manager,
 };
-use tokio::sync::mpsc;
 
-use crate::{cam_feeds::WebcamThreadCommand, mediapipe::LandmarkerThreadCommand};
+use crate::{mediapipe::runner::set_model_path, streams::camera};
 
-static WEBCAM_TX: OnceLock<mpsc::Sender<WebcamThreadCommand>> = OnceLock::new();
-static ANNOTATED_TX: OnceLock<mpsc::Sender<LandmarkerThreadCommand>> = OnceLock::new();
+const ALTERNATIVE_CAMERA_VIEW: bool = false;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    let (webcam_tx, webcam_rx) = mpsc::channel::<WebcamThreadCommand>(5);
-
-    let _ = WEBCAM_TX.set(webcam_tx.clone());
-
-    let (annotated_tx, annotated_rx) = mpsc::channel::<LandmarkerThreadCommand>(5);
-
-    let _ = ANNOTATED_TX.set(annotated_tx.clone());
-
     tauri::Builder::default()
         .plugin(
             tauri_plugin_log::Builder::new()
@@ -37,31 +23,16 @@ pub fn run() {
                 .build(),
         )
         .setup(move |app| {
-            let (frame_sender_tx, frame_sender_rx) =
-                mpsc::channel::<cam_feeds::SenderThreadCommand>(1);
+            let frame_sender_tx = streams::sender::start_frame_sender_thread();
 
-            spawn(cam_feeds::frame_sender_thread(frame_sender_rx));
-
-            spawn(cam_feeds::webcam_thread(
-                webcam_rx,
+            let mediapipe_tx = mediapipe::runner::start_mediapipe_thread(
                 frame_sender_tx.clone(),
-                annotated_tx.clone(),
-            ));
+                get_path(app.handle(), "models/MediaPipePoseDetector.onnx"),
+                get_path(app.handle(), "models/anchors_pose.npy"),
+            );
 
-            let detector_model_path = app
-                .path()
-                .resolve("models/MediaPipePoseDetector.onnx", BaseDirectory::Resource)?;
-
-            let anchor_path = app
-                .path()
-                .resolve("models/anchors_pose.npy", BaseDirectory::Resource)?;
-
-            spawn(mediapipe::landmarker_thread(
-                annotated_rx,
-                frame_sender_tx.clone(),
-                detector_model_path,
-                anchor_path,
-            ));
+            let webcam_tx =
+                streams::camera::start_webcam_thread(frame_sender_tx.clone(), mediapipe_tx.clone());
 
             let app_menu = SubmenuBuilder::new(app, "Human Controller")
                 .about(Some(AboutMetadata {
@@ -104,7 +75,7 @@ pub fn run() {
                     .unwrap()
             };
 
-            let camera_list = cam_feeds::get_all_cameras();
+            let camera_list = camera::get_all_cameras();
             let ids: Vec<String> = camera_list
                 .iter()
                 .map(|c| format!("cam-{}", c.index().as_string()))
@@ -133,14 +104,27 @@ pub fn run() {
 
             app.set_menu(menu)?;
 
+            camera::set_camera(camera_list.first().unwrap().index().clone(), &webcam_tx);
+            set_model_path(
+                get_path(app.handle(), model_paths.first().unwrap()),
+                &mediapipe_tx,
+            );
+
             app.on_menu_event(move |app_handle, event| {
-                debug!("Menu Event: {:?}", event);
+                let mediapipe_tx = mediapipe_tx.clone();
+                let webcam_tx = webcam_tx.clone();
+
                 match event.id().0.as_str() {
-                    path if path.starts_with("models") => set_model_path(app_handle, path),
+                    path if path.starts_with("models") => {
+                        set_model_path(get_path(app_handle, path), &mediapipe_tx);
+                    }
                     cam_id if cam_id.starts_with("cam-") => {
-                        set_camera(CameraIndex::Index(
-                            cam_id.strip_prefix("cam-").unwrap().parse::<u32>().unwrap(),
-                        ));
+                        camera::set_camera(
+                            CameraIndex::Index(
+                                cam_id.strip_prefix("cam-").unwrap().parse::<u32>().unwrap(),
+                            ),
+                            &webcam_tx,
+                        );
                     }
                     other => {
                         warn!("Unknown menu event: {}", other)
@@ -148,12 +132,12 @@ pub fn run() {
                 }
             });
 
-            set_camera(camera_list.first().unwrap().index().clone());
-            set_model_path(app.app_handle(), model_paths.first().unwrap());
-
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![webcam_handler, annotated_handler])
+        .invoke_handler(tauri::generate_handler![
+            camera::webcam_handler,
+            mediapipe::runner::mediapipe_handler,
+        ])
         .plugin(
             tauri_plugin_log::Builder::new()
                 .format(|out, message, record| {
@@ -180,49 +164,12 @@ pub fn run() {
         .expect("error while running tauri application");
 }
 
-#[tauri::command]
-async fn webcam_handler(channel: Channel<Vec<u8>>) {
-    WEBCAM_TX
-        .get()
-        .unwrap()
-        .send(WebcamThreadCommand::SetChannel(channel))
-        .await
-        .unwrap();
-}
-
-#[tauri::command]
-async fn annotated_handler(channel: Channel<Vec<u8>>) {
-    ANNOTATED_TX
-        .get()
-        .unwrap()
-        .send(LandmarkerThreadCommand::SetChannel(channel))
-        .await
-        .unwrap();
-}
-
-fn set_model_path(app: &AppHandle, model_path: &str) {
-    let model_path = app
-        .path()
-        .resolve(model_path, BaseDirectory::Resource)
-        .unwrap();
-
-    tauri::async_runtime::block_on(async {
-        ANNOTATED_TX
-            .get()
-            .unwrap()
-            .send(LandmarkerThreadCommand::SetModel(model_path))
-            .await
-            .unwrap();
-    });
-}
-
-fn set_camera(cam_index: CameraIndex) {
-    tauri::async_runtime::block_on(async {
-        WEBCAM_TX
-            .get()
-            .unwrap()
-            .send(WebcamThreadCommand::SetCamera(cam_index))
-            .await
-            .unwrap();
-    });
+fn get_path(app: &AppHandle, relative_path: &str) -> PathBuf {
+    match app.path().resolve(relative_path, BaseDirectory::Resource) {
+        Ok(path) => path,
+        Err(e) => {
+            error!("Failed to resolve path {}: {}", relative_path, e);
+            panic!("Failed to resolve path {}: {}", relative_path, e);
+        }
+    }
 }

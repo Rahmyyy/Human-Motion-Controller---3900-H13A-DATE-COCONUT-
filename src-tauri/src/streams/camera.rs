@@ -1,22 +1,20 @@
-use image::RgbaImage;
-use log::{error, info, warn};
+use log::{error, info};
+use nokhwa::utils::{CameraFormat, FrameFormat, Resolution};
 use nokhwa::{
     self, nokhwa_initialize,
     pixel_format::RgbAFormat,
     utils::{ApiBackend::Auto, CameraIndex, CameraInfo, RequestedFormat, RequestedFormatType},
     Camera, NokhwaError,
 };
-
+use std::sync::OnceLock;
 use std::time::Duration;
-
+use tauri::ipc::Channel;
 use tokio::sync::mpsc;
 
-use nokhwa::utils::{CameraFormat, FrameFormat, Resolution};
-use tauri::ipc::Channel;
+use crate::{mediapipe::runner::MediapipeThreadCommand, streams::sender::SenderThreadCommand};
 
-use crate::mediapipe::LandmarkerThreadCommand;
+static WEBCAM_TX: OnceLock<mpsc::Sender<WebcamThreadCommand>> = OnceLock::new();
 
-#[allow(dead_code)]
 pub fn get_all_cameras() -> Vec<CameraInfo> {
     nokhwa::query(Auto).unwrap_or(vec![])
 }
@@ -42,10 +40,10 @@ pub enum WebcamThreadCommand {
     Stop,
 }
 
-pub async fn webcam_thread(
+async fn webcam_thread(
     mut command_rx: mpsc::Receiver<WebcamThreadCommand>,
     frame_sender_tx: mpsc::Sender<SenderThreadCommand>,
-    annotate_tx: mpsc::Sender<LandmarkerThreadCommand>,
+    annotate_tx: mpsc::Sender<MediapipeThreadCommand>,
 ) {
     nokhwa_initialize(|granted| {
         info!("nokhwa_initialize = {}", granted);
@@ -75,7 +73,7 @@ pub async fn webcam_thread(
                     .unwrap();
 
                 annotate_tx
-                    .send(LandmarkerThreadCommand::InputFrame(frame))
+                    .send(MediapipeThreadCommand::InputFrame(frame))
                     .await
                     .unwrap();
             }
@@ -106,58 +104,34 @@ pub async fn webcam_thread(
     }
 }
 
-#[derive(Clone)]
-pub enum SenderThreadCommand {
-    SendFrame {
-        frame: RgbaImage,
-        channel: Channel<Vec<u8>>,
-        format: image::ImageFormat,
-        size: Option<(i32, i32)>,
-    },
-    #[allow(dead_code)]
-    Stop,
+pub fn start_webcam_thread(
+    frame_sender_tx: mpsc::Sender<SenderThreadCommand>,
+    annotate_tx: mpsc::Sender<MediapipeThreadCommand>,
+) -> mpsc::Sender<WebcamThreadCommand> {
+    let (command_tx, command_rx) = mpsc::channel::<WebcamThreadCommand>(5);
+
+    let _ = WEBCAM_TX.set(command_tx.clone());
+
+    tauri::async_runtime::spawn(webcam_thread(command_rx, frame_sender_tx, annotate_tx));
+
+    command_tx
 }
 
-pub async fn frame_sender_thread(mut frame_rx: mpsc::Receiver<SenderThreadCommand>) {
-    let mut encoder_buffer: Vec<u8> = Vec::new();
+#[tauri::command]
+pub async fn webcam_handler(channel: Channel<Vec<u8>>) {
+    WEBCAM_TX
+        .get()
+        .unwrap()
+        .send(WebcamThreadCommand::SetChannel(channel))
+        .await
+        .unwrap();
+}
 
-    loop {
-        match frame_rx.recv().await.unwrap() {
-            SenderThreadCommand::Stop => {
-                info!("Stopping frame sender thread");
-                break;
-            }
-            SenderThreadCommand::SendFrame {
-                frame,
-                channel,
-                format,
-                size,
-            } => {
-                encoder_buffer.clear();
-                let mut cursor = std::io::Cursor::new(&mut encoder_buffer);
-
-                let mut frame = match size {
-                    Some((width, height)) => image::imageops::resize(
-                        &frame,
-                        width as u32,
-                        height as u32,
-                        ::image::imageops::FilterType::Triangle,
-                    ),
-                    None => frame,
-                };
-
-                image::imageops::flip_horizontal_in_place(&mut frame);
-
-                let frame = image::DynamicImage::ImageRgba8(frame);
-
-                if frame.write_to(&mut cursor, format).is_ok() {
-                    if channel.send(encoder_buffer.clone()).is_err() {
-                        warn!("Failed to send frame through channel");
-                    }
-                } else {
-                    warn!("Failed to encode frame to {:?}", format);
-                }
-            }
-        }
-    }
+pub fn set_camera(cam_index: CameraIndex, webcam_tx: &mpsc::Sender<WebcamThreadCommand>) {
+    tauri::async_runtime::block_on(async {
+        webcam_tx
+            .send(WebcamThreadCommand::SetCamera(cam_index))
+            .await
+            .unwrap();
+    });
 }

@@ -25,7 +25,7 @@ export default function AnnotatedPreview() {
       };
 
       // Initate channel on load
-      await invoke("annotated_handler", { channel });
+      await invoke("mediapipe_handler", { channel });
     } catch (error) {
       console.error("Stream Failed:", error);
     }
