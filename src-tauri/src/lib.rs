@@ -2,6 +2,7 @@ mod annotate;
 mod cam_feeds;
 mod db;
 mod mediapipe;
+mod movement_mapping_commands;
 mod movement_mapping_repository;
 mod movement_mapping_service;
 
@@ -32,7 +33,7 @@ pub fn run() {
                 .build(),
         )
         .setup(move |app| {
-            let _conn = db::init_db(app.handle())?;
+            app.manage(db::init_db(app.handle())?);
 
             let (frame_sender_tx, frame_sender_rx) =
                 mpsc::channel::<cam_feeds::SenderThreadCommand>(1);
@@ -82,7 +83,11 @@ pub fn run() {
 
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![webcam_handler, annotated_handler])
+        .invoke_handler(tauri::generate_handler![
+            webcam_handler,
+            annotated_handler,
+            movement_mapping_commands::create_movement_mapping
+        ])
         .plugin(
             tauri_plugin_log::Builder::new()
                 .format(|out, message, record| {

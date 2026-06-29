@@ -1,6 +1,7 @@
 use crate::movement_mapping_repository;
 use anyhow::{anyhow, Result};
 use rusqlite::Connection;
+use std::time::{SystemTime, UNIX_EPOCH};
 
 pub fn create_movement_mapping(
     conn: &Connection,
@@ -9,22 +10,33 @@ pub fn create_movement_mapping(
     keybind: &str,
     pose_frames_json: &str,
 ) -> Result<()> {
-    if name.trim().is_empty() {
+    let name = name.trim();
+    let keybind = keybind.trim();
+
+    if name.is_empty() {
         return Err(anyhow!("Movement mapping name cannot be empty"));
     }
 
-    if keybind.trim().is_empty() {
+    if keybind.is_empty() {
         return Err(anyhow!("Movement mapping keybind cannot be empty"));
     }
 
+    if pose_frames_json.trim().is_empty() {
+        return Err(anyhow!("Movement mapping pose frames cannot be empty"));
+    }
+
+    let now = SystemTime::now().duration_since(UNIX_EPOCH)?;
+    let id = format!("movement-mapping-{}", now.as_nanos());
+    let created_at = now.as_secs().to_string();
+
     movement_mapping_repository::insert_movement_mapping(
         conn,
-        "fake_id_for_now",
+        &id,
         preset_id,
         name,
         keybind,
         pose_frames_json,
-        "fake_timestamp_for_now",
+        &created_at,
     )?;
 
     Ok(())
