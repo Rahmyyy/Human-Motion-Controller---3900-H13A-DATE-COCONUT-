@@ -5,10 +5,12 @@ use ort::{self, session::Session, value::Tensor};
 
 use crate::mediapipe::landmarks::PoseLandmarks;
 
+const CONFIDENCE_THRESHOLD: f32 = 0.5;
+
 pub fn run_landmarker(
     model: &mut Session,
     image: RgbaImage,
-) -> AnyhowResult<(PoseLandmarks, GrayImage), anyhow::Error> {
+) -> AnyhowResult<Option<(PoseLandmarks, GrayImage)>, anyhow::Error> {
     let (width, height) = image.dimensions();
 
     let resized = DynamicImage::ImageRgba8(image)
@@ -21,6 +23,12 @@ pub fn run_landmarker(
     ))?;
 
     let result = model.run(ort::inputs![input.clone()])?;
+
+    let confidence = result["Identity_1"].try_extract_array::<f32>()?[[0, 0]];
+
+    if confidence < CONFIDENCE_THRESHOLD {
+        return Ok(None);
+    }
 
     let points_raw = result["Identity"].try_extract_array::<f32>()?;
     let points = points_raw.slice(ndarray::s![0, ..]).to_vec();
@@ -47,5 +55,5 @@ pub fn run_landmarker(
         ::image::imageops::FilterType::Triangle,
     );
 
-    Ok((pose, visability_mask))
+    Ok(Some((pose, visability_mask)))
 }

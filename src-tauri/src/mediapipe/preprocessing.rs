@@ -11,7 +11,7 @@ pub struct InputTransformation {
     scale: f32,
     theta: f32,
     centre: (f32, f32),
-    from_landmarker: bool,
+    pub from_landmarker: bool,
 }
 
 fn dist(p1: (f32, f32), p2: (f32, f32)) -> f32 {

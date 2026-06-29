@@ -115,11 +115,21 @@ async fn mediapipe_thread(
                 frame_sender_channel_saved = Some(channel);
             }
             MediapipeThreadCommand::InputFrame(frame) => {
-                let new_transformation = run_detector(&mut detector_model, &frame, &anchors_matrix);
+                match transformation_saved {
+                    Some(t) if t.from_landmarker => {
+                        // If the transformation is from landmarker, skip running the detector
+                    }
+                    _ => {
+                        let new_transformation =
+                            run_detector(&mut detector_model, &frame, &anchors_matrix);
 
-                // If transformation is better will replace it
-                transformation_saved =
-                    InputTransformation::pick_best(transformation_saved, new_transformation);
+                        // If transformation is better will replace it
+                        transformation_saved = InputTransformation::pick_best(
+                            transformation_saved,
+                            new_transformation,
+                        );
+                    }
+                }
 
                 // Check if everything is valid otherwise skip
                 let (model, channel, transform) = match (
@@ -145,7 +155,12 @@ async fn mediapipe_thread(
                 let input_frame = transform.transform_frame(&frame);
 
                 let (pose, mask) = match run_landmarker(model, input_frame.clone()) {
-                    Ok(result) => result,
+                    Ok(Some(result)) => result,
+                    Ok(None) => {
+                        transformation_saved = None;
+                        warn!("Landmarker frame skipped: Low confidence");
+                        continue;
+                    }
                     Err(e) => {
                         error!("Error occurred while running landmarker: {}", e);
                         continue;
