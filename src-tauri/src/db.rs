@@ -1,10 +1,14 @@
-use std::fs;
+use std::{fs, sync::Mutex};
 
 use anyhow::Result;
 use rusqlite::Connection;
 use tauri::{AppHandle, Manager};
 
-pub fn init_db(app: &AppHandle) -> Result<Connection> {
+pub struct DbState {
+    pub conn: Mutex<Connection>,
+}
+
+pub fn init_db(app: &AppHandle) -> Result<DbState> {
     let app_data_dir = app.path().app_data_dir()?;
     fs::create_dir_all(&app_data_dir)?;
 
@@ -25,5 +29,7 @@ pub fn init_db(app: &AppHandle) -> Result<Connection> {
         [],
     )?;
 
-    Ok(conn)
+    Ok(DbState {
+        conn: Mutex::new(conn),
+    })
 }
