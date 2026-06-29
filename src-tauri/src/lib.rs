@@ -1,5 +1,6 @@
 mod annotate;
 mod cam_feeds;
+mod db;
 mod mediapipe;
 
 use std::sync::OnceLock;
@@ -29,6 +30,8 @@ pub fn run() {
                 .build(),
         )
         .setup(move |app| {
+            let _conn = db::init_db(app.handle())?;
+
             let (frame_sender_tx, frame_sender_rx) =
                 mpsc::channel::<cam_feeds::SenderThreadCommand>(1);
 
