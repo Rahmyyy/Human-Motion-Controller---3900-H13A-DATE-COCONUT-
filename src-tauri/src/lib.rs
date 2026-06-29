@@ -2,6 +2,7 @@ mod annotate;
 mod cam_feeds;
 mod db;
 mod mediapipe;
+mod movement_mapping_repository;
 
 use std::sync::OnceLock;
 
