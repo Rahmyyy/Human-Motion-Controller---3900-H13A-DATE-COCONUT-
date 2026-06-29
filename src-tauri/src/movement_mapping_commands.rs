@@ -1,6 +1,8 @@
 use tauri::State;
 
-use crate::{db::DbState, movement_mapping_service};
+use crate::{
+    db::DbState, movement_mapping_repository::MovementMappingSummary, movement_mapping_service,
+};
 
 #[tauri::command]
 pub fn create_movement_mapping(
@@ -23,4 +25,18 @@ pub fn create_movement_mapping(
         &pose_frames_json,
     )
     .map_err(|error| error.to_string())
+}
+
+#[tauri::command]
+pub fn get_movement_mappings(
+    state: State<'_, DbState>,
+    preset_id: String,
+) -> Result<Vec<MovementMappingSummary>, String> {
+    let conn = state
+        .conn
+        .lock()
+        .map_err(|_| "failed to lock database connection".to_string())?;
+
+    movement_mapping_service::get_movement_mappings(&conn, &preset_id)
+        .map_err(|error| error.to_string())
 }

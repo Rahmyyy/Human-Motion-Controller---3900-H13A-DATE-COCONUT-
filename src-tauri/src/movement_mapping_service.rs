@@ -1,7 +1,14 @@
-use crate::movement_mapping_repository;
+use crate::movement_mapping_repository::{self, MovementMappingSummary};
 use anyhow::{anyhow, Result};
 use rusqlite::Connection;
 use std::time::{SystemTime, UNIX_EPOCH};
+
+pub fn get_movement_mappings(
+    conn: &Connection,
+    preset_id: &str,
+) -> Result<Vec<MovementMappingSummary>> {
+    movement_mapping_repository::select_movement_mappings_by_preset(conn, preset_id)
+}
 
 pub fn create_movement_mapping(
     conn: &Connection,

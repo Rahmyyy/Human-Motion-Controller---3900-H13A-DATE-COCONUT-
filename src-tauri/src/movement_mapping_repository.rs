@@ -1,6 +1,13 @@
 use anyhow::Result;
 use rusqlite::{params, Connection};
 
+#[derive(serde::Serialize)]
+pub struct MovementMappingSummary {
+    pub id: String,
+    pub name: String,
+    pub keybind: String,
+}
+
 pub fn insert_movement_mapping(
     conn: &Connection,
     id: &str,
@@ -25,4 +32,30 @@ pub fn insert_movement_mapping(
     )?;
 
     Ok(())
+}
+
+pub fn select_movement_mappings_by_preset(
+    conn: &Connection,
+    preset_id: &str,
+) -> Result<Vec<MovementMappingSummary>> {
+    let mut statement = conn.prepare(
+        "
+      SELECT id, name, keybind
+      FROM movement_mappings
+      WHERE preset_id = ?1
+      ORDER BY created_at DESC
+      ",
+    )?;
+
+    let mappings = statement
+        .query_map(params![preset_id], |row| {
+            Ok(MovementMappingSummary {
+                id: row.get(0)?,
+                name: row.get(1)?,
+                keybind: row.get(2)?,
+            })
+        })?
+        .collect::<Result<Vec<_>, _>>()?;
+
+    Ok(mappings)
 }
