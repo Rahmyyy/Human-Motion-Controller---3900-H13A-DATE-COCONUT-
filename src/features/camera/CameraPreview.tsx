@@ -5,6 +5,7 @@ import styles from "./CameraPreview.module.css";
 export default function CameraPreview() {
   const [imgSrc, setImgSrc] = useState<string>("");
   const prevUrlRef = useRef<string>("");
+  const prevBlobRef = useRef<Blob>(null);
 
   const startStream = async () => {
     try {
@@ -13,15 +14,18 @@ export default function CameraPreview() {
       channel.onmessage = (frameBytes) => {
         const pngBytes = new Uint8Array(frameBytes);
 
-        const blob = new Blob([pngBytes], { type: "image/jpeg" });
+        const blob = new Blob([pngBytes], { type: "image/png" });
         const newUrl = URL.createObjectURL(blob);
         setImgSrc(newUrl);
+
 
         // Clean up previous blob
         if (prevUrlRef.current) {
           URL.revokeObjectURL(prevUrlRef.current);
+          prevBlobRef.current = null;
         }
         prevUrlRef.current = newUrl;
+        prevBlobRef.current = blob;
       };
 
       // Initate channel on load
