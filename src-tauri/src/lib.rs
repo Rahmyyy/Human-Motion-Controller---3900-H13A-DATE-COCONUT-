@@ -104,7 +104,11 @@ pub fn run() {
 
             app.set_menu(menu)?;
 
-            camera::set_camera(camera_list.first().unwrap().index().clone(), &webcam_tx);
+            match camera_list.first() {
+                Some(cam) => camera::set_camera(cam.index().clone(), &webcam_tx),
+                None => error!("No camera found. Restart with camera attached"),
+            };
+
             set_model_path(
                 get_path(app.handle(), model_paths.first().unwrap()),
                 &mediapipe_tx,
