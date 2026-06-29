@@ -5,6 +5,7 @@ import type { Keybind } from "./components/MappingDetailsPanel";
 import MovementCameraPanel from "./components/MovementCameraPanel";
 import MovementMappingHeader from "./components/MovementMappingHeader";
 import RecordingControls from "./components/RecordingControls";
+import { createMovementMapping } from "./api/movementMappingsApi";
 import { usePoseRecording } from "./hooks/usePoseRecording";
 
 export default function MovementMappingPage() {
@@ -25,13 +26,25 @@ export default function MovementMappingPage() {
     console.log(`Recorded ${frames.length} pose frames`, frames);
   };
 
-  const handleSaveMapping = () => {
+  const handleSaveMapping = async () => {
     console.log("Save mapping clicked", {
       frames: recordedFrames,
       keybind,
       name: movementName,
     });
-    navigate(-1);
+
+    try {
+      await createMovementMapping({
+        keybind: keybind?.label ?? "",
+        name: movementName,
+        poseFramesJson: JSON.stringify(recordedFrames),
+        presetId: "preset-1",
+      });
+
+      navigate(-1);
+    } catch (error) {
+      console.error("Failed to save movement mapping", error);
+    }
   };
 
   return (
