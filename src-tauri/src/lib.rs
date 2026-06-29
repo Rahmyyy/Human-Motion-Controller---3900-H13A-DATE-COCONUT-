@@ -3,6 +3,7 @@ mod cam_feeds;
 mod db;
 mod mediapipe;
 mod movement_mapping_repository;
+mod movement_mapping_service;
 
 use std::sync::OnceLock;
 
