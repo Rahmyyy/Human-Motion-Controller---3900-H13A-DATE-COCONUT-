@@ -1,24 +1,33 @@
 import { Button } from "@/components/ui/button";
 import BackButton from "@/components/BackButton";
+import { getMovementMappings } from "@/features/movement-mapping/api/movementMappingsApi";
 import { Plus } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import PresetMappingCollection from "./components/PresetMappingCollection";
 import type { PresetMappingCardData } from "./types";
 
-const previewMappings: PresetMappingCardData[] = [
-  {
-    id: "preview-1",
-    keybind: "Spacebar",
-    name: "Jump",
-  },
-  {
-    id: "preview-2",
-    keybind: "Arrow Left",
-    name: "Lean Left",
-  },
-];
-
 export default function PresetMappingsPage() {
+  const [mappings, setMappings] = useState<PresetMappingCardData[]>([]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    getMovementMappings("preset-1")
+      .then((savedMappings) => {
+        if (isMounted) {
+          setMappings(savedMappings);
+        }
+      })
+      .catch((error) => {
+        console.error("Failed to load movement mappings", error);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   return (
     <section className="min-h-screen bg-background px-8 py-10">
       <div className="mx-auto max-w-6xl">
@@ -43,7 +52,7 @@ export default function PresetMappingsPage() {
           </div>
         </header>
 
-        <PresetMappingCollection mappings={previewMappings} />
+        <PresetMappingCollection mappings={mappings} />
       </div>
     </section>
   );
