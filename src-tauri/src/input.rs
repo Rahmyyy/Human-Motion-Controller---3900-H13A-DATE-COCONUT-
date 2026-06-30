@@ -13,15 +13,15 @@ fn parse_key(key: &str) -> Result<Key, String> {
         return Ok(Key::Unicode(c));
     }
     match key {
-        "Enter" => Ok(Key::Return),
-        "Space" => Ok(Key::Space),
-        "Escape" => Ok(Key::Escape),
+        "Enter" | "Return" => Ok(Key::Return),
+        "Space" | "Spacebar" => Ok(Key::Space),
+        "Escape" | "Esc" => Ok(Key::Escape),
         "Tab" => Ok(Key::Tab),
         "Backspace" => Ok(Key::Backspace),
-        "ArrowUp" => Ok(Key::UpArrow),
-        "ArrowDown" => Ok(Key::DownArrow),
-        "ArrowLeft" => Ok(Key::LeftArrow),
-        "ArrowRight" => Ok(Key::RightArrow),
+        "ArrowUp" | "Arrow Up" => Ok(Key::UpArrow),
+        "ArrowDown" | "Arrow Down" => Ok(Key::DownArrow),
+        "ArrowLeft" | "Arrow Left" => Ok(Key::LeftArrow),
+        "ArrowRight" | "Arrow Right" => Ok(Key::RightArrow),
         "F1" => Ok(Key::F1),
         "F2" => Ok(Key::F2),
         "F3" => Ok(Key::F3),
