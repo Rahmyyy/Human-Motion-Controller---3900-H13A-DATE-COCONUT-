@@ -14,7 +14,7 @@ import {
   type RecognitionMatch,
 } from "../recognition/types";
 
-type RecognitionStatus = {
+export type RecognitionStatus = {
   templateCount: number;
   bestMatch: RecognitionMatch | null;
   triggeredMatch: RecognitionMatch | null;
