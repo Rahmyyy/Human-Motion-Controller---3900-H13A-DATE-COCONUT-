@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import BackButton from "@/components/BackButton";
 import { getMovementMappings } from "@/features/movement-mapping/api/movementMappingsApi";
-import { Plus } from "lucide-react";
+import { Play, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import PresetMappingCollection from "./components/PresetMappingCollection";
@@ -43,6 +43,12 @@ export default function PresetMappingsPage() {
 
           <div className="flex items-center gap-3">
             <BackButton />
+            <Button asChild size="lg" variant="outline">
+              <Link to="/recognition">
+                <Play className="size-4" aria-hidden="true" />
+                Test Recognition
+              </Link>
+            </Button>
             <Button asChild size="lg">
               <Link to="/session">
                 <Plus className="size-4" aria-hidden="true" />

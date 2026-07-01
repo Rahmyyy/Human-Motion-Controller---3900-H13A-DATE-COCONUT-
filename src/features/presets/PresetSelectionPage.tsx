@@ -28,11 +28,9 @@ function PresetActionBar() {
           <span>Select or create a preset to begin.</span>
         </div>
 
-        <Button asChild size="lg" className="min-w-56">
-          <Link to="/recognition">
-            <Play className="size-4" aria-hidden="true" />
-            Start Session
-          </Link>
+        <Button type="button" size="lg" disabled className="min-w-56">
+          <Play className="size-4" aria-hidden="true" />
+          Start Session
         </Button>
       </div>
     </footer>
