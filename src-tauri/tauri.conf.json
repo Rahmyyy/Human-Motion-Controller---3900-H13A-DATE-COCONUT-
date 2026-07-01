@@ -33,6 +33,13 @@
       "icons/128x128@2x.png",
       "icons/icon.icns",
       "icons/icon.ico"
+    ],
+    "resources": [
+      "models/pose_landmark_lite.onnx",
+      "models/pose_landmark_full.onnx",
+      "models/pose_landmark_heavy.onnx",
+      "models/MediaPipePoseDetector.onnx",
+      "models/anchors_pose.npy"
     ]
   }
 }

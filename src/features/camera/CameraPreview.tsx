@@ -1,35 +1,54 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { invoke, Channel } from "@tauri-apps/api/core";
 import styles from "./CameraPreview.module.css";
 
-interface CameraPreviewProps {
-  stream: MediaStream | null;
-}
+export default function CameraPreview() {
+  const [imgSrc, setImgSrc] = useState<string>("");
+  const prevUrlRef = useRef<string>("");
+  const prevBlobRef = useRef<Blob>(null);
 
-export default function CameraPreview({ stream }: CameraPreviewProps) {
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const startStream = async () => {
+    try {
+      const channel = new Channel<Uint8Array>();
+
+      channel.onmessage = (frameBytes) => {
+        const pngBytes = new Uint8Array(frameBytes);
+
+        const blob = new Blob([pngBytes], { type: "image/png" });
+        const newUrl = URL.createObjectURL(blob);
+        setImgSrc(newUrl);
+
+        // Clean up previous blob
+        if (prevUrlRef.current) {
+          URL.revokeObjectURL(prevUrlRef.current);
+          prevBlobRef.current = null;
+        }
+        prevUrlRef.current = newUrl;
+        prevBlobRef.current = blob;
+      };
+
+      // Initate channel on load
+      await invoke("webcam_handler", { channel });
+      await invoke("start_backend_camera");
+    } catch (error) {
+      console.error("Stream Failed:", error);
+    }
+  };
 
   useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-
-    video.srcObject = stream;
+    startStream();
 
     return () => {
-      video.srcObject = null;
+      if (prevUrlRef.current) {
+        URL.revokeObjectURL(prevUrlRef.current);
+      }
+      void invoke("stop_backend_camera");
     };
-  }, [stream]);
+  }, []);
 
   return (
     <div className={styles.preview}>
-      <video
-        ref={videoRef}
-        className={styles.video}
-        autoPlay
-        muted
-        playsInline
-        aria-label="Live webcam preview"
-      />
-      {!stream && <p className={styles.placeholder}>Camera preview is off</p>}
+      <img className={styles.img} src={imgSrc} alt="Webcam Feed" />
     </div>
   );
 }

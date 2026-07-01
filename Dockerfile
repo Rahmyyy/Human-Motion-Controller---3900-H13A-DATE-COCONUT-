@@ -1,5 +1,5 @@
-FROM node:24-bookworm as node
-FROM rust:1.96-bookworm
+FROM node:24-trixie AS node
+FROM rust:1.96-trixie
 COPY --from=node /usr/local /usr/local
 
 RUN rustup component add rustfmt clippy
@@ -13,6 +13,7 @@ RUN apt update && apt install -y \
   file \
   libxdo-dev \
   libssl-dev \
+  libclang-dev \
   libayatana-appindicator3-dev \
   librsvg2-dev \
   && rm -rf /var/lib/apt/lists/*

@@ -1,0 +1,53 @@
+import { useEffect, useRef, useState } from "react";
+import { invoke, Channel } from "@tauri-apps/api/core";
+import styles from "./CameraPreview.module.css";
+
+export default function AnnotatedPreview() {
+  const [imgSrc, setImgSrc] = useState<string>("");
+  const prevUrlRef = useRef<string>("");
+  const prevBlobRef = useRef<Blob>(null);
+
+  const startStream = async () => {
+    try {
+      const channel = new Channel<Uint8Array>();
+
+      channel.onmessage = (frameBytes) => {
+        const pngBytes = new Uint8Array(frameBytes);
+
+        const blob = new Blob([pngBytes], { type: "image/png" });
+        const newUrl = URL.createObjectURL(blob);
+        setImgSrc(newUrl);
+
+        // Clean up previous blob
+        if (prevUrlRef.current) {
+          URL.revokeObjectURL(prevUrlRef.current);
+          prevBlobRef.current = null;
+        }
+        prevUrlRef.current = newUrl;
+        prevBlobRef.current = blob;
+      };
+
+      // Initate channel on load
+      await invoke("mediapipe_handler", { channel });
+      await invoke("start_backend_camera");
+    } catch (error) {
+      console.error("Stream Failed:", error);
+    }
+  };
+
+  useEffect(() => {
+    startStream();
+    return () => {
+      if (prevUrlRef.current) {
+        URL.revokeObjectURL(prevUrlRef.current);
+      }
+      void invoke("stop_backend_camera");
+    };
+  }, []);
+
+  return (
+    <div className={styles.preview}>
+      <img className={styles.img} src={imgSrc} alt="Annotated Feed" />
+    </div>
+  );
+}

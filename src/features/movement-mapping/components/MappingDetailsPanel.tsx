@@ -1,11 +1,17 @@
 import { Input } from "@/components/ui/input";
 import { Pencil, SlidersHorizontal } from "lucide-react";
 import type { KeyboardEvent } from "react";
-import { useState } from "react";
 
-interface Keybind {
+export interface Keybind {
   code: string;
   label: string;
+}
+
+interface MappingDetailsPanelProps {
+  keybind: Keybind | null;
+  movementName: string;
+  onKeybindChange: (keybind: Keybind) => void;
+  onMovementNameChange: (movementName: string) => void;
 }
 
 function formatKeybind(event: KeyboardEvent<HTMLInputElement>) {
@@ -27,14 +33,16 @@ function formatKeybind(event: KeyboardEvent<HTMLInputElement>) {
   }
 }
 
-export default function MappingDetailsPanel() {
-  const [movementName, setMovementName] = useState("");
-  const [keybind, setKeybind] = useState<Keybind | null>(null);
-
+export default function MappingDetailsPanel({
+  keybind,
+  movementName,
+  onKeybindChange,
+  onMovementNameChange,
+}: MappingDetailsPanelProps) {
   const captureKeybind = (event: KeyboardEvent<HTMLInputElement>) => {
     event.preventDefault();
 
-    setKeybind({
+    onKeybindChange({
       code: event.code,
       label: formatKeybind(event),
     });
@@ -60,7 +68,7 @@ export default function MappingDetailsPanel() {
           <Input
             id="movement-name"
             value={movementName}
-            onChange={(event) => setMovementName(event.target.value)}
+            onChange={(event) => onMovementNameChange(event.target.value)}
             onKeyDown={(event) => {
               if (event.key === "Enter") {
                 event.currentTarget.blur();
