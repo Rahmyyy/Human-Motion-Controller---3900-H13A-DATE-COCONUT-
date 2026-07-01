@@ -8,7 +8,7 @@ interface CreateMovementMappingInput extends Record<string, unknown> {
   presetId: string;
 }
 
-interface MovementMappingDetailsResponse {
+export interface MovementMappingDetailsResponse {
   id: string;
   preset_id: string;
   name: string;
