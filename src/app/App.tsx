@@ -1,4 +1,5 @@
 import { HashRouter, Route, Routes } from "react-router";
+import EditMovementMappingPage from "@/features/movement-mapping/EditMovementMappingPage";
 import MovementMappingPage from "@/features/movement-mapping/MovementMappingPage";
 import MovementRecognitionPage from "@/features/movement-recognition/MovementRecognitionPage";
 import PresetMappingsPage from "@/features/preset-mapping/PresetMappingsPage";
@@ -11,6 +12,7 @@ export default function App() {
         <Route path="/" element={<PresetSelectionPage />} />
         <Route path="/preset/edit" element={<PresetMappingsPage />} />
         <Route path="/recognition" element={<MovementRecognitionPage />} />
+        <Route path="/preset/edit/:mappingId" element={<EditMovementMappingPage />} />
         <Route path="/session" element={<MovementMappingPage />} />
       </Routes>
     </HashRouter>

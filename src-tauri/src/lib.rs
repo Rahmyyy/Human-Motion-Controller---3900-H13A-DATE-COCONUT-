@@ -89,7 +89,8 @@ pub fn run() {
             annotated_handler,
             movement_mapping_commands::create_movement_mapping,
             movement_mapping_commands::get_movement_mappings,
-            input::press_key
+            input::press_key,
+            movement_mapping_commands::get_movement_mapping,
         ])
         .plugin(
             tauri_plugin_log::Builder::new()
