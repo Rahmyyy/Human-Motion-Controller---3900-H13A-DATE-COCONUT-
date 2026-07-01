@@ -34,7 +34,7 @@ export default function PresetMappingsPage() {
         <header className="flex items-start justify-between gap-6">
           <div className="max-w-3xl">
             <h1 className="text-4xl font-semibold tracking-tight text-foreground">
-              Edit (name of preset) Mappings
+              Edit {/* name of preset goes here */} Mappings
             </h1>
             <p className="mt-3 text-base text-muted-foreground">
               Configure movement mappings for this preset.
