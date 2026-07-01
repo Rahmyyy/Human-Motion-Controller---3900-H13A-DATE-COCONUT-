@@ -41,15 +41,10 @@ const mockPresets: Preset[] = [
   },
 ];
 
-function PresetActionBar({
-  selectedPreset,
-}: {
-  selectedPreset: Preset | undefined;
-}) {
+function PresetActionBar({ selectedPreset }: { selectedPreset: Preset | undefined }) {
   return (
     <footer className="fixed inset-x-0 bottom-0 border-t bg-background px-8 py-5">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-6">
-        
         <div className="flex items-center gap-4 text-sm text-muted-foreground">
           <span className="flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary">
             <Info className="size-4" aria-hidden="true" />
@@ -138,9 +133,7 @@ function CreatePresetDialog() {
 export default function PresetSelectionPage() {
   const [selectedPresetId, setSelectedPresetId] = useState<string | null>(null);
 
-  const selectedPreset = mockPresets.find(
-    (preset) => preset.id === selectedPresetId,
-  );
+  const selectedPreset = mockPresets.find((preset) => preset.id === selectedPresetId);
 
   return (
     <section className="min-h-screen bg-background px-8 py-10 pb-32">
@@ -177,9 +170,7 @@ export default function PresetSelectionPage() {
                   )}
                 >
                   <h3 className="text-lg font-semibold">{preset.name}</h3>
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    {preset.description}
-                  </p>
+                  <p className="mt-2 text-sm text-muted-foreground">{preset.description}</p>
                   <p className="mt-4 text-sm font-medium text-muted-foreground">
                     {preset.mappingCount} mappings
                   </p>
