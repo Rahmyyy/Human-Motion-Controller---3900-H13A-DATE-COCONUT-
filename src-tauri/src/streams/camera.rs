@@ -33,9 +33,11 @@ pub fn start_webcam(cam_index: CameraIndex) -> Result<Camera, NokhwaError> {
 }
 
 #[derive(Clone)]
+#[allow(dead_code)]
 pub enum WebcamThreadCommand {
     SetCamera(CameraIndex),
     SetChannel(Channel<Vec<u8>>),
+    ClearCamera,
     #[allow(dead_code)]
     Stop,
 }
@@ -71,12 +73,12 @@ async fn webcam_thread(
                     })
                     .await
                     .unwrap();
-
-                annotate_tx
-                    .send(MediapipeThreadCommand::InputFrame(frame))
-                    .await
-                    .unwrap();
             }
+
+            annotate_tx
+                .send(MediapipeThreadCommand::InputFrame(frame))
+                .await
+                .unwrap();
         }
 
         if let Ok(command) = command_rx.try_recv() {
@@ -94,6 +96,10 @@ async fn webcam_thread(
                 WebcamThreadCommand::SetChannel(channel) => {
                     info!("Setting new channel for webcam thread");
                     frame_sender_channel = Some(channel);
+                }
+                WebcamThreadCommand::ClearCamera => {
+                    info!("Clearing webcam camera");
+                    camera = None;
                 }
                 WebcamThreadCommand::Stop => {
                     info!("Stopping webcam thread");
@@ -125,6 +131,30 @@ pub async fn webcam_handler(channel: Channel<Vec<u8>>) {
         .send(WebcamThreadCommand::SetChannel(channel))
         .await
         .unwrap();
+}
+
+#[tauri::command]
+pub async fn start_backend_camera() -> Result<(), String> {
+    let Some(cam) = get_all_cameras().first().cloned() else {
+        return Err("No camera found. Restart with camera attached.".to_string());
+    };
+
+    WEBCAM_TX
+        .get()
+        .ok_or_else(|| "Webcam thread has not started.".to_string())?
+        .send(WebcamThreadCommand::SetCamera(cam.index().clone()))
+        .await
+        .map_err(|error| error.to_string())
+}
+
+#[tauri::command]
+pub async fn stop_backend_camera() -> Result<(), String> {
+    WEBCAM_TX
+        .get()
+        .ok_or_else(|| "Webcam thread has not started.".to_string())?
+        .send(WebcamThreadCommand::ClearCamera)
+        .await
+        .map_err(|error| error.to_string())
 }
 
 pub fn set_camera(cam_index: CameraIndex, webcam_tx: &mpsc::Sender<WebcamThreadCommand>) {

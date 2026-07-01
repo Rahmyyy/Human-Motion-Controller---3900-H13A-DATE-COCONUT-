@@ -29,6 +29,7 @@ export default function AnnotatedPreview() {
 
       // Initate channel on load
       await invoke("mediapipe_handler", { channel });
+      await invoke("start_backend_camera");
     } catch (error) {
       console.error("Stream Failed:", error);
     }
@@ -40,6 +41,7 @@ export default function AnnotatedPreview() {
       if (prevUrlRef.current) {
         URL.revokeObjectURL(prevUrlRef.current);
       }
+      void invoke("stop_backend_camera");
     };
   }, []);
 

@@ -1,5 +1,10 @@
-mod mediapipe;
 mod streams;
+mod db;
+mod input;
+mod mediapipe;
+mod movement_mapping_commands;
+mod movement_mapping_repository;
+mod movement_mapping_service;
 
 use log::{error, warn};
 use nokhwa::utils::CameraIndex;
@@ -24,6 +29,9 @@ pub fn run() {
         )
         .setup(move |app| {
             let frame_sender_tx = streams::sender::start_frame_sender_thread();
+
+            // Starts up SQLite
+            app.manage(db::init_db(app.handle())?);
 
             let mediapipe_tx = mediapipe::runner::start_mediapipe_thread(
                 frame_sender_tx.clone(),
@@ -104,11 +112,6 @@ pub fn run() {
 
             app.set_menu(menu)?;
 
-            match camera_list.first() {
-                Some(cam) => camera::set_camera(cam.index().clone(), &webcam_tx),
-                None => error!("No camera found. Restart with camera attached"),
-            };
-
             set_model_path(
                 get_path(app.handle(), model_paths.first().unwrap()),
                 &mediapipe_tx,
@@ -140,7 +143,13 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             camera::webcam_handler,
+            camera::start_backend_camera,
+            camera::stop_backend_camera,
             mediapipe::runner::mediapipe_handler,
+            movement_mapping_commands::create_movement_mapping,
+            movement_mapping_commands::get_movement_mappings,
+            input::press_key,
+            movement_mapping_commands::get_movement_mapping,
         ])
         .plugin(
             tauri_plugin_log::Builder::new()

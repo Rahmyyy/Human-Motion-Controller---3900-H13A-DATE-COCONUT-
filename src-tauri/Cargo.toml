@@ -35,3 +35,4 @@ tauri-plugin-log = "2"
 log = "0.4.33"
 nokhwa = { version = "0.10.0", features = ["input-native", "output-threaded"] }
 ndarray-npy = "0.10.0"
+rusqlite = { version = "0.40.1", features = ["bundled"] }

@@ -29,6 +29,7 @@ export default function CameraPreview() {
 
       // Initate channel on load
       await invoke("webcam_handler", { channel });
+      await invoke("start_backend_camera");
     } catch (error) {
       console.error("Stream Failed:", error);
     }
@@ -41,6 +42,7 @@ export default function CameraPreview() {
       if (prevUrlRef.current) {
         URL.revokeObjectURL(prevUrlRef.current);
       }
+      void invoke("stop_backend_camera");
     };
   }, []);
 
