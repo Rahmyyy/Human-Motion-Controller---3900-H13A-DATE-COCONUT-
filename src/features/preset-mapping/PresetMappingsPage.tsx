@@ -55,10 +55,12 @@ export default function PresetMappingsPage() {
         <PresetMappingCollection mappings={mappings} />
       </div>
 
-      <div className="fixed right-8 bottom-8">
-        <Button asChild size="lg">
-          <Link to="/recognition">Test Recognition</Link>
-        </Button>
+      <div className="fixed inset-x-0 bottom-8 px-8">
+        <div className="mx-auto flex max-w-6xl justify-end">
+          <Button asChild size="lg">
+            <Link to="/recognition">Test Recognition</Link>
+          </Button>
+        </div>
       </div>
     </section>
   );
