@@ -1,10 +1,10 @@
-mod streams;
 mod db;
 mod input;
 mod mediapipe;
 mod movement_mapping_commands;
 mod movement_mapping_repository;
 mod movement_mapping_service;
+mod streams;
 
 use log::{error, warn};
 use nokhwa::utils::CameraIndex;

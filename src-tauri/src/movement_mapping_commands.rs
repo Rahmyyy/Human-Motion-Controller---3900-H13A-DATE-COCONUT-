@@ -1,7 +1,9 @@
 use tauri::State;
 
 use crate::{
-    db::DbState, movement_mapping_repository::{MovementMappingDetails, MovementMappingSummary}, movement_mapping_service,
+    db::DbState,
+    movement_mapping_repository::{MovementMappingDetails, MovementMappingSummary},
+    movement_mapping_service,
 };
 
 #[tauri::command]

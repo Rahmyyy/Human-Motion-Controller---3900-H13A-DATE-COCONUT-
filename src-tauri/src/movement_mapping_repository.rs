@@ -91,7 +91,7 @@ pub fn select_movement_mapping_by_id(
             preset_id: row.get(1)?,
             name: row.get(2)?,
             keybind: row.get(3)?,
-            pose_frames_json: row.get(4)?
+            pose_frames_json: row.get(4)?,
         })
     })?;
 
