@@ -18,7 +18,6 @@ export default function AnnotatedPreview() {
         const newUrl = URL.createObjectURL(blob);
         setImgSrc(newUrl);
 
-
         // Clean up previous blob
         if (prevUrlRef.current) {
           URL.revokeObjectURL(prevUrlRef.current);
