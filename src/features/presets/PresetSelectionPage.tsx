@@ -2,7 +2,7 @@ import BackButton from "@/components/BackButton";
 import { useState } from "react";
 import CreatePresetDialog from "./components/CreatePresetDialog";
 import PresetActionBar from "./components/PresetActionBar";
-import PresetCard from "./components/PresetCard";
+import PresetCollection from "./components/PresetCollection";
 
 type Preset = {
   id: string;
@@ -55,18 +55,11 @@ export default function PresetSelectionPage() {
         <section className="mt-12">
           <h2 className="text-lg font-semibold tracking-tight">Existing Presets</h2>
 
-          <div className="mt-5 rounded-lg border border-dashed bg-card/50 p-8 text-sm text-muted-foreground">
-            <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {mockPresets.map((preset) => (
-                <PresetCard
-                  key={preset.id}
-                  preset={preset}
-                  isSelected={selectedPresetId === preset.id}
-                  onSelect={() => setSelectedPresetId(preset.id)}
-                />
-              ))}
-            </div>
-          </div>
+          <PresetCollection
+            presets={mockPresets}
+            selectedPresetId={selectedPresetId}
+            onSelectPreset={setSelectedPresetId}
+          />
         </section>
       </div>
 
