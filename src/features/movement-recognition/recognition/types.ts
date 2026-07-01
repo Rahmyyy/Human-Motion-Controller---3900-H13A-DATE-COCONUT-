@@ -3,7 +3,7 @@ import type { PoseFrame } from "@/features/camera/poseFrame";
 export const RECOGNITION_FRAME_COUNT = 24;
 export const MIN_LANDMARK_VISIBILITY = 0.5;
 export const MIN_VISIBLE_LANDMARKS = 6;
-export const CONFIDENCE_THRESHOLD = 0.72;
+export const CONFIDENCE_THRESHOLD = 0.60;
 export const REQUIRED_CONSECUTIVE_MATCHES = 5;
 export const RECOGNITION_COOLDOWN_MS = 1000;
 export const LIVE_BUFFER_MS = 2500;

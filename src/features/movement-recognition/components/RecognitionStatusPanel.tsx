@@ -1,3 +1,4 @@
+import { cn } from "@/lib/utils";
 import type { RecognitionStatus } from "../hooks/useMovementRecognition";
 
 interface RecognitionStatusPanelProps {
@@ -21,7 +22,13 @@ export default function RecognitionStatusPanel({
       {status.mappingStatuses.length > 0 ? (
         <ul className="grid gap-3">
           {status.mappingStatuses.map((mapping) => (
-            <li key={mapping.id} className="rounded-lg border p-3">
+            <li
+              key={mapping.id}
+              className={cn(
+                "rounded-lg border p-3",
+                mapping.isActive && "border-primary/40 bg-primary/10",
+              )}
+            >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <div className="truncate text-sm font-medium text-foreground">
