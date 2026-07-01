@@ -31,9 +31,7 @@ export default function RecognitionStatusPanel({
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <div className="truncate text-sm font-medium text-foreground">
-                    {mapping.name}
-                  </div>
+                  <div className="truncate text-sm font-medium text-foreground">{mapping.name}</div>
                   <div className="mt-1 text-xs text-muted-foreground">
                     Triggering: {mapping.keybind}
                   </div>
@@ -61,11 +59,7 @@ export default function RecognitionStatusPanel({
   );
 }
 
-function statusText(
-  isLoading: boolean,
-  loadError: string | null,
-  status: RecognitionStatus,
-) {
+function statusText(isLoading: boolean, loadError: string | null, status: RecognitionStatus) {
   if (isLoading) return "Loading mappings.";
   if (loadError || status.error) return "Needs attention.";
   if (status.mappingStatuses.length === 0) return "No mappings.";

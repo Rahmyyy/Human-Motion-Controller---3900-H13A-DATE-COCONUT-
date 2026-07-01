@@ -1,9 +1,5 @@
 import type { PoseFrame, PoseLandmark } from "@/features/camera/poseFrame";
-import {
-  TRACKED_LANDMARKS,
-  type NormalizedPoseFrame,
-  type NormalizedPosePoint,
-} from "./types";
+import { TRACKED_LANDMARKS, type NormalizedPoseFrame, type NormalizedPosePoint } from "./types";
 import { distance, distanceLandmarks, isVisible, midpoint } from "./poseGeometry";
 
 const LEFT_SHOULDER = 11;
@@ -65,7 +61,10 @@ function resolveScale(
     }
   }
 
-  const shoulderWidth = distanceLandmarks(landmarks.get(LEFT_SHOULDER), landmarks.get(RIGHT_SHOULDER));
+  const shoulderWidth = distanceLandmarks(
+    landmarks.get(LEFT_SHOULDER),
+    landmarks.get(RIGHT_SHOULDER),
+  );
   return shoulderWidth > MIN_SCALE ? shoulderWidth : null;
 }
 

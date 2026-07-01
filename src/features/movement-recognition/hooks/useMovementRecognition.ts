@@ -21,6 +21,13 @@ export type RecognitionStatus = {
   error: string | null;
 };
 
+type RecognitionRuntimeStatus = {
+  sourceMappings: PresetMappingCardData[];
+  bestMatch: RecognitionMatch | null;
+  matches: RecognitionMatch[];
+  error: string | null;
+};
+
 type MatchStreak = {
   id: string;
   count: number;
@@ -31,9 +38,10 @@ export function useMovementRecognition(mappings: PresetMappingCardData[]) {
   const liveFramesRef = useRef<NormalizedPoseFrame[]>([]);
   const streakRef = useRef<MatchStreak>({ id: "", count: 0 });
   const lastTriggeredAtRef = useRef(Number.NEGATIVE_INFINITY);
-  const [status, setStatus] = useState<RecognitionStatus>({
+  const [runtimeStatus, setRuntimeStatus] = useState<RecognitionRuntimeStatus>({
+    sourceMappings: mappings,
     bestMatch: null,
-    mappingStatuses: [],
+    matches: [],
     error: null,
   });
 
@@ -41,12 +49,18 @@ export function useMovementRecognition(mappings: PresetMappingCardData[]) {
     liveFramesRef.current = [];
     streakRef.current = { id: "", count: 0 };
     lastTriggeredAtRef.current = Number.NEGATIVE_INFINITY;
-    setStatus({
-      bestMatch: null,
-      mappingStatuses: buildMappingStatuses(mappings, []),
-      error: null,
-    });
-  }, [mappings, templates]);
+  }, [templates]);
+
+  const status = useMemo<RecognitionStatus>(() => {
+    const isCurrentMappingSet = runtimeStatus.sourceMappings === mappings;
+    const matches = isCurrentMappingSet ? runtimeStatus.matches : [];
+
+    return {
+      bestMatch: isCurrentMappingSet ? runtimeStatus.bestMatch : null,
+      mappingStatuses: buildMappingStatuses(mappings, matches),
+      error: isCurrentMappingSet ? runtimeStatus.error : null,
+    };
+  }, [mappings, runtimeStatus]);
 
   const onPoseFrame = useCallback(
     (frame: PoseFrame) => {
@@ -63,10 +77,11 @@ export function useMovementRecognition(mappings: PresetMappingCardData[]) {
 
       const matches = findTemplateMatches(templates, liveFrames);
       const bestMatch = matches[0] ?? null;
-      setStatus((current) => ({
+      setRuntimeStatus((current) => ({
         ...current,
+        sourceMappings: mappings,
         bestMatch,
-        mappingStatuses: buildMappingStatuses(mappings, matches),
+        matches,
       }));
 
       if (!bestMatch || bestMatch.confidence < CONFIDENCE_THRESHOLD) {
@@ -86,10 +101,12 @@ export function useMovementRecognition(mappings: PresetMappingCardData[]) {
 
       lastTriggeredAtRef.current = normalizedFrame.timestampMs;
       void pressMatchedKey(bestMatch)
-        .then(() => setStatus((current) => ({ ...current, error: null })))
+        .then(() =>
+          setRuntimeStatus((current) => ({ ...current, sourceMappings: mappings, error: null })),
+        )
         .catch((error) => {
           const message = error instanceof Error ? error.message : String(error);
-          setStatus((current) => ({ ...current, error: message }));
+          setRuntimeStatus((current) => ({ ...current, sourceMappings: mappings, error: message }));
         });
     },
     [mappings, templates],

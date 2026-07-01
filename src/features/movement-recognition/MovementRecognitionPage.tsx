@@ -43,9 +43,7 @@ export default function MovementRecognitionPage() {
           <h1 className="text-3xl font-semibold tracking-tight text-foreground">
             Live Recognition
           </h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Current preset: {PRESET_ID}
-          </p>
+          <p className="mt-2 text-sm text-muted-foreground">Current preset: {PRESET_ID}</p>
         </div>
         <BackButton />
       </header>
@@ -54,11 +52,7 @@ export default function MovementRecognitionPage() {
         <section className="grid min-h-0 min-w-0" aria-label="Live camera recognition">
           <MediaPipePosePreview onPoseFrame={onPoseFrame} />
         </section>
-        <RecognitionStatusPanel
-          isLoading={isLoading}
-          loadError={loadError}
-          status={status}
-        />
+        <RecognitionStatusPanel isLoading={isLoading} loadError={loadError} status={status} />
       </div>
     </main>
   );
