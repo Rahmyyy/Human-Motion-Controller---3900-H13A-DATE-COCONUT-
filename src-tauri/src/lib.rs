@@ -1,6 +1,7 @@
 mod annotate;
 mod cam_feeds;
 mod db;
+mod input;
 mod mediapipe;
 mod movement_mapping_commands;
 mod movement_mapping_repository;
@@ -87,7 +88,8 @@ pub fn run() {
             webcam_handler,
             annotated_handler,
             movement_mapping_commands::create_movement_mapping,
-            movement_mapping_commands::get_movement_mappings
+            movement_mapping_commands::get_movement_mappings,
+            input::press_key
         ])
         .plugin(
             tauri_plugin_log::Builder::new()
