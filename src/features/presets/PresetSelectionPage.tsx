@@ -41,7 +41,11 @@ const mockPresets: Preset[] = [
   },
 ];
 
-function PresetActionBar() {
+function PresetActionBar({
+  selectedPreset,
+}: {
+  selectedPreset: Preset | undefined;
+}) {
   return (
     <footer className="fixed inset-x-0 bottom-0 border-t bg-background px-8 py-5">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-6">
@@ -128,6 +132,12 @@ function CreatePresetDialog() {
 }
 
 export default function PresetSelectionPage() {
+  const [selectedPresetId, setSelectedPresetId] = useState<string | null>(null);
+
+  const selectedPreset = mockPresets.find(
+    (preset) => preset.id === selectedPresetId,
+  );
+
   return (
     <section className="min-h-screen bg-background px-8 py-10 pb-32">
       <div className="mx-auto max-w-6xl">
@@ -157,7 +167,7 @@ export default function PresetSelectionPage() {
         </section>
       </div>
 
-      <PresetActionBar />
+      <PresetActionBar selectedPreset={selectedPreset} />
     </section>
   );
 }
