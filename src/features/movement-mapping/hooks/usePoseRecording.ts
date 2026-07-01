@@ -5,11 +5,14 @@ import type { PoseFrame } from "@/features/camera/poseFrame";
 // React state is updated only when the recording state changes.
 export type RecordingState = "idle" | "recording" | "recorded";
 
-export function usePoseRecording() {
-  const [recordingState, setRecordingState] = useState<RecordingState>("idle");
-  const [recordedFrames, setRecordedFrames] = useState<PoseFrame[]>([]);
+export function usePoseRecording(
+  initialFrames: PoseFrame[] = [],
+  initialRecordingState: RecordingState = "idle",
+) {
+  const [recordingState, setRecordingState] = useState<RecordingState>(initialRecordingState);
+  const [recordedFrames, setRecordedFrames] = useState<PoseFrame[]>(initialFrames);
   const isRecordingRef = useRef(false);
-  const framesRef = useRef<PoseFrame[]>([]);
+  const framesRef = useRef<PoseFrame[]>(initialFrames);
 
   const startRecording = useCallback(() => {
     framesRef.current = [];
