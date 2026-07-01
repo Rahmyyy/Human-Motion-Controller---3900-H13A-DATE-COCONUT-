@@ -17,23 +17,34 @@ export function findBestTemplateMatch(
   templates: PreparedMovementTemplate[],
   liveFrames: NormalizedPoseFrame[],
 ): RecognitionMatch | null {
+  return findTemplateMatches(templates, liveFrames)[0] ?? null;
+}
+
+export function findTemplateMatches(
+  templates: PreparedMovementTemplate[],
+  liveFrames: NormalizedPoseFrame[],
+): RecognitionMatch[] {
   let bestMatch: RecognitionMatch | null = null;
+  const matches: RecognitionMatch[] = [];
 
   for (const template of templates) {
     const liveWindow = liveWindowForTemplate(liveFrames, template.durationMs);
     const confidence = compareMovement(template.frames, liveWindow);
+    const match = {
+      id: template.id,
+      name: template.name,
+      keybind: template.keybind,
+      confidence,
+    };
+
+    matches.push(match);
 
     if (!bestMatch || confidence > bestMatch.confidence) {
-      bestMatch = {
-        id: template.id,
-        name: template.name,
-        keybind: template.keybind,
-        confidence,
-      };
+      bestMatch = match;
     }
   }
 
-  return bestMatch;
+  return matches.sort((first, second) => second.confidence - first.confidence);
 }
 
 function liveWindowForTemplate(frames: NormalizedPoseFrame[], templateDurationMs: number) {

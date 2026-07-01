@@ -57,3 +57,7 @@ export type RecognitionMatch = {
   keybind: string;
   confidence: number;
 };
+
+export type RecognitionMappingStatus = RecognitionMatch & {
+  isActive: boolean;
+};

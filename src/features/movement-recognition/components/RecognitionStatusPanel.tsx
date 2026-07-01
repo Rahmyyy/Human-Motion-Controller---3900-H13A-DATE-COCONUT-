@@ -3,14 +3,12 @@ import type { RecognitionStatus } from "../hooks/useMovementRecognition";
 interface RecognitionStatusPanelProps {
   isLoading: boolean;
   loadError: string | null;
-  savedMappingCount: number;
   status: RecognitionStatus;
 }
 
 export default function RecognitionStatusPanel({
   isLoading,
   loadError,
-  savedMappingCount,
   status,
 }: RecognitionStatusPanelProps) {
   return (
@@ -20,13 +18,32 @@ export default function RecognitionStatusPanel({
         <p className="text-sm text-muted-foreground">{statusText(isLoading, loadError, status)}</p>
       </header>
 
-      <dl className="grid gap-3 text-sm">
-        <StatusRow label="Saved mappings" value={String(savedMappingCount)} />
-        <StatusRow label="Ready templates" value={String(status.templateCount)} />
-        <StatusRow label="Best match" value={status.bestMatch?.name ?? "None"} />
-        <StatusRow label="Confidence" value={formatConfidence(status.bestMatch?.confidence)} />
-        <StatusRow label="Last trigger" value={status.triggeredMatch?.name ?? "None"} />
-      </dl>
+      {status.mappingStatuses.length > 0 ? (
+        <ul className="grid gap-3">
+          {status.mappingStatuses.map((mapping) => (
+            <li key={mapping.id} className="rounded-lg border p-3">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="truncate text-sm font-medium text-foreground">
+                    {mapping.name}
+                  </div>
+                  <div className="mt-1 text-xs text-muted-foreground">
+                    Triggering: {mapping.keybind}
+                  </div>
+                </div>
+                <div className="text-right text-sm font-medium text-foreground">
+                  {formatConfidence(mapping.confidence)}
+                </div>
+              </div>
+              <div className="mt-3 text-xs text-muted-foreground">
+                {mapping.isActive ? "Active" : "Inactive"}
+              </div>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="text-sm text-muted-foreground">No mappings saved.</p>
+      )}
 
       {(loadError || status.error) && (
         <p className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
@@ -37,15 +54,6 @@ export default function RecognitionStatusPanel({
   );
 }
 
-function StatusRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-center justify-between gap-4 border-b pb-2 last:border-b-0 last:pb-0">
-      <dt className="text-muted-foreground">{label}</dt>
-      <dd className="max-w-40 truncate text-right font-medium text-foreground">{value}</dd>
-    </div>
-  );
-}
-
 function statusText(
   isLoading: boolean,
   loadError: string | null,
@@ -53,8 +61,7 @@ function statusText(
 ) {
   if (isLoading) return "Loading mappings.";
   if (loadError || status.error) return "Needs attention.";
-  if (status.templateCount === 0) return "No movement templates.";
-  if (status.triggeredMatch) return `Triggered ${status.triggeredMatch.name}.`;
+  if (status.mappingStatuses.length === 0) return "No mappings.";
   return "Ready.";
 }
 

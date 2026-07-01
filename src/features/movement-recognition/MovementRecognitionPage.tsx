@@ -57,7 +57,6 @@ export default function MovementRecognitionPage() {
         <RecognitionStatusPanel
           isLoading={isLoading}
           loadError={loadError}
-          savedMappingCount={mappings.length}
           status={status}
         />
       </div>
