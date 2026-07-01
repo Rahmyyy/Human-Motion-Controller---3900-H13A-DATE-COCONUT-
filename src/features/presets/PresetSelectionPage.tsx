@@ -17,10 +17,35 @@ import { Link } from "react-router";
 
 type PresetStartMode = "template" | "custom";
 
+type Preset = {
+  id: string;
+  name: string;
+  description: string;
+  mappingCount: number;
+};
+
+const patientName = "Lindsay Collins";
+
+const mockPresets: Preset[] = [
+  {
+    id: "mario",
+    name: "Mario",
+    description: "Left, right, jump",
+    mappingCount: 3,
+  },
+  {
+    id: "space_invaders",
+    name: "Space Invaders",
+    description: "Left, right, shoot",
+    mappingCount: 4,
+  },
+];
+
 function PresetActionBar() {
   return (
     <footer className="fixed inset-x-0 bottom-0 border-t bg-background px-8 py-5">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-6">
+        
         <div className="flex items-center gap-4 text-sm text-muted-foreground">
           <span className="flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary">
             <Info className="size-4" aria-hidden="true" />
@@ -109,7 +134,7 @@ export default function PresetSelectionPage() {
         <header className="flex items-start justify-between gap-6">
           <div className="max-w-3xl">
             <h1 className="text-4xl font-semibold tracking-tight text-foreground">
-              Choose or Create a Preset for (patient's name).
+              Choose or Create a Preset for {patientName}.
             </h1>
             <p className="mt-3 text-base text-muted-foreground">
               Select a pre-existing mapping profile or create a new one to begin.
