@@ -54,12 +54,16 @@ function PresetActionBar({
           <span className="flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary">
             <Info className="size-4" aria-hidden="true" />
           </span>
-          <span>Select or create a preset to begin.</span>
+          <span>
+            {selectedPreset
+              ? `Selected: ${selectedPreset.name}`
+              : "Select or create a preset to begin."}
+          </span>
         </div>
 
-        <Button type="button" size="lg" disabled className="min-w-56">
+        <Button type="button" size="lg" disabled={!selectedPreset} className="min-w-56">
           <Play className="size-4" aria-hidden="true" />
-          Start Session
+          {selectedPreset ? "Start Session" : "Start Session"}
         </Button>
       </div>
     </footer>
@@ -161,8 +165,31 @@ export default function PresetSelectionPage() {
           <h2 className="text-lg font-semibold tracking-tight">Existing Presets</h2>
 
           <div className="mt-5 rounded-lg border border-dashed bg-card/50 p-8 text-sm text-muted-foreground">
-            {/* {put preset cards here} */}
-            Later we will put the patient cards here ...
+            <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {mockPresets.map((preset) => (
+                <button
+                  key={preset.id}
+                  type="button"
+                  onClick={() => setSelectedPresetId(preset.id)}
+                  className={cn(
+                    "rounded-lg border bg-card p-5 text-left shadow-sm transition hover:bg-muted/50",
+                    selectedPresetId === preset.id && "border-primary ring-2 ring-primary/25",
+                  )}
+                >
+                  <h3 className="text-lg font-semibold">{preset.name}</h3>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    {preset.description}
+                  </p>
+                  <p className="mt-4 text-sm font-medium text-muted-foreground">
+                    {preset.mappingCount} mappings
+                  </p>
+
+                  {selectedPresetId === preset.id && (
+                    <p className="mt-4 text-sm font-medium text-primary">Selected</p>
+                  )}
+                </button>
+              ))}
+            </div>
           </div>
         </section>
       </div>
