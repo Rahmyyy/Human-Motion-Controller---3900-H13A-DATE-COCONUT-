@@ -1,8 +1,8 @@
 import BackButton from "@/components/BackButton";
-import { cn } from "@/lib/utils";
 import { useState } from "react";
 import CreatePresetDialog from "./components/CreatePresetDialog";
 import PresetActionBar from "./components/PresetActionBar";
+import PresetCard from "./components/PresetCard";
 
 type Preset = {
   id: string;
@@ -58,25 +58,12 @@ export default function PresetSelectionPage() {
           <div className="mt-5 rounded-lg border border-dashed bg-card/50 p-8 text-sm text-muted-foreground">
             <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {mockPresets.map((preset) => (
-                <button
+                <PresetCard
                   key={preset.id}
-                  type="button"
-                  onClick={() => setSelectedPresetId(preset.id)}
-                  className={cn(
-                    "rounded-lg border bg-card p-5 text-left shadow-sm transition hover:bg-muted/50",
-                    selectedPresetId === preset.id && "border-primary ring-2 ring-primary/25",
-                  )}
-                >
-                  <h3 className="text-lg font-semibold">{preset.name}</h3>
-                  <p className="mt-2 text-sm text-muted-foreground">{preset.description}</p>
-                  <p className="mt-4 text-sm font-medium text-muted-foreground">
-                    {preset.mappingCount} mappings
-                  </p>
-
-                  {selectedPresetId === preset.id && (
-                    <p className="mt-4 text-sm font-medium text-primary">Selected</p>
-                  )}
-                </button>
+                  preset={preset}
+                  isSelected={selectedPresetId === preset.id}
+                  onSelect={() => setSelectedPresetId(preset.id)}
+                />
               ))}
             </div>
           </div>
