@@ -17,7 +17,7 @@ use tauri::{
 
 use crate::{mediapipe::runner::set_model_path, streams::camera};
 
-const ALTERNATIVE_CAMERA_VIEW: bool = false;
+const ALTERNATIVE_CAMERA_VIEW: bool = true;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -28,19 +28,15 @@ pub fn run() {
                 .build(),
         )
         .setup(move |app| {
-            let frame_sender_tx = streams::sender::start_frame_sender_thread();
-
             // Starts up SQLite
             app.manage(db::init_db(app.handle())?);
 
             let mediapipe_tx = mediapipe::runner::start_mediapipe_thread(
-                frame_sender_tx.clone(),
                 get_path(app.handle(), "models/MediaPipePoseDetector.onnx"),
                 get_path(app.handle(), "models/anchors_pose.npy"),
             );
 
-            let webcam_tx =
-                streams::camera::start_webcam_thread(frame_sender_tx.clone(), mediapipe_tx.clone());
+            let webcam_tx = streams::camera::start_webcam_thread(mediapipe_tx.clone());
 
             let app_menu = SubmenuBuilder::new(app, "Human Controller")
                 .about(Some(AboutMetadata {

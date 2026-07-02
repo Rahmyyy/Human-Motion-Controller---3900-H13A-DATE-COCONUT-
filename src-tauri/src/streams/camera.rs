@@ -44,7 +44,6 @@ pub enum WebcamThreadCommand {
 
 async fn webcam_thread(
     mut command_rx: mpsc::Receiver<WebcamThreadCommand>,
-    frame_sender_tx: mpsc::Sender<SenderThreadCommand>,
     annotate_tx: mpsc::Sender<MediapipeThreadCommand>,
 ) {
     nokhwa_initialize(|granted| {
@@ -64,15 +63,13 @@ async fn webcam_thread(
             let frame = cam.frame().unwrap().decode_image::<RgbAFormat>().unwrap();
 
             if let Some(channel) = &frame_sender_channel {
-                frame_sender_tx
-                    .send(SenderThreadCommand::SendFrame {
-                        frame: frame.clone(),
-                        channel: channel.clone(),
-                        format: image::ImageFormat::Jpeg,
-                        size: None,
-                    })
-                    .await
-                    .unwrap();
+                SenderThreadCommand {
+                    frame: frame.clone(),
+                    channel: channel.clone(),
+                    format: image::ImageFormat::Jpeg,
+                    size: None,
+                }
+                .send_frame();
             }
 
             annotate_tx
@@ -111,14 +108,13 @@ async fn webcam_thread(
 }
 
 pub fn start_webcam_thread(
-    frame_sender_tx: mpsc::Sender<SenderThreadCommand>,
     annotate_tx: mpsc::Sender<MediapipeThreadCommand>,
 ) -> mpsc::Sender<WebcamThreadCommand> {
     let (command_tx, command_rx) = mpsc::channel::<WebcamThreadCommand>(5);
 
     let _ = WEBCAM_TX.set(command_tx.clone());
 
-    tauri::async_runtime::spawn(webcam_thread(command_rx, frame_sender_tx, annotate_tx));
+    tauri::async_runtime::spawn(webcam_thread(command_rx, annotate_tx));
 
     command_tx
 }

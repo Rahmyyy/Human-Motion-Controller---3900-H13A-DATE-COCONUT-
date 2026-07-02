@@ -22,8 +22,8 @@ const MASK_THRESHOLD: u8 = 100;
 
 const BB_COLOUR: Rgba<u8> = Rgba([0, 255, 0, 255]);
 
-const VISIBILITY_THRESHOLD: f32 = 0.5;
-const PRESENCE_THRESHOLD: f32 = 0.5;
+const VISIBILITY_THRESHOLD: f32 = 0.;
+const PRESENCE_THRESHOLD: f32 = 0.;
 
 const LANDMARK_LINKS: &[(Landmarks, Landmarks)] = &[
     // (Nose, LeftEyeInner),
@@ -64,8 +64,8 @@ const LANDMARK_LINKS: &[(Landmarks, Landmarks)] = &[
 ];
 
 const IGNORE_RENDER_LANDMARKS: &[Landmarks] = &[
-    // Hip,
-    // Head,
+    Hip,
+    Head,
     HandExtra1Right,
     HandExtra2Right,
     HandExtra1Left,
@@ -81,6 +81,12 @@ const IGNORE_RENDER_LANDMARKS: &[Landmarks] = &[
     LeftEar,
     RightEar,
     Nose,
+    LeftPinky,
+    LeftIndex,
+    LeftThumb,
+    RightPinky,
+    RightIndex,
+    RightThumb,
 ];
 
 impl LandmarkPoint {
