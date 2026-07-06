@@ -1,9 +1,40 @@
+import { useEffect, useState } from "react";
 import BackButton from "@/components/BackButton";
+import { getMovementMappings } from "@/features/movement-mapping/api/movementMappingsApi";
+import type { PresetMappingCardData } from "@/features/preset-mapping/types";
 import ActiveMappingsPanel from "./components/ActiveMappingsPanel";
 import SessionStatusPanel from "./components/SessionStatusPanel";
 import TriggerCountPanel from "./components/TriggerCountPanel";
 
+const PRESET_ID = "preset-1";
+
 export default function LiveDashboardPage() {
+  const [mappings, setMappings] = useState<PresetMappingCardData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    getMovementMappings(PRESET_ID)
+      .then((savedMappings) => {
+        if (!isMounted) return;
+        setMappings(savedMappings);
+        setLoadError(null);
+      })
+      .catch((error) => {
+        if (!isMounted) return;
+        setLoadError(error instanceof Error ? error.message : String(error));
+      })
+      .finally(() => {
+        if (isMounted) setIsLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   return (
     <main className="min-h-screen bg-slate-50 p-8">
       <header className="flex items-start justify-between gap-6">
@@ -19,7 +50,7 @@ export default function LiveDashboardPage() {
       </header>
 
       <div className="mt-6 grid gap-4 md:grid-cols-3">
-        <ActiveMappingsPanel />
+        <ActiveMappingsPanel mappings={mappings} isLoading={isLoading} loadError={loadError} />
         <SessionStatusPanel />
         <TriggerCountPanel />
       </div>
