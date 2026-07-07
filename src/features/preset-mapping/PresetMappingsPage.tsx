@@ -12,6 +12,7 @@ import type { PresetMappingCardData } from "./types";
 
 export default function PresetMappingsPage() {
   const [mappings, setMappings] = useState<PresetMappingCardData[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -24,6 +25,9 @@ export default function PresetMappingsPage() {
       })
       .catch((error) => {
         console.error("Failed to load movement mappings", error);
+        if (isMounted) {
+          setError("Failed to load movement mappings.");
+        }
       });
 
     return () => {
@@ -35,9 +39,11 @@ export default function PresetMappingsPage() {
     deleteMovementMapping(id, "preset-1")
       .then(() => {
         setMappings((current) => current.filter((mapping) => mapping.id !== id));
+        setError(null);
       })
       .catch((error) => {
         console.error("Failed to delete movement mapping", error);
+        setError("Failed to delete movement mapping.");
       });
   }
 
@@ -64,6 +70,12 @@ export default function PresetMappingsPage() {
             </Button>
           </div>
         </header>
+
+        {error && (
+          <p className="mt-6 rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+            {error}
+          </p>
+        )}
 
         <PresetMappingCollection mappings={mappings} onDelete={handleDelete} />
       </div>

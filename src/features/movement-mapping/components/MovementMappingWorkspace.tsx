@@ -19,6 +19,7 @@ interface MovementMappingWorkspaceProps {
   initialKeybind?: string;
   initialName?: string;
   onSave: (input: SaveMovementMappingInput) => Promise<void>;
+  saveError?: string | null;
   title: string;
 }
 
@@ -37,6 +38,7 @@ export default function MovementMappingWorkspace({
   initialKeybind,
   initialName = "",
   onSave,
+  saveError = null,
   title,
 }: MovementMappingWorkspaceProps) {
   const [movementName, setMovementName] = useState(initialName);
@@ -79,6 +81,11 @@ export default function MovementMappingWorkspace({
             onKeybindChange={setKeybind}
             onMovementNameChange={setMovementName}
           />
+          {saveError && (
+            <p className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+              {saveError}
+            </p>
+          )}
           <RecordingControls
             state={recordingState}
             onReRecord={resetRecording}

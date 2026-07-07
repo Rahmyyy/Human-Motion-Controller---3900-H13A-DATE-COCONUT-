@@ -23,6 +23,14 @@ export default function PresetMappingCollection({
   mappings,
   onDelete,
 }: PresetMappingCollectionProps) {
+  if (mappings.length === 0) {
+    return (
+      <p className="mt-8 text-sm text-muted-foreground">
+        No mappings saved yet. Click &quot;Add New Movement&quot; to create one.
+      </p>
+    );
+  }
+
   return (
     <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {mappings.map((mapping) => (

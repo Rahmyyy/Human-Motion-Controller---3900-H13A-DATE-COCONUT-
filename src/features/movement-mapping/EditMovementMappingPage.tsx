@@ -18,6 +18,7 @@ export default function EditMovementMappingPage() {
   const navigate = useNavigate();
   const [mapping, setMapping] = useState<LoadedMovementMapping | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!mappingId) return;
@@ -59,7 +60,10 @@ export default function EditMovementMappingPage() {
       initialFrames={mapping.frames}
       initialKeybind={mapping.details.keybind}
       initialName={mapping.details.name}
+      saveError={saveError}
       onSave={async ({ frames, keybind, name }) => {
+        setSaveError(null);
+
         try {
           await updateMovementMapping({
             id: mapping.details.id,
@@ -72,6 +76,7 @@ export default function EditMovementMappingPage() {
           navigate(-1);
         } catch (error) {
           console.error("Failed to update movement mapping", error);
+          setSaveError("Failed to save changes. Please try again.");
         }
       }}
     />
