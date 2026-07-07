@@ -20,6 +20,10 @@ export default function ActiveMappingsPanel({
 
       {isLoading ? (
         <p className="text-sm text-muted-foreground">Loading mappings.</p>
+      ) : loadError ? (
+        <p className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+          {loadError}
+        </p>
       ) : mappings.length > 0 ? (
         <ul className="grid gap-3">
           {mappings.map((mapping) => (
@@ -36,12 +40,6 @@ export default function ActiveMappingsPanel({
         </ul>
       ) : (
         <p className="text-sm text-muted-foreground">No mappings saved.</p>
-      )}
-
-      {loadError && (
-        <p className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
-          {loadError}
-        </p>
       )}
     </section>
   );

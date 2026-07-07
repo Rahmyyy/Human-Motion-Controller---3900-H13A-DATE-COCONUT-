@@ -121,6 +121,5 @@ export function useMovementRecognition(mappings: PresetMappingCardData[]) {
     [fireTrigger, mappings, templates],
   );
 
-  // simulateTrigger: exposed for the temp test button, remove together with it
-  return { onPoseFrame, status, simulateTrigger: fireTrigger };
+  return { onPoseFrame, status };
 }

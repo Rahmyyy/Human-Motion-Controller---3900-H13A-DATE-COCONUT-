@@ -18,7 +18,7 @@ export default function MovementRecognitionPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [cameraMode] = useState(() => getCameraMode());
-  const { onPoseFrame, status, simulateTrigger } = useMovementRecognition(mappings);
+  const { onPoseFrame, status } = useMovementRecognition(mappings);
 
   useEffect(() => {
     let isMounted = true;
@@ -52,23 +52,6 @@ export default function MovementRecognitionPage() {
           <p className="mt-2 text-sm text-muted-foreground">Current preset: {PRESET_ID}</p>
         </div>
         <div className="flex items-center gap-3">
-          {/* TEMP: test button, no webcam needed. Remove later. */}
-          <Button
-            type="button"
-            variant="secondary"
-            disabled={mappings.length === 0}
-            onClick={() => {
-              const mapping = mappings[0];
-              simulateTrigger({
-                id: mapping.id,
-                name: mapping.name,
-                keybind: mapping.keybind,
-                confidence: 1,
-              });
-            }}
-          >
-            Simulate Trigger (test)
-          </Button>
           <Button asChild variant="outline">
             <Link to="/dashboard">
               <LayoutDashboard className="size-4" aria-hidden="true" />
