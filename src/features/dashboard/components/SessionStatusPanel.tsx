@@ -1,44 +1,50 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { Button } from "@/components/ui/button";
-import { endSession, getIsRunning, startSession, subscribe } from "@/lib/liveSessionState";
+import {
+  endSession,
+  getElapsedMs,
+  getEndedAt,
+  getSessionStatus,
+  getStartedAt,
+  startSession,
+  subscribe,
+} from "@/lib/liveSessionState";
 
 /**
  * TEMPORARY SCAFFOLDING: there is no real "session started/ended" event
  * anywhere else in the app yet, so this panel owns its own Start/Stop button
- * as a stand-in. Subtask 5 (or a future ticket, once a real session
- * lifecycle exists elsewhere) should replace this control with the actual
- * trigger and remove the local state below.
+ * as a stand-in. A future ticket, once a real session lifecycle exists
+ * elsewhere, should replace this control with the actual trigger.
  */
 export default function SessionStatusPanel() {
-  const isRunning = useSyncExternalStore(subscribe, getIsRunning);
-  const [sessionStartedAt, setSessionStartedAt] = useState<number | null>(null);
-  const [hasEnded, setHasEnded] = useState(false);
-  const [elapsedMs, setElapsedMs] = useState(0);
+  const sessionStatus = useSyncExternalStore(subscribe, getSessionStatus);
+  const startedAt = useSyncExternalStore(subscribe, getStartedAt);
+  const endedAt = useSyncExternalStore(subscribe, getEndedAt);
+
+  // Forces a re-render once a second while running so the duration display
+  // keeps ticking. The count itself is meaningless and resetting it on
+  // remount is harmless — elapsed time is always recomputed from the
+  // timestamps above, never from this counter.
+  const [, tick] = useState(0);
 
   useEffect(() => {
-    if (sessionStartedAt === null) {
+    if (sessionStatus !== "running") {
       return;
     }
 
-    const intervalId = setInterval(() => {
-      setElapsedMs(Date.now() - sessionStartedAt);
-    }, 1000);
-
+    const intervalId = setInterval(() => tick((n) => n + 1), 1000);
     return () => clearInterval(intervalId);
-  }, [sessionStartedAt]);
+  }, [sessionStatus]);
 
-  const statusText = isRunning ? "Running" : hasEnded ? "Ended" : "Idle";
+  const statusText =
+    sessionStatus === "running" ? "Running" : sessionStatus === "ended" ? "Ended" : "Idle";
+  const elapsedMs = getElapsedMs(sessionStatus, startedAt, endedAt);
 
   function handleStart() {
-    setHasEnded(false);
-    setElapsedMs(0);
-    setSessionStartedAt(Date.now());
     startSession();
   }
 
   function handleStop() {
-    setSessionStartedAt(null);
-    setHasEnded(true);
     endSession();
   }
 
@@ -52,10 +58,10 @@ export default function SessionStatusPanel() {
         <Button
           type="button"
           size="sm"
-          variant={isRunning ? "destructive" : "outline"}
-          onClick={isRunning ? handleStop : handleStart}
+          variant={sessionStatus === "running" ? "destructive" : "outline"}
+          onClick={sessionStatus === "running" ? handleStop : handleStart}
         >
-          {isRunning ? "Stop" : "Start"}
+          {sessionStatus === "running" ? "Stop" : "Start"}
         </Button>
       </header>
 
