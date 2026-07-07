@@ -1,8 +1,11 @@
-import { getMovementMapping } from "@/features/movement-mapping/api/movementMappingsApi";
+import {
+  getMovementMapping,
+  updateMovementMapping,
+} from "@/features/movement-mapping/api/movementMappingsApi";
 import type { MovementMappingDetailsResponse } from "@/features/movement-mapping/api/movementMappingsApi";
 import type { PoseFrame } from "@/features/camera/poseFrame";
 import { useEffect, useState } from "react";
-import { useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import MovementMappingWorkspace from "./components/MovementMappingWorkspace";
 
 interface LoadedMovementMapping {
@@ -12,6 +15,7 @@ interface LoadedMovementMapping {
 
 export default function EditMovementMappingPage() {
   const { mappingId } = useParams();
+  const navigate = useNavigate();
   const [mapping, setMapping] = useState<LoadedMovementMapping | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -56,12 +60,19 @@ export default function EditMovementMappingPage() {
       initialKeybind={mapping.details.keybind}
       initialName={mapping.details.name}
       onSave={async ({ frames, keybind, name }) => {
-        console.log("Edit mapping save clicked", {
-          frames,
-          id: mapping.details.id,
-          keybind,
-          name,
-        });
+        try {
+          await updateMovementMapping({
+            id: mapping.details.id,
+            presetId: "preset-1",
+            name,
+            keybind,
+            poseFramesJson: JSON.stringify(frames),
+          });
+
+          navigate(-1);
+        } catch (error) {
+          console.error("Failed to update movement mapping", error);
+        }
       }}
     />
   );
