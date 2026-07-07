@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { PoseFrame } from "@/features/camera/poseFrame";
+import { recordSuccessfulTrigger } from "@/lib/liveSessionState";
 import type { PresetMappingCardData } from "@/features/preset-mapping/types";
 import { buildMappingStatuses } from "../recognition/buildMappingStatuses";
 import { findTemplateMatches, trimLiveBuffer } from "../recognition/findBestMatch";
@@ -62,6 +63,21 @@ export function useMovementRecognition(mappings: PresetMappingCardData[]) {
     };
   }, [mappings, runtimeStatus]);
 
+  const fireTrigger = useCallback(
+    (match: RecognitionMatch) => {
+      void pressMatchedKey(match)
+        .then(() => {
+          recordSuccessfulTrigger();
+          setRuntimeStatus((current) => ({ ...current, sourceMappings: mappings, error: null }));
+        })
+        .catch((error) => {
+          const message = error instanceof Error ? error.message : String(error);
+          setRuntimeStatus((current) => ({ ...current, sourceMappings: mappings, error: message }));
+        });
+    },
+    [mappings],
+  );
+
   const onPoseFrame = useCallback(
     (frame: PoseFrame) => {
       const normalizedFrame = normalizePoseFrame(frame);
@@ -100,17 +116,11 @@ export function useMovementRecognition(mappings: PresetMappingCardData[]) {
       }
 
       lastTriggeredAtRef.current = normalizedFrame.timestampMs;
-      void pressMatchedKey(bestMatch)
-        .then(() =>
-          setRuntimeStatus((current) => ({ ...current, sourceMappings: mappings, error: null })),
-        )
-        .catch((error) => {
-          const message = error instanceof Error ? error.message : String(error);
-          setRuntimeStatus((current) => ({ ...current, sourceMappings: mappings, error: message }));
-        });
+      fireTrigger(bestMatch);
     },
-    [mappings, templates],
+    [fireTrigger, mappings, templates],
   );
 
-  return { onPoseFrame, status };
+  // simulateTrigger: exposed for the temp test button, remove together with it
+  return { onPoseFrame, status, simulateTrigger: fireTrigger };
 }

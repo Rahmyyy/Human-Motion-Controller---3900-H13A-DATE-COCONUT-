@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { Button } from "@/components/ui/button";
+import { endSession, getIsRunning, startSession, subscribe } from "@/lib/liveSessionState";
 
 /**
  * TEMPORARY SCAFFOLDING: there is no real "session started/ended" event
@@ -9,6 +10,7 @@ import { Button } from "@/components/ui/button";
  * trigger and remove the local state below.
  */
 export default function SessionStatusPanel() {
+  const isRunning = useSyncExternalStore(subscribe, getIsRunning);
   const [sessionStartedAt, setSessionStartedAt] = useState<number | null>(null);
   const [hasEnded, setHasEnded] = useState(false);
   const [elapsedMs, setElapsedMs] = useState(0);
@@ -25,18 +27,19 @@ export default function SessionStatusPanel() {
     return () => clearInterval(intervalId);
   }, [sessionStartedAt]);
 
-  const isRunning = sessionStartedAt !== null;
   const statusText = isRunning ? "Running" : hasEnded ? "Ended" : "Idle";
 
   function handleStart() {
     setHasEnded(false);
     setElapsedMs(0);
     setSessionStartedAt(Date.now());
+    startSession();
   }
 
   function handleStop() {
     setSessionStartedAt(null);
     setHasEnded(true);
+    endSession();
   }
 
   return (
