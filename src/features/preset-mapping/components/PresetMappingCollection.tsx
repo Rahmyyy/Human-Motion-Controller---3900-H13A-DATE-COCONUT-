@@ -46,8 +46,8 @@ export default function PresetMappingCollection({
               <DialogHeader>
                 <DialogTitle>Delete &quot;{mapping.name}&quot;?</DialogTitle>
                 <DialogDescription>
-                  This will permanently remove this movement mapping and its keybind. This cannot
-                  be undone.
+                  This will permanently remove this movement mapping and its keybind. This cannot be
+                  undone.
                 </DialogDescription>
               </DialogHeader>
               <DialogFooter>
@@ -57,11 +57,7 @@ export default function PresetMappingCollection({
                   </Button>
                 </DialogClose>
                 <DialogClose asChild>
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    onClick={() => onDelete(mapping.id)}
-                  >
+                  <Button type="button" variant="destructive" onClick={() => onDelete(mapping.id)}>
                     Delete
                   </Button>
                 </DialogClose>
