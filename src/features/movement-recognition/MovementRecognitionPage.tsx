@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
+import { LayoutDashboard } from "lucide-react";
+import { Link } from "react-router";
 import BackButton from "@/components/BackButton";
+import { Button } from "@/components/ui/button";
 import AnnotatedPreview from "@/features/camera/AnnotatedPreview";
 import MediaPipePosePreview from "@/features/camera/MediaPipePosePreview";
 import { getCameraMode } from "@/features/camera/cameraMode";
@@ -48,7 +51,15 @@ export default function MovementRecognitionPage() {
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">Current preset: {PRESET_ID}</p>
         </div>
-        <BackButton />
+        <div className="flex items-center gap-3">
+          <Button asChild variant="outline">
+            <Link to="/dashboard">
+              <LayoutDashboard className="size-4" aria-hidden="true" />
+              Dashboard
+            </Link>
+          </Button>
+          <BackButton />
+        </div>
       </header>
 
       <div className="grid min-h-0 gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
