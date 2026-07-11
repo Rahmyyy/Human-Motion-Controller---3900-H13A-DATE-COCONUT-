@@ -27,3 +27,19 @@ export function getMovementMappings(presetId: string) {
 export function getMovementMapping(id: string, presetId: string) {
   return invoke<MovementMappingDetailsResponse>("get_movement_mapping", { id, presetId });
 }
+
+export function deleteMovementMapping(id: string, presetId: string) {
+  return invoke<void>("delete_movement_mapping", { id, presetId });
+}
+
+interface UpdateMovementMappingInput extends Record<string, unknown> {
+  id: string;
+  presetId: string;
+  name: string;
+  keybind: string;
+  poseFramesJson: string;
+}
+
+export function updateMovementMapping(input: UpdateMovementMappingInput) {
+  return invoke<void>("update_movement_mapping", input);
+}

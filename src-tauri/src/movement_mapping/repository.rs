@@ -72,6 +72,38 @@ pub fn select_movement_mappings_by_preset(
     Ok(mappings)
 }
 
+pub fn update_movement_mapping(
+    conn: &Connection,
+    id: &str,
+    preset_id: &str,
+    name: &str,
+    keybind: &str,
+    pose_frames_json: &str,
+) -> Result<usize> {
+    let rows_affected = conn.execute(
+        "
+        UPDATE movement_mappings
+        SET name = ?1, keybind = ?2, pose_frames_json = ?3
+        WHERE id = ?4 AND preset_id = ?5
+        ",
+        params![name, keybind, pose_frames_json, id, preset_id],
+    )?;
+
+    Ok(rows_affected)
+}
+
+pub fn delete_movement_mapping(conn: &Connection, id: &str, preset_id: &str) -> Result<usize> {
+    let rows_affected = conn.execute(
+        "
+        DELETE FROM movement_mappings
+        WHERE id = ?1 AND preset_id = ?2
+        ",
+        params![id, preset_id],
+    )?;
+
+    Ok(rows_affected)
+}
+
 pub fn select_movement_mapping_by_id(
     conn: &Connection,
     id: &str,
