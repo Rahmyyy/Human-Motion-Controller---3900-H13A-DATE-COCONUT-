@@ -1,4 +1,4 @@
-use crate::movement_mapping_repository::{self, MovementMappingDetails, MovementMappingSummary};
+use super::repository::{self, MovementMappingDetails, MovementMappingSummary};
 use anyhow::{anyhow, Result};
 use rusqlite::Connection;
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -29,7 +29,7 @@ pub fn create_movement_mapping(
     let id = format!("movement-mapping-{}", now.as_nanos());
     let created_at = now.as_secs().to_string();
 
-    movement_mapping_repository::insert_movement_mapping(
+    repository::insert_movement_mapping(
         conn,
         &id,
         preset_id,
@@ -46,7 +46,7 @@ pub fn get_movement_mappings(
     conn: &Connection,
     preset_id: &str,
 ) -> Result<Vec<MovementMappingSummary>> {
-    movement_mapping_repository::select_movement_mappings_by_preset(conn, preset_id)
+    repository::select_movement_mappings_by_preset(conn, preset_id)
 }
 
 pub fn get_movement_mapping(
@@ -54,7 +54,7 @@ pub fn get_movement_mapping(
     id: &str,
     preset_id: &str,
 ) -> Result<MovementMappingDetails> {
-    movement_mapping_repository::select_movement_mapping_by_id(conn, id, preset_id)
+    repository::select_movement_mapping_by_id(conn, id, preset_id)
 }
 
 pub fn update_movement_mapping(
@@ -80,14 +80,8 @@ pub fn update_movement_mapping(
         return Err(anyhow!("Movement mapping pose frames cannot be empty"));
     }
 
-    let rows_affected = movement_mapping_repository::update_movement_mapping(
-        conn,
-        id,
-        preset_id,
-        name,
-        keybind,
-        pose_frames_json,
-    )?;
+    let rows_affected =
+        repository::update_movement_mapping(conn, id, preset_id, name, keybind, pose_frames_json)?;
 
     if rows_affected == 0 {
         return Err(anyhow!("Movement mapping not found"));
@@ -97,7 +91,7 @@ pub fn update_movement_mapping(
 }
 
 pub fn delete_movement_mapping(conn: &Connection, id: &str, preset_id: &str) -> Result<()> {
-    let rows_affected = movement_mapping_repository::delete_movement_mapping(conn, id, preset_id)?;
+    let rows_affected = repository::delete_movement_mapping(conn, id, preset_id)?;
 
     if rows_affected == 0 {
         return Err(anyhow!("Movement mapping not found"));
@@ -107,5 +101,5 @@ pub fn delete_movement_mapping(conn: &Connection, id: &str, preset_id: &str) -> 
 }
 
 #[cfg(test)]
-#[path = "movement_mapping_service_tests.rs"]
+#[path = "service_tests.rs"]
 mod tests;

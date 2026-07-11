@@ -1,10 +1,10 @@
 use tauri::State;
 
-use crate::{
-    db::DbState,
-    movement_mapping_repository::{MovementMappingDetails, MovementMappingSummary},
-    movement_mapping_service,
+use super::{
+    repository::{MovementMappingDetails, MovementMappingSummary},
+    service,
 };
+use crate::db::DbState;
 
 #[tauri::command]
 pub fn create_movement_mapping(
@@ -19,14 +19,8 @@ pub fn create_movement_mapping(
         .lock()
         .map_err(|_| "failed to lock database connection".to_string())?;
 
-    movement_mapping_service::create_movement_mapping(
-        &conn,
-        &preset_id,
-        &name,
-        &keybind,
-        &pose_frames_json,
-    )
-    .map_err(|error| error.to_string())
+    service::create_movement_mapping(&conn, &preset_id, &name, &keybind, &pose_frames_json)
+        .map_err(|error| error.to_string())
 }
 
 #[tauri::command]
@@ -39,8 +33,7 @@ pub fn get_movement_mappings(
         .lock()
         .map_err(|_| "failed to lock database connection".to_string())?;
 
-    movement_mapping_service::get_movement_mappings(&conn, &preset_id)
-        .map_err(|error| error.to_string())
+    service::get_movement_mappings(&conn, &preset_id).map_err(|error| error.to_string())
 }
 
 #[tauri::command]
@@ -54,8 +47,7 @@ pub fn get_movement_mapping(
         .lock()
         .map_err(|_| "failed to lock database connection".to_string())?;
 
-    movement_mapping_service::get_movement_mapping(&conn, &id, &preset_id)
-        .map_err(|error| error.to_string())
+    service::get_movement_mapping(&conn, &id, &preset_id).map_err(|error| error.to_string())
 }
 
 #[tauri::command]
@@ -72,15 +64,8 @@ pub fn update_movement_mapping(
         .lock()
         .map_err(|_| "failed to lock database connection".to_string())?;
 
-    movement_mapping_service::update_movement_mapping(
-        &conn,
-        &id,
-        &preset_id,
-        &name,
-        &keybind,
-        &pose_frames_json,
-    )
-    .map_err(|error| error.to_string())
+    service::update_movement_mapping(&conn, &id, &preset_id, &name, &keybind, &pose_frames_json)
+        .map_err(|error| error.to_string())
 }
 
 #[tauri::command]
@@ -94,6 +79,5 @@ pub fn delete_movement_mapping(
         .lock()
         .map_err(|_| "failed to lock database connection".to_string())?;
 
-    movement_mapping_service::delete_movement_mapping(&conn, &id, &preset_id)
-        .map_err(|error| error.to_string())
+    service::delete_movement_mapping(&conn, &id, &preset_id).map_err(|error| error.to_string())
 }
