@@ -4,6 +4,7 @@ import {
   deleteMovementMapping,
   getMovementMappings,
 } from "@/features/movement-mapping/api/movementMappingsApi";
+import { getPreset } from "@/features/presets/api/presetsApi";
 import { Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
@@ -13,6 +14,7 @@ import type { PresetMappingCardData } from "./types";
 export default function PresetMappingsPage() {
   const { presetId } = useParams<{ presetId: string }>();
   const [mappings, setMappings] = useState<PresetMappingCardData[]>([]);
+  const [presetName, setPresetName] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const displayedError = presetId ? error : "Preset not found.";
 
@@ -21,16 +23,18 @@ export default function PresetMappingsPage() {
 
     let isMounted = true;
 
-    getMovementMappings(presetId)
-      .then((savedMappings) => {
+    Promise.all([getPreset(presetId), getMovementMappings(presetId)])
+      .then(([preset, savedMappings]) => {
         if (isMounted) {
+          setPresetName(preset.name);
           setMappings(savedMappings);
+          setError(null);
         }
       })
       .catch((error) => {
-        console.error("Failed to load movement mappings", error);
+        console.error("Failed to load preset mappings", error);
         if (isMounted) {
-          setError("Failed to load movement mappings.");
+          setError("Failed to load preset mappings.");
         }
       });
 
@@ -59,7 +63,7 @@ export default function PresetMappingsPage() {
         <header className="flex items-start justify-between gap-6">
           <div className="max-w-3xl">
             <h1 className="text-4xl font-semibold tracking-tight text-foreground">
-              Edit {/* name of preset goes here */} Mappings
+              {presetName ? `Edit ${presetName} Mappings` : "Edit Mappings"}
             </h1>
             <p className="mt-3 text-base text-muted-foreground">
               Configure movement mappings for this preset.
