@@ -11,7 +11,7 @@ export default function App() {
     <HashRouter>
       <Routes>
         <Route path="/" element={<PresetSelectionPage />} />
-        <Route path="/preset/edit" element={<PresetMappingsPage />} />
+        <Route path="/presets/:presetId/edit" element={<PresetMappingsPage />} />
         <Route path="/recognition" element={<MovementRecognitionPage />} />
         <Route path="/preset/edit/:mappingId" element={<EditMovementMappingPage />} />
         <Route path="/session" element={<MovementMappingPage />} />

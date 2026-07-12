@@ -14,6 +14,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router";
 import PresetNameSection from "./PresetNameSection";
 import PresetStartModeSelector, { type PresetStartMode } from "./PresetStartModeSelector";
+import { createPreset } from "../api/presetsApi";
 
 export default function CreatePresetDialog() {
   const navigate = useNavigate();
@@ -29,10 +30,20 @@ export default function CreatePresetDialog() {
     setPresetName("");
   };
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (!canContinue) return;
 
-    navigate("/preset/edit");
+    if (selectedMode === "custom") {
+      try {
+        const preset = await createPreset(trimmedPresetName);
+        navigate(`/presets/${preset.id}/edit`);
+      } catch (error) {
+        console.error("Failed to create preset", error);
+      }
+
+      return;
+    }
+    // later add to here, functionality for existing templates
   };
 
   return (
