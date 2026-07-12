@@ -14,16 +14,16 @@ interface LoadedMovementMapping {
 }
 
 export default function EditMovementMappingPage() {
-  const { mappingId } = useParams();
+  const { mappingId, presetId } = useParams<{ mappingId: string; presetId: string }>();
   const navigate = useNavigate();
   const [mapping, setMapping] = useState<LoadedMovementMapping | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!mappingId) return;
+    if (!mappingId || !presetId) return;
 
-    getMovementMapping(mappingId, "preset-1")
+    getMovementMapping(mappingId, presetId)
       .then((details) => {
         setMapping({
           details,
@@ -34,7 +34,7 @@ export default function EditMovementMappingPage() {
         console.error("Failed to load movement mapping", error);
         setError("Failed to load movement mapping.");
       });
-  }, [mappingId]);
+  }, [mappingId, presetId]);
 
   if (error) {
     return (
@@ -64,10 +64,15 @@ export default function EditMovementMappingPage() {
       onSave={async ({ frames, keybind, name }) => {
         setSaveError(null);
 
+        if (!presetId) {
+          setSaveError("Cannot save changes because the preset was not found.");
+          return;
+        }
+
         try {
           await updateMovementMapping({
             id: mapping.details.id,
-            presetId: "preset-1",
+            presetId,
             name,
             keybind,
             poseFramesJson: JSON.stringify(frames),

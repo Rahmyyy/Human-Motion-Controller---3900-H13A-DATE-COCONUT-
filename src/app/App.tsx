@@ -12,10 +12,13 @@ export default function App() {
       <Routes>
         <Route path="/" element={<PresetSelectionPage />} />
         <Route path="/presets/:presetId/edit" element={<PresetMappingsPage />} />
-        <Route path="/recognition" element={<MovementRecognitionPage />} />
-        <Route path="/preset/edit/:mappingId" element={<EditMovementMappingPage />} />
-        <Route path="/session" element={<MovementMappingPage />} />
-        <Route path="/dashboard" element={<LiveDashboardPage />} />
+        <Route path="/presets/:presetId/recognition" element={<MovementRecognitionPage />} />
+        <Route
+          path="/presets/:presetId/movements/:mappingId/edit"
+          element={<EditMovementMappingPage />}
+        />
+        <Route path="/presets/:presetId/movements/new" element={<MovementMappingPage />} />
+        <Route path="/presets/:presetId/dashboard" element={<LiveDashboardPage />} />
       </Routes>
     </HashRouter>
   );
