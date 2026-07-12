@@ -1,7 +1,9 @@
 import { Button } from "@/components/ui/button";
-import { Info, Play } from "lucide-react";
+import { Info, Play, SlidersHorizontal } from "lucide-react";
+import { useNavigate } from "react-router";
 
 type SelectedPreset = {
+  id: string;
   name: string;
 };
 
@@ -10,6 +12,8 @@ export default function PresetActionBar({
 }: {
   selectedPreset: SelectedPreset | undefined;
 }) {
+  const navigate = useNavigate();
+
   return (
     <footer className="fixed inset-x-0 bottom-0 border-t bg-background px-8 py-5">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-6">
@@ -24,10 +28,24 @@ export default function PresetActionBar({
           </span>
         </div>
 
-        <Button type="button" size="lg" disabled={!selectedPreset} className="min-w-56">
-          <Play className="size-4" aria-hidden="true" />
-          {selectedPreset ? "Start Session" : "Start Session"}
-        </Button>
+        <div className="flex items-center gap-3">
+          <Button
+            type="button"
+            size="lg"
+            variant="outline"
+            disabled={!selectedPreset}
+            onClick={() => selectedPreset && navigate(`/presets/${selectedPreset.id}/edit`)}
+            className="min-w-40"
+          >
+            <SlidersHorizontal className="size-4" aria-hidden="true" />
+            Edit Mappings
+          </Button>
+
+          <Button type="button" size="lg" disabled={!selectedPreset} className="min-w-48">
+            <Play className="size-4" aria-hidden="true" />
+            Start Session
+          </Button>
+        </div>
       </div>
     </footer>
   );
