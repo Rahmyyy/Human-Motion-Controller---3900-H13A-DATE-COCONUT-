@@ -37,3 +37,7 @@ pub fn get_preset(conn: &Connection, id: &str) -> Result<Preset> {
 
     repository::select_preset_by_id(conn, id)
 }
+
+#[cfg(test)]
+#[path = "service_tests.rs"]
+mod tests;
