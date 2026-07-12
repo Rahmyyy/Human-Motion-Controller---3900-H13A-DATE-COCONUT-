@@ -11,11 +11,12 @@ import {
 } from "@/components/ui/dialog";
 import { Plus } from "lucide-react";
 import { useState } from "react";
-import { Link } from "react-router";
+import { useNavigate } from "react-router";
 import PresetNameSection from "./PresetNameSection";
 import PresetStartModeSelector, { type PresetStartMode } from "./PresetStartModeSelector";
 
 export default function CreatePresetDialog() {
+  const navigate = useNavigate();
   const [selectedMode, setSelectedMode] = useState<PresetStartMode | null>(null);
   const [presetName, setPresetName] = useState("");
 
@@ -26,6 +27,12 @@ export default function CreatePresetDialog() {
   const resetDialog = () => {
     setSelectedMode(null);
     setPresetName("");
+  };
+
+  const handleContinue = () => {
+    if (!canContinue) return;
+
+    navigate("/preset/edit");
   };
 
   return (
@@ -55,17 +62,9 @@ export default function CreatePresetDialog() {
               Cancel
             </Button>
           </DialogClose>
-          {canContinue ? (
-            <Button asChild>
-              <Link to="/preset/edit">
-                {selectedMode === "custom" ? "Create Preset" : "Continue"}
-              </Link>
-            </Button>
-          ) : (
-            <Button type="button" disabled>
-              {selectedMode === "custom" ? "Create Preset" : "Continue"}
-            </Button>
-          )}
+          <Button type="button" onClick={handleContinue} disabled={!canContinue}>
+            {selectedMode === "custom" ? "Create Preset" : "Continue"}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
