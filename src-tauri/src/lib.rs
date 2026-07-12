@@ -2,6 +2,7 @@ mod db;
 mod input;
 mod mediapipe;
 mod movement_mapping;
+mod preset;
 mod streams;
 
 use log::{error, warn};
