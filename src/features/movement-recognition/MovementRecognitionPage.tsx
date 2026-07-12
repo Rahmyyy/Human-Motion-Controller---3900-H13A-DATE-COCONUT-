@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { LayoutDashboard } from "lucide-react";
-import { Link } from "react-router";
+import { Link, useParams } from "react-router";
 import BackButton from "@/components/BackButton";
 import { Button } from "@/components/ui/button";
 import AnnotatedPreview from "@/features/camera/AnnotatedPreview";
@@ -11,19 +11,21 @@ import type { PresetMappingCardData } from "@/features/preset-mapping/types";
 import RecognitionStatusPanel from "./components/RecognitionStatusPanel";
 import { useMovementRecognition } from "./hooks/useMovementRecognition";
 
-const PRESET_ID = "preset-1";
-
 export default function MovementRecognitionPage() {
+  const { presetId } = useParams<{ presetId: string }>();
   const [mappings, setMappings] = useState<PresetMappingCardData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [cameraMode] = useState(() => getCameraMode());
   const { onPoseFrame, status } = useMovementRecognition(mappings);
+  const displayedLoadError = presetId ? loadError : "Preset not found.";
 
   useEffect(() => {
+    if (!presetId) return;
+
     let isMounted = true;
 
-    getMovementMappings(PRESET_ID)
+    getMovementMappings(presetId)
       .then((savedMappings) => {
         if (!isMounted) return;
         setMappings(savedMappings);
@@ -40,7 +42,7 @@ export default function MovementRecognitionPage() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [presetId]);
 
   return (
     <main className="grid h-screen w-full grid-rows-[auto_minmax(0,1fr)] gap-4 overflow-hidden bg-slate-50 p-8">
@@ -49,11 +51,11 @@ export default function MovementRecognitionPage() {
           <h1 className="text-3xl font-semibold tracking-tight text-foreground">
             Live Recognition
           </h1>
-          <p className="mt-2 text-sm text-muted-foreground">Current preset: {PRESET_ID}</p>
+          <p className="mt-2 text-sm text-muted-foreground">Current preset: {presetId}</p>
         </div>
         <div className="flex items-center gap-3">
           <Button asChild variant="outline">
-            <Link to="/dashboard">
+            <Link to={`/presets/${presetId}/dashboard`}>
               <LayoutDashboard className="size-4" aria-hidden="true" />
               Dashboard
             </Link>
@@ -70,7 +72,11 @@ export default function MovementRecognitionPage() {
             <MediaPipePosePreview onPoseFrame={onPoseFrame} />
           )}
         </section>
-        <RecognitionStatusPanel isLoading={isLoading} loadError={loadError} status={status} />
+        <RecognitionStatusPanel
+          isLoading={Boolean(presetId) && isLoading}
+          loadError={displayedLoadError}
+          status={status}
+        />
       </div>
     </main>
   );

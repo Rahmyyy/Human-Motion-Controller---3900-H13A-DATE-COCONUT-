@@ -4,39 +4,49 @@ import {
   deleteMovementMapping,
   getMovementMappings,
 } from "@/features/movement-mapping/api/movementMappingsApi";
+import { getPreset } from "@/features/presets/api/presetsApi";
 import { Plus } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Link } from "react-router";
+import { Link, useParams } from "react-router";
 import PresetMappingCollection from "./components/PresetMappingCollection";
 import type { PresetMappingCardData } from "./types";
 
 export default function PresetMappingsPage() {
+  const { presetId } = useParams<{ presetId: string }>();
   const [mappings, setMappings] = useState<PresetMappingCardData[]>([]);
+  const [presetName, setPresetName] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const displayedError = presetId ? error : "Preset not found.";
 
   useEffect(() => {
+    if (!presetId) return;
+
     let isMounted = true;
 
-    getMovementMappings("preset-1")
-      .then((savedMappings) => {
+    Promise.all([getPreset(presetId), getMovementMappings(presetId)])
+      .then(([preset, savedMappings]) => {
         if (isMounted) {
+          setPresetName(preset.name);
           setMappings(savedMappings);
+          setError(null);
         }
       })
       .catch((error) => {
-        console.error("Failed to load movement mappings", error);
+        console.error("Failed to load preset mappings", error);
         if (isMounted) {
-          setError("Failed to load movement mappings.");
+          setError("Failed to load preset mappings.");
         }
       });
 
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [presetId]);
 
   function handleDelete(id: string) {
-    deleteMovementMapping(id, "preset-1")
+    if (!presetId) return;
+
+    deleteMovementMapping(id, presetId)
       .then(() => {
         setMappings((current) => current.filter((mapping) => mapping.id !== id));
         setError(null);
@@ -53,7 +63,7 @@ export default function PresetMappingsPage() {
         <header className="flex items-start justify-between gap-6">
           <div className="max-w-3xl">
             <h1 className="text-4xl font-semibold tracking-tight text-foreground">
-              Edit {/* name of preset goes here */} Mappings
+              {presetName ? `Edit ${presetName} Mappings` : "Edit Mappings"}
             </h1>
             <p className="mt-3 text-base text-muted-foreground">
               Configure movement mappings for this preset.
@@ -63,7 +73,7 @@ export default function PresetMappingsPage() {
           <div className="flex items-center gap-3">
             <BackButton />
             <Button asChild size="lg">
-              <Link to="/session">
+              <Link to={`/presets/${presetId}/movements/new`}>
                 <Plus className="size-4" aria-hidden="true" />
                 Add New Movement
               </Link>
@@ -71,19 +81,25 @@ export default function PresetMappingsPage() {
           </div>
         </header>
 
-        {error && (
+        {displayedError && (
           <p className="mt-6 rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
-            {error}
+            {displayedError}
           </p>
         )}
 
-        <PresetMappingCollection mappings={mappings} onDelete={handleDelete} />
+        {presetId && (
+          <PresetMappingCollection
+            mappings={mappings}
+            onDelete={handleDelete}
+            presetId={presetId}
+          />
+        )}
       </div>
 
       <div className="fixed inset-x-0 bottom-8 px-8">
         <div className="mx-auto flex max-w-6xl justify-end">
           <Button asChild size="lg">
-            <Link to="/recognition">Test Recognition</Link>
+            <Link to={`/presets/${presetId}/recognition`}>Test Recognition</Link>
           </Button>
         </div>
       </div>

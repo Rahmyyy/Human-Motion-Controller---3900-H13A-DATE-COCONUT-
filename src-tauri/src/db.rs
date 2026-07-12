@@ -15,6 +15,19 @@ pub fn init_db(app: &AppHandle) -> Result<DbState> {
     let db_path = app_data_dir.join("human-controller.sqlite");
     let conn = Connection::open(db_path)?;
 
+    conn.execute("PRAGMA foreign_keys = ON", [])?;
+
+    conn.execute(
+        "
+        CREATE TABLE IF NOT EXISTS presets (
+            id TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            created_at TEXT NOT NULL
+        )
+        ",
+        [],
+    )?;
+
     conn.execute(
         "
         CREATE TABLE IF NOT EXISTS movement_mappings (
@@ -23,7 +36,10 @@ pub fn init_db(app: &AppHandle) -> Result<DbState> {
             name TEXT NOT NULL,
             keybind TEXT NOT NULL,
             pose_frames_json TEXT NOT NULL,
-            created_at TEXT NOT NULL
+            created_at TEXT NOT NULL,
+            FOREIGN KEY (preset_id)
+                REFERENCES presets(id)
+                ON DELETE CASCADE
         )
         ",
         [],

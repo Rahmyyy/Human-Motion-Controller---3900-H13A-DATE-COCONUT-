@@ -9,18 +9,45 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { cn } from "@/lib/utils";
 import { Plus } from "lucide-react";
 import { useState } from "react";
-import { Link } from "react-router";
-
-type PresetStartMode = "template" | "custom";
+import { useNavigate } from "react-router";
+import PresetNameSection from "./PresetNameSection";
+import PresetStartModeSelector, { type PresetStartMode } from "./PresetStartModeSelector";
+import { createPreset } from "../api/presetsApi";
 
 export default function CreatePresetDialog() {
+  const navigate = useNavigate();
   const [selectedMode, setSelectedMode] = useState<PresetStartMode | null>(null);
+  const [presetName, setPresetName] = useState("");
+
+  const trimmedPresetName = presetName.trim();
+  const canContinue =
+    selectedMode === "template" || (selectedMode === "custom" && trimmedPresetName.length > 0);
+
+  const resetDialog = () => {
+    setSelectedMode(null);
+    setPresetName("");
+  };
+
+  const handleContinue = async () => {
+    if (!canContinue) return;
+
+    if (selectedMode === "custom") {
+      try {
+        const preset = await createPreset(trimmedPresetName);
+        navigate(`/presets/${preset.id}/edit`);
+      } catch (error) {
+        console.error("Failed to create preset", error);
+      }
+
+      return;
+    }
+    // later add to here, functionality for existing templates
+  };
 
   return (
-    <Dialog>
+    <Dialog onOpenChange={(open) => !open && resetDialog()}>
       <DialogTrigger asChild>
         <Button type="button" size="lg" className="shadow-sm">
           <Plus className="size-4" aria-hidden="true" />
@@ -34,37 +61,11 @@ export default function CreatePresetDialog() {
           <DialogDescription>Choose how you want to start.</DialogDescription>
         </DialogHeader>
 
-        <div className="grid gap-3 sm:grid-cols-2">
-          <button
-            type="button"
-            aria-pressed={selectedMode === "template"}
-            onClick={() => setSelectedMode("template")}
-            className={cn(
-              "rounded-lg border p-4 text-left hover:bg-muted/50",
-              selectedMode === "template" && "border-primary bg-primary/5 ring-1 ring-primary",
-            )}
-          >
-            <div className="font-medium">Use Existing Template</div>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Start from a predefined movement mapping.
-            </p>
-          </button>
+        <PresetStartModeSelector selectedMode={selectedMode} onSelectMode={setSelectedMode} />
 
-          <button
-            type="button"
-            aria-pressed={selectedMode === "custom"}
-            onClick={() => setSelectedMode("custom")}
-            className={cn(
-              "rounded-lg border p-4 text-left hover:bg-muted/50",
-              selectedMode === "custom" && "border-primary bg-primary/5 ring-1 ring-primary",
-            )}
-          >
-            <div className="font-medium">Create Custom Preset</div>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Start from scratch with a blank configuration.
-            </p>
-          </button>
-        </div>
+        {selectedMode === "custom" && (
+          <PresetNameSection value={presetName} onChange={setPresetName} />
+        )}
 
         <DialogFooter>
           <DialogClose asChild>
@@ -72,8 +73,8 @@ export default function CreatePresetDialog() {
               Cancel
             </Button>
           </DialogClose>
-          <Button asChild>
-            <Link to="/preset/edit">Continue</Link>
+          <Button type="button" onClick={handleContinue} disabled={!canContinue}>
+            {selectedMode === "custom" ? "Create Preset" : "Continue"}
           </Button>
         </DialogFooter>
       </DialogContent>

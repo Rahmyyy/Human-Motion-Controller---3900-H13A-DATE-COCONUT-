@@ -17,11 +17,13 @@ import type { PresetMappingCardData } from "../types";
 interface PresetMappingCollectionProps {
   mappings: PresetMappingCardData[];
   onDelete: (id: string) => void;
+  presetId: string;
 }
 
 export default function PresetMappingCollection({
   mappings,
   onDelete,
+  presetId,
 }: PresetMappingCollectionProps) {
   if (mappings.length === 0) {
     return (
@@ -35,7 +37,7 @@ export default function PresetMappingCollection({
     <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {mappings.map((mapping) => (
         <div key={mapping.id} className="relative">
-          <Link to={`/preset/edit/${mapping.id}`}>
+          <Link to={`/presets/${presetId}/movements/${mapping.id}/edit`}>
             <PresetMappingCard mapping={mapping} />
           </Link>
           <Dialog>

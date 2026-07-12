@@ -1,16 +1,11 @@
 import { cn } from "@/lib/utils";
 
-type PresetCardData = {
-  id: string;
-  name: string;
-  description: string;
-  mappingCount: number;
-};
+import type { Preset } from "../api/presetsApi";
 
 type PresetCardProps = {
   isSelected: boolean;
   onSelect: () => void;
-  preset: PresetCardData;
+  preset: Preset;
 };
 
 export default function PresetCard({ isSelected, onSelect, preset }: PresetCardProps) {
@@ -24,7 +19,6 @@ export default function PresetCard({ isSelected, onSelect, preset }: PresetCardP
       )}
     >
       <h3 className="text-lg font-semibold">{preset.name}</h3>
-      <p className="mt-2 text-sm text-muted-foreground">{preset.description}</p>
       <p className="mt-4 text-sm font-medium text-muted-foreground">
         {preset.mappingCount} mappings
       </p>
