@@ -5,6 +5,9 @@ mod movement_mapping;
 mod preset;
 mod streams;
 
+#[cfg(test)]
+mod test_support;
+
 use log::{error, warn};
 use nokhwa::utils::CameraIndex;
 use std::path::PathBuf;
