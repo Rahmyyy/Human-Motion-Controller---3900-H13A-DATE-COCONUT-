@@ -24,6 +24,14 @@ fn update_then_delete_round_trip() {
 }
 
 #[test]
+fn create_rejects_missing_preset() {
+    let conn = setup_test_conn();
+    let result = create_movement_mapping(&conn, "missing-preset", "Squat", "S", "[]");
+
+    assert!(result.is_err());
+}
+
+#[test]
 fn update_missing_mapping_errors() {
     let conn = setup_test_conn();
     let result = update_movement_mapping(&conn, "does-not-exist", "preset-1", "Name", "K", "[]");
