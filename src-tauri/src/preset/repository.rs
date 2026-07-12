@@ -7,6 +7,7 @@ pub struct Preset {
     pub id: String,
     pub name: String,
     pub created_at: String,
+    pub mapping_count: i64,
 }
 
 pub fn insert_preset(conn: &Connection, id: &str, name: &str, created_at: &str) -> Result<()> {
@@ -27,9 +28,11 @@ pub fn insert_preset(conn: &Connection, id: &str, name: &str, created_at: &str) 
 pub fn select_presets(conn: &Connection) -> Result<Vec<Preset>> {
     let mut statement = conn.prepare(
         "
-        SELECT id, name, created_at
+        SELECT presets.id, presets.name, presets.created_at, COUNT(movement_mappings.id)
         FROM presets
-        ORDER BY created_at DESC
+        LEFT JOIN movement_mappings ON movement_mappings.preset_id = presets.id
+        GROUP BY presets.id, presets.name, presets.created_at
+        ORDER BY presets.created_at DESC
         ",
     )?;
 
@@ -39,6 +42,7 @@ pub fn select_presets(conn: &Connection) -> Result<Vec<Preset>> {
                 id: row.get(0)?,
                 name: row.get(1)?,
                 created_at: row.get(2)?,
+                mapping_count: row.get(3)?,
             })
         })?
         .collect::<Result<Vec<_>, _>>()?;
@@ -49,9 +53,11 @@ pub fn select_presets(conn: &Connection) -> Result<Vec<Preset>> {
 pub fn select_preset_by_id(conn: &Connection, id: &str) -> Result<Preset> {
     let mut statement = conn.prepare(
         "
-        SELECT id, name, created_at
+        SELECT presets.id, presets.name, presets.created_at, COUNT(movement_mappings.id)
         FROM presets
-        WHERE id = ?1
+        LEFT JOIN movement_mappings ON movement_mappings.preset_id = presets.id
+        WHERE presets.id = ?1
+        GROUP BY presets.id, presets.name, presets.created_at
         ",
     )?;
 
@@ -60,6 +66,7 @@ pub fn select_preset_by_id(conn: &Connection, id: &str) -> Result<Preset> {
             id: row.get(0)?,
             name: row.get(1)?,
             created_at: row.get(2)?,
+            mapping_count: row.get(3)?,
         })
     })?;
 
