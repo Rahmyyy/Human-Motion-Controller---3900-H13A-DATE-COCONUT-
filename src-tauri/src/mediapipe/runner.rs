@@ -79,7 +79,6 @@ fn load_model(model_path: &PathBuf) -> Result<Session, Error> {
 
 async fn mediapipe_thread(
     mut command_rx: mpsc::Receiver<MediapipeThreadCommand>,
-    frame_sender_tx: mpsc::Sender<SenderThreadCommand>,
     detector_model_path: PathBuf,
     anchor_path: PathBuf,
 ) {
@@ -99,7 +98,14 @@ async fn mediapipe_thread(
     let mut transformation_saved: Option<InputTransformation> = None;
 
     loop {
-        match command_rx.recv().await.unwrap() {
+        let command = match command_rx.try_recv() {
+            Ok(command) => command,
+            Err(_) => {
+                continue;
+            }
+        };
+
+        match command {
             MediapipeThreadCommand::SetModel(model_path) => {
                 info!("Loading landmarker model from {:?}", model_path);
                 model_saved = match load_model(&model_path) {
@@ -140,6 +146,22 @@ async fn mediapipe_thread(
                     (Some(model), Some(frame_sender_channel), Some(transformation_saved)) => {
                         (model, frame_sender_channel, transformation_saved)
                     }
+                    (model, Some(channel), transformation) => {
+                        warn!(
+                            "Landmarker frame skipped due to: model={}, channel={}, transformation={}",
+                            model.is_none(),
+                            false,
+                            transformation.is_none()
+                        );
+                        SenderThreadCommand {
+                            frame,
+                            channel: channel.clone(),
+                            format: image::ImageFormat::Png,
+                            size: None,
+                        }
+                        .send_frame();
+                        continue;
+                    }
                     (model, channel, transformation) => {
                         warn!(
                             "Landmarker frame skipped due to: model={}, channel={}, transformation={}",
@@ -159,6 +181,15 @@ async fn mediapipe_thread(
                     Ok(None) => {
                         transformation_saved = None;
                         warn!("Landmarker frame skipped: Low confidence");
+
+                        SenderThreadCommand {
+                            frame,
+                            channel: channel.clone(),
+                            format: image::ImageFormat::Jpeg,
+                            size: None,
+                        }
+                        .send_frame();
+
                         continue;
                     }
                     Err(e) => {
@@ -178,30 +209,22 @@ async fn mediapipe_thread(
                     true => annotate::annotate_frame(input_frame, Some(&pose), None, false, None),
                 };
 
-                let pose = pose.transform_inv(transform);
-                transformation_saved = Some(InputTransformation::from_landmarker(&pose));
+                let pose_cam = pose.transform_inv(transform);
+                transformation_saved = Some(InputTransformation::from_landmarker(&pose_cam));
 
-                match frame_sender_tx
-                    .send(SenderThreadCommand::SendFrame {
-                        frame: annotated_frame,
-                        channel: channel.clone(),
-                        format: image::ImageFormat::Png,
-                        size: None,
-                    })
-                    .await
-                {
-                    Ok(_) => {}
-                    Err(e) => {
-                        error!("Error sending annotated frame: {}", e);
-                    }
-                };
+                SenderThreadCommand {
+                    frame: annotated_frame,
+                    channel: channel.clone(),
+                    format: image::ImageFormat::Jpeg,
+                    size: None,
+                }
+                .send_frame();
             }
         }
     }
 }
 
 pub fn start_mediapipe_thread(
-    frame_sender_tx: mpsc::Sender<SenderThreadCommand>,
     detector_model_path: PathBuf,
     anchor_path: PathBuf,
 ) -> mpsc::Sender<MediapipeThreadCommand> {
@@ -211,7 +234,6 @@ pub fn start_mediapipe_thread(
 
     tauri::async_runtime::spawn(mediapipe_thread(
         command_rx,
-        frame_sender_tx,
         detector_model_path,
         anchor_path,
     ));
