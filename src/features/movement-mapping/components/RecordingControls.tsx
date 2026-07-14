@@ -4,6 +4,7 @@ import type { RecordingState } from "../hooks/usePoseRecording";
 
 interface RecordingControlsProps {
   state: RecordingState;
+  canSave: boolean;
   onReRecord: () => void;
   onSave: () => void;
   onStart: () => void;
@@ -12,6 +13,7 @@ interface RecordingControlsProps {
 
 export default function RecordingControls({
   state,
+  canSave,
   onReRecord,
   onSave,
   onStart,
@@ -20,7 +22,7 @@ export default function RecordingControls({
   if (state === "recorded") {
     return (
       <div className="grid gap-2">
-        <Button type="button" className="w-full" onClick={onSave}>
+        <Button type="button" className="w-full" disabled={!canSave} onClick={onSave}>
           <Save className="size-4" aria-hidden="true" />
           Save Mapping
         </Button>

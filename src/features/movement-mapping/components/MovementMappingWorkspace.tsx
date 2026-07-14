@@ -1,11 +1,13 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import type { PoseFrame } from "@/features/camera/poseFrame";
 import MappingDetailsPanel from "./MappingDetailsPanel";
 import type { Keybind } from "./MappingDetailsPanel";
 import MovementCameraPanel from "./MovementCameraPanel";
 import MovementMappingHeader from "./MovementMappingHeader";
 import RecordingControls from "./RecordingControls";
+import RecordingQualityPanel from "./RecordingQualityPanel";
 import { usePoseRecording } from "../hooks/usePoseRecording";
+import { analyseRecordingQuality } from "../recording/analyseRecordingQuality";
 
 interface SaveMovementMappingInput {
   frames: PoseFrame[];
@@ -52,6 +54,12 @@ export default function MovementMappingWorkspace({
     stopRecording,
   } = usePoseRecording(initialFrames ?? [], initialFrames ? "recorded" : "idle");
 
+  // Analyse only completed recordings so camera frames do not trigger React work while recording.
+  const recordingQuality = useMemo(
+    () => (recordingState === "recorded" ? analyseRecordingQuality(recordedFrames) : null),
+    [recordedFrames, recordingState],
+  );
+
   const handleStopRecording = () => {
     const frames = stopRecording();
     console.log(`Recorded ${frames.length} pose frames`, frames);
@@ -81,6 +89,7 @@ export default function MovementMappingWorkspace({
             onKeybindChange={setKeybind}
             onMovementNameChange={setMovementName}
           />
+          {recordingQuality && <RecordingQualityPanel quality={recordingQuality} />}
           {saveError && (
             <p className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
               {saveError}
@@ -88,6 +97,7 @@ export default function MovementMappingWorkspace({
           )}
           <RecordingControls
             state={recordingState}
+            canSave={recordingQuality?.status !== "unusable"}
             onReRecord={resetRecording}
             onSave={handleSaveMapping}
             onStart={startRecording}
