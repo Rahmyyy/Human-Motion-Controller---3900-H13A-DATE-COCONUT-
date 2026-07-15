@@ -46,6 +46,8 @@ export default function MovementMappingWorkspace({
   const [movementName, setMovementName] = useState(initialName);
   const [keybind, setKeybind] = useState<Keybind | null>(keybindFromLabel(initialKeybind));
   const {
+    cancelCountdown,
+    countdownSeconds,
     recordFrame,
     recordedFrames,
     recordingState,
@@ -79,6 +81,7 @@ export default function MovementMappingWorkspace({
       <div className="grid min-h-0 gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <MovementCameraPanel
           frames={recordedFrames}
+          countdownSeconds={countdownSeconds}
           onPoseFrame={recordFrame}
           recordingState={recordingState}
         />
@@ -98,6 +101,7 @@ export default function MovementMappingWorkspace({
           <RecordingControls
             state={recordingState}
             canSave={recordingQuality?.status !== "unusable"}
+            onCancel={cancelCountdown}
             onReRecord={resetRecording}
             onSave={handleSaveMapping}
             onStart={startRecording}
