@@ -1,5 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { PoseFrame } from "@/features/camera/poseFrame";
+import {
+  constrainRecordingTrimRange,
+  createRecordingTrimRange,
+  trimRecordingFrames,
+  type RecordingTrimRange,
+} from "../recording/trimRecording";
 
 // Stores recorded PoseFrame data without re-rendering on every camera frame.
 // React state is updated only when the recording state changes.
@@ -14,6 +20,9 @@ export function usePoseRecording(
   const [recordingState, setRecordingState] = useState<RecordingState>(initialRecordingState);
   const [recordedFrames, setRecordedFrames] = useState<PoseFrame[]>(initialFrames);
   const [countdownSeconds, setCountdownSeconds] = useState<number | null>(null);
+  const [recordingTrim, setRecordingTrim] = useState<RecordingTrimRange | null>(() =>
+    createRecordingTrimRange(initialFrames),
+  );
   const isRecordingRef = useRef(false);
   const framesRef = useRef<PoseFrame[]>(initialFrames);
 
@@ -38,6 +47,7 @@ export function usePoseRecording(
 
       framesRef.current = [];
       setRecordedFrames([]);
+      setRecordingTrim(null);
       isRecordingRef.current = true;
       setCountdownSeconds(null);
       setRecordingState("recording");
@@ -54,6 +64,7 @@ export function usePoseRecording(
   const stopRecording = useCallback(() => {
     isRecordingRef.current = false;
     setRecordedFrames(framesRef.current);
+    setRecordingTrim(createRecordingTrimRange(framesRef.current));
     setRecordingState("recorded");
     return framesRef.current;
   }, []);
@@ -69,18 +80,30 @@ export function usePoseRecording(
     setRecordedFrames([]);
     isRecordingRef.current = false;
     setCountdownSeconds(null);
+    setRecordingTrim(null);
     setRecordingState("idle");
+  }, []);
+
+  const trimRecording = useCallback((range: RecordingTrimRange) => {
+    const fullRange = createRecordingTrimRange(framesRef.current);
+    if (!fullRange) return;
+
+    const nextRange = constrainRecordingTrimRange(range, fullRange.durationMs);
+    setRecordingTrim(nextRange);
+    setRecordedFrames(trimRecordingFrames(framesRef.current, nextRange));
   }, []);
 
   return {
     countdownSeconds,
     isRecording: recordingState === "recording",
     recordedFrames,
+    recordingTrim,
     recordingState,
     cancelCountdown,
     recordFrame,
     resetRecording,
     startRecording,
     stopRecording,
+    trimRecording,
   };
 }
