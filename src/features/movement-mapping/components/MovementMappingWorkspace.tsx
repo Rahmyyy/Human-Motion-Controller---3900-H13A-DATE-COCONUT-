@@ -6,6 +6,7 @@ import MovementCameraPanel from "./MovementCameraPanel";
 import MovementMappingHeader from "./MovementMappingHeader";
 import RecordingControls from "./RecordingControls";
 import RecordingQualityPanel from "./RecordingQualityPanel";
+import RecordingTrimPanel from "./RecordingTrimPanel";
 import { usePoseRecording } from "../hooks/usePoseRecording";
 import { analyseRecordingQuality } from "../recording/analyseRecordingQuality";
 
@@ -50,10 +51,12 @@ export default function MovementMappingWorkspace({
     countdownSeconds,
     recordFrame,
     recordedFrames,
+    recordingTrim,
     recordingState,
     resetRecording,
     startRecording,
     stopRecording,
+    trimRecording,
   } = usePoseRecording(initialFrames ?? [], initialFrames ? "recorded" : "idle");
 
   // Analyse only completed recordings so camera frames do not trigger React work while recording.
@@ -85,13 +88,16 @@ export default function MovementMappingWorkspace({
           onPoseFrame={recordFrame}
           recordingState={recordingState}
         />
-        <div className="grid min-h-0 content-start gap-4">
+        <div className="grid min-h-0 content-start gap-4 overflow-y-auto pr-1">
           <MappingDetailsPanel
             keybind={keybind}
             movementName={movementName}
             onKeybindChange={setKeybind}
             onMovementNameChange={setMovementName}
           />
+          {recordingState === "recorded" && recordingTrim && (
+            <RecordingTrimPanel trim={recordingTrim} onChange={trimRecording} />
+          )}
           {recordingQuality && <RecordingQualityPanel quality={recordingQuality} />}
           {saveError && (
             <p className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
