@@ -29,7 +29,12 @@ export function findTemplateMatches(
 
   for (const template of templates) {
     const liveWindow = liveWindowForTemplate(liveFrames, template.durationMs);
-    const confidence = compareMovement(template.frames, liveWindow);
+    const confidence = compareMovement(
+      template.frames,
+      liveWindow,
+      template.landmarkWeights,
+      template.isDynamic,
+    );
     const match = {
       id: template.id,
       name: template.name,
