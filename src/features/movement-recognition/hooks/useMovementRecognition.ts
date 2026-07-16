@@ -8,14 +8,13 @@ import { normalizePoseFrame } from "../recognition/normalizePose";
 import { prepareMovementTemplates } from "../recognition/prepareTemplates";
 import { pressMatchedKey } from "../recognition/pressMatchedKey";
 import {
-  CONFIDENCE_THRESHOLD,
   REQUIRED_CONSECUTIVE_MATCHES,
   REQUIRED_CONSECUTIVE_RELEASES,
-  RELEASE_CONFIDENCE_THRESHOLD,
   type NormalizedPoseFrame,
   type RecognitionMatch,
   type RecognitionMappingStatus,
 } from "../recognition/types";
+import { selectAcceptedMatch } from "../recognition/selectAcceptedMatch";
 
 export type RecognitionStatus = {
   bestMatch: RecognitionMatch | null;
@@ -96,6 +95,7 @@ export function useMovementRecognition(mappings: PresetMappingCardData[]) {
 
       const matches = findTemplateMatches(templates, liveFrames);
       const bestMatch = matches[0] ?? null;
+      const acceptedMatch = selectAcceptedMatch(matches);
       setRuntimeStatus((current) => ({
         ...current,
         sourceMappings: mappings,
@@ -104,39 +104,40 @@ export function useMovementRecognition(mappings: PresetMappingCardData[]) {
       }));
 
       const latchedMappingId = latchedMappingIdRef.current;
-      if (latchedMappingId) {
-        const latchedMatch = matches.find((match) => match.id === latchedMappingId);
-        const isReleased = !latchedMatch || latchedMatch.confidence <= RELEASE_CONFIDENCE_THRESHOLD;
+      if (latchedMappingId && acceptedMatch?.id === latchedMappingId) {
+        releaseStreakRef.current = 0;
+        streakRef.current = { id: "", count: 0 };
+        return;
+      }
 
-        releaseStreakRef.current = isReleased ? releaseStreakRef.current + 1 : 0;
+      if (!acceptedMatch) {
+        releaseStreakRef.current += 1;
+        streakRef.current = { id: "", count: 0 };
 
         if (releaseStreakRef.current >= REQUIRED_CONSECUTIVE_RELEASES) {
           latchedMappingIdRef.current = null;
           releaseStreakRef.current = 0;
-          streakRef.current = { id: "", count: 0 };
         }
 
         return;
       }
 
-      if (!bestMatch || bestMatch.confidence < CONFIDENCE_THRESHOLD) {
-        streakRef.current = { id: "", count: 0 };
-        return;
-      }
-
-      const nextCount = streakRef.current.id === bestMatch.id ? streakRef.current.count + 1 : 1;
-      streakRef.current = { id: bestMatch.id, count: nextCount };
+      // A different clear winner can replace the latch after the normal match
+      // confirmation instead of waiting for the old winner's raw score to fall.
+      releaseStreakRef.current = 0;
+      const nextCount = streakRef.current.id === acceptedMatch.id ? streakRef.current.count + 1 : 1;
+      streakRef.current = { id: acceptedMatch.id, count: nextCount };
 
       if (nextCount < REQUIRED_CONSECUTIVE_MATCHES) {
         return;
       }
 
-      latchedMappingIdRef.current = bestMatch.id;
+      latchedMappingIdRef.current = acceptedMatch.id;
       releaseStreakRef.current = 0;
       // Do not let the frames that produced this match contribute to another match.
       // Fresh camera frames can begin building the next movement immediately.
       liveFramesRef.current = [];
-      fireTrigger(bestMatch);
+      fireTrigger(acceptedMatch);
     },
     [fireTrigger, mappings, templates],
   );
