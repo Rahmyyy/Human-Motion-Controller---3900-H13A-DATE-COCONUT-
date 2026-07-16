@@ -133,6 +133,9 @@ export function useMovementRecognition(mappings: PresetMappingCardData[]) {
 
       latchedMappingIdRef.current = bestMatch.id;
       releaseStreakRef.current = 0;
+      // Do not let the frames that produced this match contribute to another match.
+      // Fresh camera frames can begin building the next movement immediately.
+      liveFramesRef.current = [];
       fireTrigger(bestMatch);
     },
     [fireTrigger, mappings, templates],
