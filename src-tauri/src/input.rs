@@ -1,72 +1,166 @@
-use std::sync::Mutex;
-use std::time::{Duration, Instant};
+use enigo::{Button, Direction, Enigo, Key, Keyboard, Mouse, Settings};
+use log::{error, info};
+use serde::Deserialize;
+use std::sync::OnceLock;
+use tokio::sync::{Mutex, MutexGuard};
 
-use enigo::{Direction, Enigo, Key, Keyboard, Settings};
+static ENIGO_HANDLER: OnceLock<Mutex<Enigo>> = OnceLock::new();
 
-const COOLDOWN: Duration = Duration::from_millis(100);
+#[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord, Deserialize)]
+pub enum PressType {
+    Toggle,
+    Press,
+    Release,
+    Click, // Press and relase immediately
+}
 
-static LAST_FIRED: Mutex<Option<Instant>> = Mutex::new(None);
-
-fn parse_key(key: &str) -> Result<Key, String> {
-    let mut chars = key.chars();
-    if let (Some(c), None) = (chars.next(), chars.next()) {
-        // Lowercased on purpose. enigo resolves a char with VkKeyScanExW but
-        // keeps the whole return value, including the shift state Windows packs
-        // into the high byte -- 'L' becomes 0x014C rather than VK_L (0x4C).
-        // That maps to no scan code, so the keypress goes out malformed and no
-        // application receives it. There is no separate "uppercase" key, so
-        // dropping the shift state is also the correct thing to press.
-        return Ok(Key::Unicode(c.to_ascii_lowercase()));
+impl PressType {
+    fn to_direction(&self, pressed: bool) -> Direction {
+        match (self, pressed) {
+            (PressType::Toggle, false) | (PressType::Press, _) => Direction::Press,
+            (PressType::Toggle, true) | (PressType::Release, _) => Direction::Release,
+            (PressType::Click, _) => Direction::Click,
+        }
     }
-    match key {
-        "Enter" | "Return" => Ok(Key::Return),
-        "Space" | "Spacebar" => Ok(Key::Space),
-        "Escape" | "Esc" => Ok(Key::Escape),
-        "Tab" => Ok(Key::Tab),
-        "Backspace" => Ok(Key::Backspace),
-        "ArrowUp" | "Arrow Up" => Ok(Key::UpArrow),
-        "ArrowDown" | "Arrow Down" => Ok(Key::DownArrow),
-        "ArrowLeft" | "Arrow Left" => Ok(Key::LeftArrow),
-        "ArrowRight" | "Arrow Right" => Ok(Key::RightArrow),
-        "F1" => Ok(Key::F1),
-        "F2" => Ok(Key::F2),
-        "F3" => Ok(Key::F3),
-        "F4" => Ok(Key::F4),
-        "F5" => Ok(Key::F5),
-        "F6" => Ok(Key::F6),
-        "F7" => Ok(Key::F7),
-        "F8" => Ok(Key::F8),
-        "F9" => Ok(Key::F9),
-        "F10" => Ok(Key::F10),
-        "F11" => Ok(Key::F11),
-        "F12" => Ok(Key::F12),
-        _ => Err(format!("unknown key: {key}")),
+}
+
+#[derive(Debug, Clone, Deserialize, Eq, PartialEq, Hash)]
+pub enum Action {
+    Keyboard(Key, PressType),
+    MouseButton(Button, PressType),
+}
+
+impl Action {
+    fn from_raw_str(key_str: &str, press_type: PressType) -> Result<Self, String> {
+        // Implementation for parsing key
+        let mut chars = key_str.chars();
+        if let (Some(c), None) = (chars.next(), chars.next()) {
+            return Ok(Action::Keyboard(Key::Unicode(c), press_type));
+        }
+
+        let keyboard_match = match key_str {
+            "Enter" | "Return" => Some(Key::Return),
+            "Space" | "Spacebar" => Some(Key::Space),
+            "Escape" | "Esc" => Some(Key::Escape),
+            "Tab" => Some(Key::Tab),
+            "Backspace" => Some(Key::Backspace),
+            "ArrowUp" | "Arrow Up" => Some(Key::UpArrow),
+            "ArrowDown" | "Arrow Down" => Some(Key::DownArrow),
+            "ArrowLeft" | "Arrow Left" => Some(Key::LeftArrow),
+            "ArrowRight" | "Arrow Right" => Some(Key::RightArrow),
+            "F1" => Some(Key::F1),
+            "F2" => Some(Key::F2),
+            "F3" => Some(Key::F3),
+            "F4" => Some(Key::F4),
+            "F5" => Some(Key::F5),
+            "F6" => Some(Key::F6),
+            "F7" => Some(Key::F7),
+            "F8" => Some(Key::F8),
+            "F9" => Some(Key::F9),
+            "F10" => Some(Key::F10),
+            "F11" => Some(Key::F11),
+            "F12" => Some(Key::F12),
+            _ => None,
+        };
+
+        if let Some(key) = keyboard_match {
+            return Ok(Action::Keyboard(key, press_type));
+        }
+
+        let mouse_match = match key_str {
+            "MouseLeft" | "Mouse Left" => Some(enigo::Button::Left),
+            "MouseRight" | "Mouse Right" => Some(enigo::Button::Right),
+            "MouseMiddle" | "Mouse Middle" => Some(enigo::Button::Middle),
+            _ => None,
+        };
+
+        if let Some(key) = mouse_match {
+            return Ok(Action::MouseButton(key, press_type));
+        }
+
+        let err_str = format!("Unknown key: {}", key_str);
+
+        error!("{}", err_str);
+        Err(err_str)
+    }
+
+    fn get_key_state(&self, enigo: &mut Enigo) -> Option<bool> {
+        // True if pressed, false if not, None if not a keypress relatede action (for future if we do mouse control)
+        let held_keys = enigo.held().0;
+
+        match self {
+            Action::Keyboard(key, _) => Some(held_keys.contains(key)),
+            _ => None, // Not sure if check is possible for mouse -> toggling mouse not possible then
+        }
+    }
+
+    fn execute(&self, enigo: &mut Enigo) {
+        match self {
+            Action::Keyboard(key, press_type) => {
+                let is_pressed = self.get_key_state(enigo).unwrap();
+                let direction = press_type.to_direction(is_pressed);
+                let _ = enigo.key(*key, direction);
+            }
+            Action::MouseButton(button, press_type) => {
+                if matches!(press_type, PressType::Toggle) {
+                    error!("Toggle mouse button not available");
+                    return;
+                }
+
+                let direction = press_type.to_direction(false);
+                let _ = enigo.button(*button, direction);
+            }
+        }
+    }
+}
+
+async fn request_enigo() -> Result<MutexGuard<'static, Enigo>, String> {
+    match ENIGO_HANDLER.get() {
+        Some(mutex) => Ok(mutex.lock().await),
+        None => {
+            error!("Enigo backend uninitialised");
+            Err("Enigo backend uninitialised".to_string())
+        }
     }
 }
 
 #[tauri::command]
-pub fn press_key(key: String) -> Result<(), String> {
-    let mut last = LAST_FIRED.lock().map_err(|e| e.to_string())?;
-    if let Some(t) = *last {
-        if t.elapsed() < COOLDOWN {
-            log::info!("press_key: '{key}' skipped, still within cooldown");
-            return Ok(());
-        }
-    }
-    *last = Some(Instant::now());
-    drop(last);
+pub async fn press_key(key: String) -> Result<(), String> {
+    let mut enigo = request_enigo().await?;
 
-    let enigo_key = parse_key(&key)?;
-    let mut enigo = Enigo::new(&Settings::default()).map_err(|e| e.to_string())?;
-    enigo
-        .key(enigo_key, Direction::Click)
-        .map_err(|e| e.to_string())?;
+    Action::from_raw_str(&key, PressType::Click)?.execute(&mut enigo);
 
-    // Logged so a "the game isn't responding" report can be split into
-    // "no press was ever sent" vs "the press was sent but went elsewhere",
-    // which have completely different causes.
-    log::info!("press_key: sent '{key}' as {enigo_key:?} to the foreground window");
     Ok(())
+}
+
+#[tauri::command]
+pub async fn execute_action(action: Action) -> Result<(), String> {
+    let mut enigo = request_enigo().await?;
+
+    action.execute(&mut enigo);
+
+    Ok(())
+}
+
+pub fn init_action_backend() {
+    let enigo = match Enigo::new(&Settings::default()) {
+        Ok(x) => x,
+        Err(e) => {
+            error!("Failed to initialize enigo: {}", e);
+            return;
+        }
+    };
+
+    match ENIGO_HANDLER.get() {
+        Some(mutex) => {
+            info!("Re-initialised enigo backend");
+            *mutex.blocking_lock() = enigo;
+        }
+        None => {
+            info!("Initialised enigo backend");
+            let _ = ENIGO_HANDLER.set(Mutex::new(enigo));
+        }
+    };
 }
 
 #[cfg(test)]
@@ -78,23 +172,38 @@ mod tests {
         // Regression: an uppercase char makes enigo produce a virtual key with
         // the shift state still in the high byte, which maps to no scan code
         // and silently sends a keypress no application can receive.
-        assert_eq!(parse_key("L"), Ok(Key::Unicode('l')));
+        assert_eq!(
+            Action::from_raw_str("L", PressType::Click),
+            Ok(Action::Keyboard(Key::Unicode('l'), PressType::Click))
+        );
     }
 
     #[test]
     fn leaves_already_lowercase_and_digit_keys_alone() {
-        assert_eq!(parse_key("w"), Ok(Key::Unicode('w')));
-        assert_eq!(parse_key("4"), Ok(Key::Unicode('4')));
+        assert_eq!(
+            Action::from_raw_str("w", PressType::Click),
+            Ok(Action::Keyboard(Key::Unicode('w'), PressType::Click))
+        );
+        assert_eq!(
+            Action::from_raw_str("4", PressType::Click),
+            Ok(Action::Keyboard(Key::Unicode('4'), PressType::Click))
+        );
     }
 
     #[test]
     fn maps_named_keys() {
-        assert_eq!(parse_key("Space"), Ok(Key::Space));
-        assert_eq!(parse_key("ArrowUp"), Ok(Key::UpArrow));
+        assert_eq!(
+            Action::from_raw_str("Space", PressType::Click),
+            Ok(Action::Keyboard(Key::Space, PressType::Click))
+        );
+        assert_eq!(
+            Action::from_raw_str("ArrowUp", PressType::Click),
+            Ok(Action::Keyboard(Key::UpArrow, PressType::Click))
+        );
     }
 
     #[test]
     fn rejects_an_unknown_named_key() {
-        assert!(parse_key("Nonsense").is_err());
+        assert!(Action::from_raw_str("Nonsense", PressType::Click).is_err());
     }
 }

@@ -25,6 +25,8 @@ pub fn run() {
             // Starts up SQLite
             app.manage(db::init_db(app.handle())?);
 
+            input::init_action_backend();
+
             let app_menu = SubmenuBuilder::new(app, "Human Controller")
                 .about(Some(AboutMetadata {
                     version: Some("1.0.0".into()),
@@ -54,6 +56,7 @@ pub fn run() {
             movement_mapping::commands::create_movement_mapping,
             movement_mapping::commands::get_movement_mappings,
             input::press_key,
+            input::execute_action,
             movement_mapping::commands::get_movement_mapping,
             movement_mapping::commands::update_movement_mapping,
             movement_mapping::commands::update_movement_mapping_threshold,

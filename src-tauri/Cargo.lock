@@ -832,6 +832,7 @@ dependencies = [
  "objc2",
  "objc2-app-kit",
  "objc2-foundation",
+ "serde",
  "windows",
  "x11rb",
  "xkbcommon",
