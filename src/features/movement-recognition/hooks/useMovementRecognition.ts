@@ -9,8 +9,9 @@ import { prepareMovementTemplates } from "../recognition/prepareTemplates";
 import { pressMatchedKey } from "../recognition/pressMatchedKey";
 import {
   CONFIDENCE_THRESHOLD,
-  RECOGNITION_COOLDOWN_MS,
   REQUIRED_CONSECUTIVE_MATCHES,
+  REQUIRED_CONSECUTIVE_RELEASES,
+  RELEASE_CONFIDENCE_THRESHOLD,
   type NormalizedPoseFrame,
   type RecognitionMatch,
   type RecognitionMappingStatus,
@@ -38,7 +39,8 @@ export function useMovementRecognition(mappings: PresetMappingCardData[]) {
   const templates = useMemo(() => prepareMovementTemplates(mappings), [mappings]);
   const liveFramesRef = useRef<NormalizedPoseFrame[]>([]);
   const streakRef = useRef<MatchStreak>({ id: "", count: 0 });
-  const lastTriggeredAtRef = useRef(Number.NEGATIVE_INFINITY);
+  const latchedMappingIdRef = useRef<string | null>(null);
+  const releaseStreakRef = useRef(0);
   const [runtimeStatus, setRuntimeStatus] = useState<RecognitionRuntimeStatus>({
     sourceMappings: mappings,
     bestMatch: null,
@@ -49,7 +51,8 @@ export function useMovementRecognition(mappings: PresetMappingCardData[]) {
   useEffect(() => {
     liveFramesRef.current = [];
     streakRef.current = { id: "", count: 0 };
-    lastTriggeredAtRef.current = Number.NEGATIVE_INFINITY;
+    latchedMappingIdRef.current = null;
+    releaseStreakRef.current = 0;
   }, [templates]);
 
   const status = useMemo<RecognitionStatus>(() => {
@@ -100,6 +103,22 @@ export function useMovementRecognition(mappings: PresetMappingCardData[]) {
         matches,
       }));
 
+      const latchedMappingId = latchedMappingIdRef.current;
+      if (latchedMappingId) {
+        const latchedMatch = matches.find((match) => match.id === latchedMappingId);
+        const isReleased = !latchedMatch || latchedMatch.confidence <= RELEASE_CONFIDENCE_THRESHOLD;
+
+        releaseStreakRef.current = isReleased ? releaseStreakRef.current + 1 : 0;
+
+        if (releaseStreakRef.current >= REQUIRED_CONSECUTIVE_RELEASES) {
+          latchedMappingIdRef.current = null;
+          releaseStreakRef.current = 0;
+          streakRef.current = { id: "", count: 0 };
+        }
+
+        return;
+      }
+
       if (!bestMatch || bestMatch.confidence < CONFIDENCE_THRESHOLD) {
         streakRef.current = { id: "", count: 0 };
         return;
@@ -108,14 +127,12 @@ export function useMovementRecognition(mappings: PresetMappingCardData[]) {
       const nextCount = streakRef.current.id === bestMatch.id ? streakRef.current.count + 1 : 1;
       streakRef.current = { id: bestMatch.id, count: nextCount };
 
-      if (
-        nextCount < REQUIRED_CONSECUTIVE_MATCHES ||
-        normalizedFrame.timestampMs - lastTriggeredAtRef.current < RECOGNITION_COOLDOWN_MS
-      ) {
+      if (nextCount < REQUIRED_CONSECUTIVE_MATCHES) {
         return;
       }
 
-      lastTriggeredAtRef.current = normalizedFrame.timestampMs;
+      latchedMappingIdRef.current = bestMatch.id;
+      releaseStreakRef.current = 0;
       fireTrigger(bestMatch);
     },
     [fireTrigger, mappings, templates],
