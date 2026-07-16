@@ -49,6 +49,8 @@ export type PreparedMovementTemplate = {
   name: string;
   keybind: string;
   frames: NormalizedPoseFrame[];
+  landmarkWeights: Record<TrackedLandmark, number>;
+  isDynamic: boolean;
   durationMs: number;
 };
 
