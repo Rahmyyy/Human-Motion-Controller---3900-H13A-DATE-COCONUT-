@@ -1,14 +1,5 @@
 import type { PoseFrame } from "@/features/camera/poseFrame";
 
-export const RECOGNITION_FRAME_COUNT = 24;
-export const MIN_LANDMARK_VISIBILITY = 0.5;
-export const MIN_VISIBLE_LANDMARKS = 6;
-export const CONFIDENCE_THRESHOLD = 0.6;
-export const MINIMUM_CONFIDENCE_MARGIN = 0.08;
-export const REQUIRED_CONSECUTIVE_MATCHES = 5;
-export const REQUIRED_CONSECUTIVE_RELEASES = 3;
-export const LIVE_BUFFER_MS = 2500;
-
 export const TRACKED_LANDMARKS = [
   11, // left shoulder
   12, // right shoulder

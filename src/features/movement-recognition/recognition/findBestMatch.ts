@@ -1,12 +1,10 @@
 import { compareMovement } from "./compareMovement";
+import { LIVE_BUFFER_MS, MIN_TEMPLATE_WINDOW_MS } from "./recognitionConfig";
 import {
-  LIVE_BUFFER_MS,
   type NormalizedPoseFrame,
   type PreparedMovementTemplate,
   type RecognitionMatch,
 } from "./types";
-
-const MIN_TEMPLATE_WINDOW_MS = 700;
 
 export function trimLiveBuffer(frames: NormalizedPoseFrame[], nowMs: number) {
   const cutoffMs = nowMs - LIVE_BUFFER_MS;
