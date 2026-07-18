@@ -6,18 +6,22 @@ import { Button } from "@/components/ui/button";
 import AnnotatedPreview from "@/features/camera/AnnotatedPreview";
 import MediaPipePosePreview from "@/features/camera/MediaPipePosePreview";
 import { getCameraMode } from "@/features/camera/cameraMode";
+import { parsePoseFrames } from "@/features/camera/parsePoseFrames";
 import { getMovementMappings } from "@/features/movement-mapping/api/movementMappingsApi";
 import type { PresetMappingCardData } from "@/features/preset-mapping/types";
+import { getPreset } from "@/features/presets/api/presetsApi";
+import type { PoseFrame } from "@/features/camera/poseFrame";
 import RecognitionStatusPanel from "./components/RecognitionStatusPanel";
 import { useMovementRecognition } from "./hooks/useMovementRecognition";
 
 export default function MovementRecognitionPage() {
   const { presetId } = useParams<{ presetId: string }>();
   const [mappings, setMappings] = useState<PresetMappingCardData[]>([]);
+  const [defaultPoseFrames, setDefaultPoseFrames] = useState<PoseFrame[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [cameraMode] = useState(() => getCameraMode());
-  const { onPoseFrame, status } = useMovementRecognition(mappings);
+  const { onPoseFrame, status } = useMovementRecognition(mappings, defaultPoseFrames);
   const displayedLoadError = presetId ? loadError : "Preset not found.";
 
   useEffect(() => {
@@ -25,10 +29,18 @@ export default function MovementRecognitionPage() {
 
     let isMounted = true;
 
-    getMovementMappings(presetId)
-      .then((savedMappings) => {
+    Promise.all([getPreset(presetId), getMovementMappings(presetId)])
+      .then(([preset, savedMappings]) => {
         if (!isMounted) return;
+        if (!preset.defaultPoseFramesJson) {
+          setMappings([]);
+          setDefaultPoseFrames([]);
+          setLoadError("Record a default resting state before testing recognition.");
+          return;
+        }
+
         setMappings(savedMappings);
+        setDefaultPoseFrames(parsePoseFrames(preset.defaultPoseFramesJson));
         setLoadError(null);
       })
       .catch((error) => {
