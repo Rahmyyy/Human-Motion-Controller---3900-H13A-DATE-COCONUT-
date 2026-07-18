@@ -3,22 +3,19 @@ import type { PoseFrame } from "@/features/camera/poseFrame";
 import { recordSuccessfulTrigger } from "@/lib/liveSessionState";
 import type { PresetMappingCardData } from "@/features/preset-mapping/types";
 import { buildMappingStatuses } from "../recognition/buildMappingStatuses";
-import { findTemplateMatches, trimLiveBuffer } from "../recognition/findBestMatch";
-import { normalizePoseFrame } from "../recognition/normalizePose";
+import { normalizePoseFrames } from "../recognition/normalizePose";
 import { prepareMovementTemplates } from "../recognition/prepareTemplates";
 import { pressMatchedKey } from "../recognition/pressMatchedKey";
+import { type RecognitionMatch, type RecognitionMappingStatus } from "../recognition/types";
 import {
-  REQUIRED_CONSECUTIVE_MATCHES,
-  REQUIRED_CONSECUTIVE_RELEASES,
-  type NormalizedPoseFrame,
-  type RecognitionMatch,
-  type RecognitionMappingStatus,
-} from "../recognition/types";
-import { selectAcceptedMatch } from "../recognition/selectAcceptedMatch";
+  createRecognitionSessionState,
+  processRecognitionFrame,
+} from "../recognition/processRecognitionFrame";
 
 export type RecognitionStatus = {
   bestMatch: RecognitionMatch | null;
   mappingStatuses: RecognitionMappingStatus[];
+  waitingForDefaultPose: boolean;
   error: string | null;
 };
 
@@ -26,33 +23,33 @@ type RecognitionRuntimeStatus = {
   sourceMappings: PresetMappingCardData[];
   bestMatch: RecognitionMatch | null;
   matches: RecognitionMatch[];
+  defaultPoseConfidence: number;
+  waitingForDefaultPose: boolean;
   error: string | null;
 };
 
-type MatchStreak = {
-  id: string;
-  count: number;
-};
-
-export function useMovementRecognition(mappings: PresetMappingCardData[]) {
+export function useMovementRecognition(
+  mappings: PresetMappingCardData[],
+  defaultPoseFrames: PoseFrame[] = [],
+) {
   const templates = useMemo(() => prepareMovementTemplates(mappings), [mappings]);
-  const liveFramesRef = useRef<NormalizedPoseFrame[]>([]);
-  const streakRef = useRef<MatchStreak>({ id: "", count: 0 });
-  const latchedMappingIdRef = useRef<string | null>(null);
-  const releaseStreakRef = useRef(0);
+  const normalizedDefaultPoseFrames = useMemo(
+    () => normalizePoseFrames(defaultPoseFrames),
+    [defaultPoseFrames],
+  );
+  const sessionRef = useRef(createRecognitionSessionState());
   const [runtimeStatus, setRuntimeStatus] = useState<RecognitionRuntimeStatus>({
     sourceMappings: mappings,
     bestMatch: null,
     matches: [],
+    defaultPoseConfidence: 0,
+    waitingForDefaultPose: false,
     error: null,
   });
 
   useEffect(() => {
-    liveFramesRef.current = [];
-    streakRef.current = { id: "", count: 0 };
-    latchedMappingIdRef.current = null;
-    releaseStreakRef.current = 0;
-  }, [templates]);
+    sessionRef.current = createRecognitionSessionState();
+  }, [normalizedDefaultPoseFrames, templates]);
 
   const status = useMemo<RecognitionStatus>(() => {
     const isCurrentMappingSet = runtimeStatus.sourceMappings === mappings;
@@ -60,7 +57,13 @@ export function useMovementRecognition(mappings: PresetMappingCardData[]) {
 
     return {
       bestMatch: isCurrentMappingSet ? runtimeStatus.bestMatch : null,
-      mappingStatuses: buildMappingStatuses(mappings, matches),
+      mappingStatuses: buildMappingStatuses(
+        mappings,
+        matches,
+        runtimeStatus.defaultPoseConfidence,
+        !runtimeStatus.waitingForDefaultPose,
+      ),
+      waitingForDefaultPose: runtimeStatus.waitingForDefaultPose,
       error: isCurrentMappingSet ? runtimeStatus.error : null,
     };
   }, [mappings, runtimeStatus]);
@@ -82,64 +85,29 @@ export function useMovementRecognition(mappings: PresetMappingCardData[]) {
 
   const onPoseFrame = useCallback(
     (frame: PoseFrame) => {
-      const normalizedFrame = normalizePoseFrame(frame);
-      if (!normalizedFrame || templates.length === 0) {
-        return;
-      }
-
-      const liveFrames = trimLiveBuffer(
-        [...liveFramesRef.current, normalizedFrame],
-        normalizedFrame.timestampMs,
+      const result = processRecognitionFrame(
+        sessionRef.current,
+        frame,
+        templates,
+        normalizedDefaultPoseFrames,
       );
-      liveFramesRef.current = liveFrames;
+      if (!result) return;
+      sessionRef.current = result.state;
 
-      const matches = findTemplateMatches(templates, liveFrames);
-      const bestMatch = matches[0] ?? null;
-      const acceptedMatch = selectAcceptedMatch(matches);
       setRuntimeStatus((current) => ({
         ...current,
         sourceMappings: mappings,
-        bestMatch,
-        matches,
+        bestMatch: result.bestMatch,
+        matches: result.matches,
+        defaultPoseConfidence: result.defaultPoseConfidence,
+        waitingForDefaultPose: result.waitingForDefaultPose,
       }));
 
-      const latchedMappingId = latchedMappingIdRef.current;
-      if (latchedMappingId && acceptedMatch?.id === latchedMappingId) {
-        releaseStreakRef.current = 0;
-        streakRef.current = { id: "", count: 0 };
-        return;
+      if (result.triggeredMatch) {
+        fireTrigger(result.triggeredMatch);
       }
-
-      if (!acceptedMatch) {
-        releaseStreakRef.current += 1;
-        streakRef.current = { id: "", count: 0 };
-
-        if (releaseStreakRef.current >= REQUIRED_CONSECUTIVE_RELEASES) {
-          latchedMappingIdRef.current = null;
-          releaseStreakRef.current = 0;
-        }
-
-        return;
-      }
-
-      // A different clear winner can replace the latch after the normal match
-      // confirmation instead of waiting for the old winner's raw score to fall.
-      releaseStreakRef.current = 0;
-      const nextCount = streakRef.current.id === acceptedMatch.id ? streakRef.current.count + 1 : 1;
-      streakRef.current = { id: acceptedMatch.id, count: nextCount };
-
-      if (nextCount < REQUIRED_CONSECUTIVE_MATCHES) {
-        return;
-      }
-
-      latchedMappingIdRef.current = acceptedMatch.id;
-      releaseStreakRef.current = 0;
-      // Do not let the frames that produced this match contribute to another match.
-      // Fresh camera frames can begin building the next movement immediately.
-      liveFramesRef.current = [];
-      fireTrigger(acceptedMatch);
     },
-    [fireTrigger, mappings, templates],
+    [fireTrigger, mappings, normalizedDefaultPoseFrames, templates],
   );
 
   return { onPoseFrame, status };
