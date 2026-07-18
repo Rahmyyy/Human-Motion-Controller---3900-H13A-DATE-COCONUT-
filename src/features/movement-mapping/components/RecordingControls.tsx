@@ -10,6 +10,8 @@ interface RecordingControlsProps {
   onSave: () => void;
   onStart: () => void;
   onStop: () => void;
+  saveLabel?: string;
+  startLabel?: string;
 }
 
 export default function RecordingControls({
@@ -20,13 +22,15 @@ export default function RecordingControls({
   onSave,
   onStart,
   onStop,
+  saveLabel = "Save Mapping",
+  startLabel = "Start Recording",
 }: RecordingControlsProps) {
   if (state === "recorded") {
     return (
       <div className="grid gap-2">
         <Button type="button" className="w-full" disabled={!canSave} onClick={onSave}>
           <Save className="size-4" aria-hidden="true" />
-          Save Mapping
+          {saveLabel}
         </Button>
         <Button type="button" variant="outline" className="w-full" onClick={onReRecord}>
           <RotateCcw className="size-4" aria-hidden="true" />
@@ -57,7 +61,7 @@ export default function RecordingControls({
   return (
     <Button type="button" className="w-full" onClick={onStart}>
       <Circle className="size-4" aria-hidden="true" />
-      Start Recording
+      {startLabel}
     </Button>
   );
 }
