@@ -5,9 +5,13 @@ import type { RecognitionMappingStatus, RecognitionMatch } from "./types";
 export function buildMappingStatuses(
   mappings: PresetMappingCardData[],
   matches: RecognitionMatch[],
+  defaultPoseConfidence = 0,
+  canActivate = true,
 ): RecognitionMappingStatus[] {
   const matchesById = new Map(matches.map((match) => [match.id, match]));
-  const acceptedMatchId = selectAcceptedMatch(matches)?.id;
+  const acceptedMatchId = canActivate
+    ? selectAcceptedMatch(matches, defaultPoseConfidence)?.id
+    : undefined;
 
   return mappings.map((mapping) => {
     const match = matchesById.get(mapping.id);

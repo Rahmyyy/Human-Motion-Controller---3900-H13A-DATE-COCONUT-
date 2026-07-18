@@ -1,16 +1,14 @@
-import { CONFIDENCE_THRESHOLD, MINIMUM_CONFIDENCE_MARGIN, type RecognitionMatch } from "./types";
+import { CONFIDENCE_THRESHOLD, MINIMUM_CONFIDENCE_MARGIN } from "./recognitionConfig";
+import type { RecognitionMatch } from "./types";
 
-export function selectAcceptedMatch(matches: RecognitionMatch[]) {
+export function selectAcceptedMatch(matches: RecognitionMatch[], defaultPoseConfidence = 0) {
   const bestMatch = matches[0];
   if (!bestMatch || bestMatch.confidence < CONFIDENCE_THRESHOLD) {
     return null;
   }
 
-  const secondBestMatch = matches[1];
-  if (
-    secondBestMatch &&
-    bestMatch.confidence - secondBestMatch.confidence < MINIMUM_CONFIDENCE_MARGIN
-  ) {
+  const competingConfidence = Math.max(matches[1]?.confidence ?? 0, defaultPoseConfidence);
+  if (bestMatch.confidence - competingConfidence < MINIMUM_CONFIDENCE_MARGIN) {
     return null;
   }
 
