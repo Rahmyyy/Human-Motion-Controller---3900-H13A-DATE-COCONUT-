@@ -11,8 +11,36 @@ fn create_preset_trims_name_and_returns_saved_preset() {
 
     assert_eq!(created.name, "Upper Limb Rehab");
     assert_eq!(created.mapping_count, 0);
+    assert_eq!(created.default_pose_frames_json, None);
     assert_eq!(saved.id, created.id);
     assert_eq!(saved.name, created.name);
+}
+
+#[test]
+fn update_default_pose_round_trip() {
+    let conn = setup_test_conn();
+    let created = create_preset(&conn, "Calibrated Preset").unwrap();
+    let frames = r#"[{"timestampMs":0},{"timestampMs":33}]"#;
+
+    let updated = update_default_pose(&conn, &created.id, frames).unwrap();
+
+    assert_eq!(updated.default_pose_frames_json.as_deref(), Some(frames));
+    assert_eq!(
+        get_preset(&conn, &created.id)
+            .unwrap()
+            .default_pose_frames_json
+            .as_deref(),
+        Some(frames)
+    );
+}
+
+#[test]
+fn update_default_pose_rejects_invalid_or_insufficient_frames() {
+    let conn = setup_test_conn();
+
+    assert!(update_default_pose(&conn, "preset-1", "not-json").is_err());
+    assert!(update_default_pose(&conn, "preset-1", "[]").is_err());
+    assert!(update_default_pose(&conn, "preset-1", "[{}]").is_err());
 }
 
 #[test]

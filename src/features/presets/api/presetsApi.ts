@@ -5,6 +5,7 @@ export interface Preset {
   name: string;
   createdAt: string;
   mappingCount: number;
+  defaultPoseFramesJson: string | null;
 }
 
 export function createPreset(name: string) {
@@ -17,4 +18,8 @@ export function getPreset(id: string) {
 
 export function getPresets() {
   return invoke<Preset[]>("get_presets");
+}
+
+export function updateDefaultPose(id: string, defaultPoseFramesJson: string) {
+  return invoke<Preset>("update_default_pose", { id, defaultPoseFramesJson });
 }
