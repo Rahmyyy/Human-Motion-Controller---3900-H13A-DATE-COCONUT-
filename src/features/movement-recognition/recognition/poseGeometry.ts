@@ -1,5 +1,6 @@
 import type { PoseLandmark } from "@/features/camera/poseFrame";
-import { MIN_LANDMARK_VISIBILITY, type NormalizedPosePoint } from "./types";
+import type { NormalizedPosePoint } from "./types";
+import { MIN_LANDMARK_VISIBILITY } from "./recognitionConfig";
 
 export function isVisible(landmark: PoseLandmark | undefined): landmark is PoseLandmark {
   return Boolean(landmark && landmark.visibility >= MIN_LANDMARK_VISIBILITY);

@@ -25,6 +25,12 @@ pub fn create_movement_mapping(
         return Err(anyhow!("Movement mapping pose frames cannot be empty"));
     }
 
+    if !repository::preset_has_default_pose(conn, preset_id)? {
+        return Err(anyhow!(
+            "Record a default resting pose before creating movement mappings"
+        ));
+    }
+
     let now = SystemTime::now().duration_since(UNIX_EPOCH)?;
     let id = format!("movement-mapping-{}", now.as_nanos());
     let created_at = now.as_secs().to_string();

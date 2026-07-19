@@ -6,6 +6,7 @@ import MovementCameraPanel from "./MovementCameraPanel";
 import MovementMappingHeader from "./MovementMappingHeader";
 import RecordingControls from "./RecordingControls";
 import RecordingQualityPanel from "./RecordingQualityPanel";
+import RecordingTrimPanel from "./RecordingTrimPanel";
 import { usePoseRecording } from "../hooks/usePoseRecording";
 import { analyseRecordingQuality } from "../recording/analyseRecordingQuality";
 
@@ -46,12 +47,16 @@ export default function MovementMappingWorkspace({
   const [movementName, setMovementName] = useState(initialName);
   const [keybind, setKeybind] = useState<Keybind | null>(keybindFromLabel(initialKeybind));
   const {
+    cancelCountdown,
+    countdownSeconds,
     recordFrame,
     recordedFrames,
+    recordingTrim,
     recordingState,
     resetRecording,
     startRecording,
     stopRecording,
+    trimRecording,
   } = usePoseRecording(initialFrames ?? [], initialFrames ? "recorded" : "idle");
 
   // Analyse only completed recordings so camera frames do not trigger React work while recording.
@@ -79,16 +84,20 @@ export default function MovementMappingWorkspace({
       <div className="grid min-h-0 gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <MovementCameraPanel
           frames={recordedFrames}
+          countdownSeconds={countdownSeconds}
           onPoseFrame={recordFrame}
           recordingState={recordingState}
         />
-        <div className="grid min-h-0 content-start gap-4">
+        <div className="grid min-h-0 content-start gap-4 overflow-y-auto pr-1">
           <MappingDetailsPanel
             keybind={keybind}
             movementName={movementName}
             onKeybindChange={setKeybind}
             onMovementNameChange={setMovementName}
           />
+          {recordingState === "recorded" && recordingTrim && (
+            <RecordingTrimPanel trim={recordingTrim} onChange={trimRecording} />
+          )}
           {recordingQuality && <RecordingQualityPanel quality={recordingQuality} />}
           {saveError && (
             <p className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
@@ -98,6 +107,7 @@ export default function MovementMappingWorkspace({
           <RecordingControls
             state={recordingState}
             canSave={recordingQuality?.status !== "unusable"}
+            onCancel={cancelCountdown}
             onReRecord={resetRecording}
             onSave={handleSaveMapping}
             onStart={startRecording}

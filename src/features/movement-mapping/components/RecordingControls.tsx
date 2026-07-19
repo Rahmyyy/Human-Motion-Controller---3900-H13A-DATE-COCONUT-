@@ -1,30 +1,36 @@
 import { Button } from "@/components/ui/button";
-import { Circle, RotateCcw, Save, Square } from "lucide-react";
+import { Circle, RotateCcw, Save, Square, X } from "lucide-react";
 import type { RecordingState } from "../hooks/usePoseRecording";
 
 interface RecordingControlsProps {
   state: RecordingState;
   canSave: boolean;
+  onCancel: () => void;
   onReRecord: () => void;
   onSave: () => void;
   onStart: () => void;
   onStop: () => void;
+  saveLabel?: string;
+  startLabel?: string;
 }
 
 export default function RecordingControls({
   state,
   canSave,
+  onCancel,
   onReRecord,
   onSave,
   onStart,
   onStop,
+  saveLabel = "Save Mapping",
+  startLabel = "Start Recording",
 }: RecordingControlsProps) {
   if (state === "recorded") {
     return (
       <div className="grid gap-2">
         <Button type="button" className="w-full" disabled={!canSave} onClick={onSave}>
           <Save className="size-4" aria-hidden="true" />
-          Save Mapping
+          {saveLabel}
         </Button>
         <Button type="button" variant="outline" className="w-full" onClick={onReRecord}>
           <RotateCcw className="size-4" aria-hidden="true" />
@@ -43,10 +49,19 @@ export default function RecordingControls({
     );
   }
 
+  if (state === "countdown") {
+    return (
+      <Button type="button" variant="outline" className="w-full" onClick={onCancel}>
+        <X className="size-4" aria-hidden="true" />
+        Cancel Countdown
+      </Button>
+    );
+  }
+
   return (
     <Button type="button" className="w-full" onClick={onStart}>
       <Circle className="size-4" aria-hidden="true" />
-      Start Recording
+      {startLabel}
     </Button>
   );
 }

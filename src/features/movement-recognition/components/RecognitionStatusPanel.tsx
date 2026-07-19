@@ -63,6 +63,7 @@ function statusText(isLoading: boolean, loadError: string | null, status: Recogn
   if (isLoading) return "Loading mappings.";
   if (loadError || status.error) return "Needs attention.";
   if (status.mappingStatuses.length === 0) return "No mappings.";
+  if (status.waitingForDefaultPose) return "Return to the default resting pose to re-arm.";
   return "Ready.";
 }
 

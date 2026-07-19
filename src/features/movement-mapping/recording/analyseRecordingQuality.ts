@@ -4,6 +4,8 @@ import { isVisible } from "@/features/movement-recognition/recognition/poseGeome
 import {
   MIN_VISIBLE_LANDMARKS,
   RECOGNITION_FRAME_COUNT,
+} from "@/features/movement-recognition/recognition/recognitionConfig";
+import {
   TRACKED_LANDMARKS,
   type TrackedLandmark,
 } from "@/features/movement-recognition/recognition/types";

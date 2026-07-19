@@ -153,6 +153,7 @@ pub fn run() {
             preset::commands::create_preset,
             preset::commands::get_presets,
             preset::commands::get_preset,
+            preset::commands::update_default_pose,
         ])
         .plugin(
             tauri_plugin_log::Builder::new()
