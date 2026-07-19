@@ -1,4 +1,4 @@
-import { History, Users } from "lucide-react";
+import { History, LayoutDashboard, Users } from "lucide-react";
 import { NavLink } from "react-router";
 import { cn } from "@/lib/utils";
 
@@ -18,6 +18,10 @@ export function AppSidebar() {
       </div>
 
       <nav aria-label="Primary navigation" className="space-y-1 p-3">
+        <NavLink to="/dashboard" className={navLinkClass}>
+          <LayoutDashboard className="size-4" aria-hidden="true" />
+          Dashboard
+        </NavLink>
         <NavLink to="/patients" className={navLinkClass}>
           <Users className="size-4" aria-hidden="true" />
           Patients
