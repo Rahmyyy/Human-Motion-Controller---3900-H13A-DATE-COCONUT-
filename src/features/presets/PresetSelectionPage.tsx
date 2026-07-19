@@ -39,7 +39,7 @@ export default function PresetSelectionPage() {
   const selectedPreset = presets.find((preset) => preset.id === selectedPresetId);
 
   return (
-    <section className="min-h-screen bg-background px-8 py-10 pb-32">
+    <section className="min-h-screen bg-background px-8 py-10 pb-44">
       <div className="mx-auto max-w-6xl">
         <header className="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
           <div className="max-w-3xl">
