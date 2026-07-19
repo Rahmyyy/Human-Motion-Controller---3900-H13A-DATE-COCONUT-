@@ -41,9 +41,9 @@ export default function PresetSelectionPage() {
   return (
     <section className="min-h-screen bg-background px-8 py-10 pb-32">
       <div className="mx-auto max-w-6xl">
-        <header className="flex items-start justify-between gap-6">
+        <header className="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
           <div className="max-w-3xl">
-            <h1 className="text-4xl font-semibold tracking-tight text-foreground">
+            <h1 className="text-3xl font-semibold tracking-tight text-foreground lg:text-4xl">
               Choose or Create a Preset for {patientName}.
             </h1>
             <p className="mt-3 text-base text-muted-foreground">
@@ -51,7 +51,7 @@ export default function PresetSelectionPage() {
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <CameraModeToggle />
             <BackButton />
             <CreatePresetDialog />

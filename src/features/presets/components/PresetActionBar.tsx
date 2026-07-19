@@ -15,7 +15,7 @@ export default function PresetActionBar({
   const navigate = useNavigate();
 
   return (
-    <footer className="fixed inset-x-0 bottom-0 border-t bg-background px-8 py-5">
+    <footer className="fixed right-0 bottom-0 left-60 border-t bg-background px-8 py-5">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-6">
         <div className="flex items-center gap-4 text-sm text-muted-foreground">
           <span className="flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary">
