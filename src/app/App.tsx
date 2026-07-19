@@ -7,6 +7,7 @@ import MovementRecognitionPage from "@/features/movement-recognition/MovementRec
 import PatientsPage from "@/features/patients/PatientsPage";
 import PresetMappingsPage from "@/features/preset-mapping/PresetMappingsPage";
 import PresetSelectionPage from "@/features/presets/PresetSelectionPage";
+import SessionHistoryPage from "@/features/sessions/SessionHistoryPage";
 
 export default function App() {
   return (
@@ -15,6 +16,7 @@ export default function App() {
         <Route element={<AppShell />}>
           <Route path="/" element={<PresetSelectionPage />} />
           <Route path="/patients" element={<PatientsPage />} />
+          <Route path="/session-history" element={<SessionHistoryPage />} />
         </Route>
         <Route path="/presets/:presetId/edit" element={<PresetMappingsPage />} />
         <Route path="/presets/:presetId/recognition" element={<MovementRecognitionPage />} />

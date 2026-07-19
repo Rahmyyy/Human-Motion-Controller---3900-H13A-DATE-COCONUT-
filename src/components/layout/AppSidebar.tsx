@@ -1,4 +1,4 @@
-import { Users } from "lucide-react";
+import { History, Users } from "lucide-react";
 import { NavLink } from "react-router";
 import { cn } from "@/lib/utils";
 
@@ -17,10 +17,14 @@ export function AppSidebar() {
         <span className="text-base font-semibold tracking-tight">Human Controller</span>
       </div>
 
-      <nav aria-label="Primary navigation" className="p-3">
+      <nav aria-label="Primary navigation" className="space-y-1 p-3">
         <NavLink to="/patients" className={navLinkClass}>
           <Users className="size-4" aria-hidden="true" />
           Patients
+        </NavLink>
+        <NavLink to="/session-history" className={navLinkClass}>
+          <History className="size-4" aria-hidden="true" />
+          Session History
         </NavLink>
       </nav>
     </aside>
