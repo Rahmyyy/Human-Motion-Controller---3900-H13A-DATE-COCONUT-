@@ -39,7 +39,7 @@ export default function PresetActionBar({
           size="lg"
           disabled={!selectedPreset}
           onClick={() => selectedPreset && navigate(`/presets/${selectedPreset.id}/recognition`)}
-          className="min-w-64"
+          className="min-w-64 shadow-none focus-visible:ring-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
         >
           <ScanSearch className="size-4" aria-hidden="true" />
           {selectedPreset ? `Test Recognition with ${selectedPreset.name}` : "Test Recognition"}
