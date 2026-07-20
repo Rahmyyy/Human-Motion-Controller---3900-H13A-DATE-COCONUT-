@@ -11,14 +11,12 @@ import type { RecordingState } from "../hooks/usePoseRecording";
 interface MovementCameraPanelProps {
   countdownSeconds: number | null;
   frames: PoseFrame[];
-  onPoseFrame: (frame: PoseFrame) => void;
   recordingState: RecordingState;
 }
 
 export default function MovementCameraPanel({
   countdownSeconds,
   frames,
-  onPoseFrame,
   recordingState,
 }: MovementCameraPanelProps) {
   const [cameraMode] = useState(() => getCameraMode());
@@ -33,7 +31,7 @@ export default function MovementCameraPanel({
       ) : cameraMode === "backend" ? (
         <AnnotatedPreview />
       ) : (
-        <MediaPipePosePreview onPoseFrame={onPoseFrame} />
+        <MediaPipePosePreview />
       )}
       {recordingState === "countdown" && (
         <RecordingCountdown secondsRemaining={countdownSeconds ?? 1} />

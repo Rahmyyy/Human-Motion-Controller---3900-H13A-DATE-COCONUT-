@@ -49,7 +49,6 @@ export default function MovementMappingWorkspace({
   const {
     cancelCountdown,
     countdownSeconds,
-    recordFrame,
     recordedFrames,
     recordingTrim,
     recordingState,
@@ -85,7 +84,6 @@ export default function MovementMappingWorkspace({
         <MovementCameraPanel
           frames={recordedFrames}
           countdownSeconds={countdownSeconds}
-          onPoseFrame={recordFrame}
           recordingState={recordingState}
         />
         <div className="grid min-h-0 content-start gap-4 overflow-y-auto pr-1">

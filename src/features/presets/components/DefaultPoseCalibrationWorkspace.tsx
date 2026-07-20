@@ -21,7 +21,6 @@ export default function DefaultPoseCalibrationWorkspace({ initialFrames, preset 
   const {
     cancelCountdown,
     countdownSeconds,
-    recordFrame,
     recordedFrames,
     recordingTrim,
     recordingState,
@@ -65,7 +64,6 @@ export default function DefaultPoseCalibrationWorkspace({ initialFrames, preset 
         <MovementCameraPanel
           countdownSeconds={countdownSeconds}
           frames={recordedFrames}
-          onPoseFrame={recordFrame}
           recordingState={recordingState}
         />
         <div className="grid min-h-0 content-start gap-4 overflow-y-auto pr-1">
