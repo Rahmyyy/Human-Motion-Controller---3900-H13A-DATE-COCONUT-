@@ -44,13 +44,13 @@ export default function PresetCard({
 
         <div className="mt-6 flex items-center gap-1 border-t pt-4">
           <DuplicatePresetDialog preset={preset} onDuplicated={onDuplicated} />
-          <DeletePresetDialog preset={preset} onDeleted={onDeleted} />
           <Button asChild variant="ghost" size="icon" title={`Edit ${preset.name} mappings`}>
             <Link to={`/presets/${preset.id}/edit`}>
               <Pencil className="size-4" aria-hidden="true" />
               <span className="sr-only">Edit {preset.name} mappings</span>
             </Link>
           </Button>
+          <DeletePresetDialog preset={preset} onDeleted={onDeleted} />
           <Button
             type="button"
             variant={isSelected ? "default" : "secondary"}
