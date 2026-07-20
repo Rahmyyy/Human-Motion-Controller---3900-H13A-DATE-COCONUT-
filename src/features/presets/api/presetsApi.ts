@@ -22,3 +22,7 @@ export function getPresets() {
 export function duplicatePreset(id: string) {
   return invoke<Preset>("duplicate_preset", { id });
 }
+
+export function deletePreset(id: string) {
+  return invoke<void>("delete_preset", { id });
+}

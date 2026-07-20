@@ -72,3 +72,8 @@ pub fn select_preset_by_id(conn: &Connection, id: &str) -> Result<Preset> {
 
     Ok(preset)
 }
+
+pub fn delete_preset(conn: &Connection, id: &str) -> Result<usize> {
+    let rows_affected = conn.execute("DELETE FROM presets WHERE id = ?1", params![id])?;
+    Ok(rows_affected)
+}
