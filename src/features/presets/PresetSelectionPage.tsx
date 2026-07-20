@@ -1,10 +1,8 @@
-import BackButton from "@/components/BackButton";
 import { useEffect, useState } from "react";
 import { getPresets, type Preset } from "./api/presetsApi";
-import CameraModeToggle from "./components/CameraModeToggle";
-import CreatePresetDialog from "./components/CreatePresetDialog";
 import PresetActionBar from "./components/PresetActionBar";
 import PresetCollection from "./components/PresetCollection";
+import PresetPageHeader from "./components/PresetPageHeader";
 
 const patientName = "Lindsay Collins";
 
@@ -44,28 +42,11 @@ export default function PresetSelectionPage() {
   };
 
   return (
-    <section className="min-h-screen bg-background px-8 py-10 pb-44">
-      <div className="mx-auto max-w-6xl">
-        <header className="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
-          <div className="max-w-3xl">
-            <h1 className="text-3xl font-semibold tracking-tight text-foreground lg:text-4xl">
-              Choose or Create a Preset for {patientName}.
-            </h1>
-            <p className="mt-3 text-base text-muted-foreground">
-              Select a pre-existing mapping profile or create a new one to begin.
-            </p>
-          </div>
+    <section className="min-h-screen bg-muted/20 px-8 py-8 pb-40">
+      <div className="mx-auto max-w-7xl">
+        <PresetPageHeader patientName={patientName} />
 
-          <div className="flex flex-wrap items-center gap-3">
-            <CameraModeToggle />
-            <BackButton />
-            <CreatePresetDialog />
-          </div>
-        </header>
-
-        <section className="mt-12">
-          <h2 className="text-lg font-semibold tracking-tight">Existing Presets</h2>
-
+        <section className="mt-8" aria-label="Saved presets">
           {isLoading ? (
             <p className="mt-5 text-sm text-muted-foreground">Loading presets...</p>
           ) : error ? (
@@ -83,7 +64,7 @@ export default function PresetSelectionPage() {
         </section>
       </div>
 
-      <PresetActionBar selectedPreset={selectedPreset} />
+      <PresetActionBar patientName={patientName} selectedPreset={selectedPreset} />
     </section>
   );
 }
