@@ -1,9 +1,7 @@
 import { Button } from "@/components/ui/button";
-import { ScanSearch } from "lucide-react";
-import { useNavigate } from "react-router";
+import { Play } from "lucide-react";
 
 type SelectedPreset = {
-  id: string;
   mappingCount: number;
   name: string;
 };
@@ -15,8 +13,6 @@ export default function PresetActionBar({
   patientName: string;
   selectedPreset: SelectedPreset | undefined;
 }) {
-  const navigate = useNavigate();
-
   return (
     <footer className="fixed right-0 bottom-0 left-[var(--sidebar-width)] border-t bg-background px-8 py-5 transition-[left] duration-150">
       <div className="mx-auto flex max-w-7xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -38,11 +34,10 @@ export default function PresetActionBar({
           type="button"
           size="lg"
           disabled={!selectedPreset}
-          onClick={() => selectedPreset && navigate(`/presets/${selectedPreset.id}/recognition`)}
           className="min-w-64 shadow-none transition-colors focus-visible:border-primary-foreground/70 focus-visible:ring-0 focus-visible:shadow-none focus-visible:outline-none"
         >
-          <ScanSearch className="size-4" aria-hidden="true" />
-          {selectedPreset ? `Test Recognition with ${selectedPreset.name}` : "Test Recognition"}
+          <Play className="size-4" aria-hidden="true" />
+          {selectedPreset ? `Start Session with ${selectedPreset.name}` : "Start Session"}
         </Button>
       </div>
     </footer>
