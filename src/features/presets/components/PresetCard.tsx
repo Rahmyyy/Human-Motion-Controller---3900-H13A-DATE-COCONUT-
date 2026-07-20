@@ -52,6 +52,8 @@ export default function PresetCard({
             variant={isSelected ? "default" : "secondary"}
             className="ml-auto"
             onClick={onSelect}
+            aria-label={`${isSelected ? "Unselect" : "Select"} ${preset.name}`}
+            aria-pressed={isSelected}
           >
             {isSelected && <Check className="size-4" aria-hidden="true" />}
             {isSelected ? "Selected" : "Select"}

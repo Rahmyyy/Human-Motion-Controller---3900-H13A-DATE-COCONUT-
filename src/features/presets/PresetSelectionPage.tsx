@@ -40,6 +40,9 @@ export default function PresetSelectionPage() {
     setSelectedPresetId(preset.id);
     setError(null);
   };
+  const handlePresetSelection = (presetId: string) => {
+    setSelectedPresetId((currentId) => (currentId === presetId ? null : presetId));
+  };
 
   return (
     <section className="min-h-screen bg-muted/20 px-8 py-8 pb-40">
@@ -58,7 +61,7 @@ export default function PresetSelectionPage() {
               presets={presets}
               selectedPresetId={selectedPresetId}
               onDuplicatePreset={handlePresetDuplicated}
-              onSelectPreset={setSelectedPresetId}
+              onSelectPreset={handlePresetSelection}
             />
           )}
         </section>
