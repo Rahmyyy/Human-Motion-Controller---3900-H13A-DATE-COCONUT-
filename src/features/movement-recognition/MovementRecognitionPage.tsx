@@ -21,7 +21,7 @@ export default function MovementRecognitionPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [cameraMode] = useState(() => getCameraMode());
-  const { onPoseFrame, status } = useMovementRecognition(mappings, defaultPoseFrames);
+  const { status } = useMovementRecognition(mappings, defaultPoseFrames);
   const displayedLoadError = presetId ? loadError : "Preset not found.";
 
   useEffect(() => {
@@ -78,11 +78,7 @@ export default function MovementRecognitionPage() {
 
       <div className="grid min-h-0 gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <section className="grid min-h-0 min-w-0" aria-label="Live camera recognition">
-          {cameraMode === "backend" ? (
-            <AnnotatedPreview />
-          ) : (
-            <MediaPipePosePreview onPoseFrame={onPoseFrame} />
-          )}
+          {cameraMode === "backend" ? <AnnotatedPreview /> : <MediaPipePosePreview />}
         </section>
         <RecognitionStatusPanel
           isLoading={Boolean(presetId) && isLoading}

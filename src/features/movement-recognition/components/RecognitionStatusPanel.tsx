@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import type { RecognitionStatus } from "../hooks/useMovementRecognition";
+import type { RecognitionStatus } from "../services/recognitionService";
 
 interface RecognitionStatusPanelProps {
   isLoading: boolean;
