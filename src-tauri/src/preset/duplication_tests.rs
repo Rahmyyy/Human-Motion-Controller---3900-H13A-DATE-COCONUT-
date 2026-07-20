@@ -1,0 +1,57 @@
+use super::*;
+use crate::test_support::setup_test_conn;
+use rusqlite::params;
+
+#[test]
+fn duplicate_preset_copies_name_and_mappings() {
+    let mut conn = setup_test_conn();
+    conn.execute(
+        "
+        INSERT INTO movement_mappings (
+            id, preset_id, name, keybind, pose_frames_json, created_at
+        ) VALUES (?1, ?2, ?3, ?4, ?5, ?6)
+        ",
+        params!["mapping-1", "preset-1", "Squat", "S", "[[1,2,3]]", "1"],
+    )
+    .unwrap();
+
+    let duplicate = duplicate_preset(&mut conn, "preset-1").unwrap();
+    let copied_mapping: (String, String, String) = conn
+        .query_row(
+            "SELECT name, keybind, pose_frames_json FROM movement_mappings WHERE preset_id = ?1",
+            params![&duplicate.id],
+            |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?)),
+        )
+        .unwrap();
+
+    assert_eq!(duplicate.name, "Test Preset (Copy)");
+    assert_eq!(duplicate.mapping_count, 1);
+    assert_eq!(
+        copied_mapping,
+        ("Squat".into(), "S".into(), "[[1,2,3]]".into())
+    );
+}
+
+#[test]
+fn duplicate_preset_keeps_name_within_limit() {
+    let mut conn = setup_test_conn();
+    let source = create_preset(&conn, &"a".repeat(60)).unwrap();
+
+    let duplicate = duplicate_preset(&mut conn, &source.id).unwrap();
+
+    assert_eq!(duplicate.name.chars().count(), 60);
+    assert!(duplicate.name.ends_with(" (Copy)"));
+}
+
+#[test]
+fn duplicate_preset_rejects_empty_id() {
+    let mut conn = setup_test_conn();
+
+    let result = duplicate_preset(&mut conn, "   ");
+
+    assert!(result.is_err());
+    assert_eq!(
+        result.err().unwrap().to_string(),
+        "Preset ID cannot be empty"
+    );
+}
