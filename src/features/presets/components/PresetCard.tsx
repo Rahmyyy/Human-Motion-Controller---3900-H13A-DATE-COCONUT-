@@ -1,10 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { CalendarDays, Check, Pencil, PersonStanding, Workflow } from "lucide-react";
+import { Check, Pencil, PersonStanding, Workflow } from "lucide-react";
 import { Link } from "react-router";
 
 import type { Preset } from "../api/presetsApi";
-import { formatPresetAge } from "../presetDisplay";
 import DuplicatePresetDialog from "./DuplicatePresetDialog";
 
 type PresetCardProps = {
@@ -20,8 +19,6 @@ export default function PresetCard({
   onSelect,
   preset,
 }: PresetCardProps) {
-  const presetAge = formatPresetAge(preset.createdAt);
-
   return (
     <article
       className={cn(
@@ -35,17 +32,11 @@ export default function PresetCard({
 
       <div className="flex flex-1 flex-col p-5">
         <h3 className="text-lg font-semibold text-foreground">{preset.name}</h3>
-        <div className="mt-2 flex flex-wrap gap-x-4 gap-y-2 text-sm text-muted-foreground">
+        <div className="mt-2 text-sm text-muted-foreground">
           <span className="flex items-center gap-2">
             <Workflow className="size-4" aria-hidden="true" />
             {preset.mappingCount} {preset.mappingCount === 1 ? "mapping" : "mappings"}
           </span>
-          {presetAge && (
-            <span className="flex items-center gap-2">
-              <CalendarDays className="size-4" aria-hidden="true" />
-              {presetAge}
-            </span>
-          )}
         </div>
 
         <div className="mt-6 flex items-center gap-1 border-t pt-4">
