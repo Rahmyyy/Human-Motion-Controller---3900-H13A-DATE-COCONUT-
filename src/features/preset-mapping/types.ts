@@ -3,4 +3,9 @@ export interface PresetMappingCardData {
   name: string;
   keybind: string;
   poseFramesJson: string;
+  /**
+   * Tracked-landmark indices the user chose as relevant for this movement. An empty array means
+   * "all tracked landmarks" — recognition then behaves exactly as it did before landmark selection.
+   */
+  selectedLandmarks: number[];
 }

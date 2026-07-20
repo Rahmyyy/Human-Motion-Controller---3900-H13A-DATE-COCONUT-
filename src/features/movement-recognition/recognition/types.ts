@@ -17,6 +17,22 @@ export const TRACKED_LANDMARKS = [
 
 export type TrackedLandmark = (typeof TRACKED_LANDMARKS)[number];
 
+/**
+ * Resolve a user's selected-landmark indices into the ordered set of landmarks a movement should
+ * actually be matched on. An empty/absent selection (legacy mappings, or a user who never touched
+ * the selector) resolves to all tracked landmarks, so recognition behaves identically to before
+ * this feature. The result is always in canonical TRACKED_LANDMARKS order.
+ */
+export function resolveActiveLandmarks(selected?: number[] | null): TrackedLandmark[] {
+  if (!selected || selected.length === 0) {
+    return [...TRACKED_LANDMARKS];
+  }
+
+  const selectedSet = new Set(selected);
+  const active = TRACKED_LANDMARKS.filter((landmark) => selectedSet.has(landmark));
+  return active.length > 0 ? active : [...TRACKED_LANDMARKS];
+}
+
 export type NormalizedPosePoint = {
   x: number;
   y: number;
@@ -41,6 +57,7 @@ export type PreparedMovementTemplate = {
   keybind: string;
   frames: NormalizedPoseFrame[];
   landmarkWeights: Record<TrackedLandmark, number>;
+  activeLandmarks: TrackedLandmark[];
   isDynamic: boolean;
   durationMs: number;
 };
