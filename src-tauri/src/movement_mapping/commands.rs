@@ -13,14 +13,22 @@ pub fn create_movement_mapping(
     name: String,
     keybind: String,
     pose_frames_json: String,
+    selected_landmarks: Vec<u32>,
 ) -> Result<(), String> {
     let conn = state
         .conn
         .lock()
         .map_err(|_| "failed to lock database connection".to_string())?;
 
-    service::create_movement_mapping(&conn, &preset_id, &name, &keybind, &pose_frames_json)
-        .map_err(|error| error.to_string())
+    service::create_movement_mapping(
+        &conn,
+        &preset_id,
+        &name,
+        &keybind,
+        &pose_frames_json,
+        &selected_landmarks,
+    )
+    .map_err(|error| error.to_string())
 }
 
 #[tauri::command]
@@ -58,14 +66,23 @@ pub fn update_movement_mapping(
     name: String,
     keybind: String,
     pose_frames_json: String,
+    selected_landmarks: Vec<u32>,
 ) -> Result<(), String> {
     let conn = state
         .conn
         .lock()
         .map_err(|_| "failed to lock database connection".to_string())?;
 
-    service::update_movement_mapping(&conn, &id, &preset_id, &name, &keybind, &pose_frames_json)
-        .map_err(|error| error.to_string())
+    service::update_movement_mapping(
+        &conn,
+        &id,
+        &preset_id,
+        &name,
+        &keybind,
+        &pose_frames_json,
+        &selected_landmarks,
+    )
+    .map_err(|error| error.to_string())
 }
 
 #[tauri::command]
