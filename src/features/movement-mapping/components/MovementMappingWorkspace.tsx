@@ -1,5 +1,7 @@
 import { useMemo, useState } from "react";
 import type { PoseFrame } from "@/features/camera/poseFrame";
+import { TRACKED_LANDMARKS } from "@/features/movement-recognition/recognition/types";
+import LandmarkSelectionPanel from "./LandmarkSelectionPanel";
 import MappingDetailsPanel from "./MappingDetailsPanel";
 import type { Keybind } from "./MappingDetailsPanel";
 import MovementCameraPanel from "./MovementCameraPanel";
@@ -14,6 +16,7 @@ interface SaveMovementMappingInput {
   frames: PoseFrame[];
   keybind: string;
   name: string;
+  selectedLandmarks: number[];
 }
 
 interface MovementMappingWorkspaceProps {
@@ -21,9 +24,16 @@ interface MovementMappingWorkspaceProps {
   initialFrames?: PoseFrame[];
   initialKeybind?: string;
   initialName?: string;
+  initialSelectedLandmarks?: number[];
   onSave: (input: SaveMovementMappingInput) => Promise<void>;
   saveError?: string | null;
   title: string;
+}
+
+// Legacy mappings (and brand-new recordings) start with every tracked landmark selected, so
+// recognition matches its pre-selection behaviour until the user narrows the set.
+function initialSelection(selected: number[] | undefined): number[] {
+  return selected && selected.length > 0 ? selected : [...TRACKED_LANDMARKS];
 }
 
 function keybindFromLabel(label: string | undefined): Keybind | null {
@@ -40,12 +50,16 @@ export default function MovementMappingWorkspace({
   initialFrames,
   initialKeybind,
   initialName = "",
+  initialSelectedLandmarks,
   onSave,
   saveError = null,
   title,
 }: MovementMappingWorkspaceProps) {
   const [movementName, setMovementName] = useState(initialName);
   const [keybind, setKeybind] = useState<Keybind | null>(keybindFromLabel(initialKeybind));
+  const [selectedLandmarks, setSelectedLandmarks] = useState<number[]>(() =>
+    initialSelection(initialSelectedLandmarks),
+  );
   const {
     cancelCountdown,
     countdownSeconds,
@@ -60,9 +74,13 @@ export default function MovementMappingWorkspace({
   } = usePoseRecording(initialFrames ?? [], initialFrames ? "recorded" : "idle");
 
   // Analyse only completed recordings so camera frames do not trigger React work while recording.
+  // Re-runs when the landmark selection changes so the quality reflects the current selection.
   const recordingQuality = useMemo(
-    () => (recordingState === "recorded" ? analyseRecordingQuality(recordedFrames) : null),
-    [recordedFrames, recordingState],
+    () =>
+      recordingState === "recorded"
+        ? analyseRecordingQuality(recordedFrames, selectedLandmarks)
+        : null,
+    [recordedFrames, recordingState, selectedLandmarks],
   );
 
   const handleStopRecording = () => {
@@ -75,6 +93,7 @@ export default function MovementMappingWorkspace({
       frames: recordedFrames,
       keybind: keybind?.label ?? "",
       name: movementName,
+      selectedLandmarks,
     });
   };
 
@@ -99,6 +118,14 @@ export default function MovementMappingWorkspace({
             <RecordingTrimPanel trim={recordingTrim} onChange={trimRecording} />
           )}
           {recordingQuality && <RecordingQualityPanel quality={recordingQuality} />}
+          {/* Optional power-user control: kept below the core record/review flow. Selection is
+              independent of the captured frames, so it stays editable before and after a recording
+              (including when editing an existing mapping); only locked during an active capture. */}
+          <LandmarkSelectionPanel
+            value={selectedLandmarks}
+            onChange={setSelectedLandmarks}
+            disabled={recordingState === "countdown" || recordingState === "recording"}
+          />
           {saveError && (
             <p className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
               {saveError}
