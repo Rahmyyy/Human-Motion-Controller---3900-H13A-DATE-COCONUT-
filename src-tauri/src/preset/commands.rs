@@ -33,13 +33,3 @@ pub fn get_preset(state: State<'_, DbState>, id: String) -> Result<Preset, Strin
 
     service::get_preset(&conn, &id).map_err(|error| error.to_string())
 }
-
-#[tauri::command]
-pub fn duplicate_preset(state: State<'_, DbState>, id: String) -> Result<Preset, String> {
-    let mut conn = state
-        .conn
-        .lock()
-        .map_err(|_| "failed to lock database connection".to_string())?;
-
-    service::duplicate_preset(&mut conn, &id).map_err(|error| error.to_string())
-}
