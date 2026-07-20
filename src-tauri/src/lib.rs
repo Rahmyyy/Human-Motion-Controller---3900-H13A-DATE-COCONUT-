@@ -153,6 +153,7 @@ pub fn run() {
             preset::commands::create_preset,
             preset::commands::get_presets,
             preset::commands::get_preset,
+            preset::commands::duplicate_preset,
         ])
         .plugin(
             tauri_plugin_log::Builder::new()

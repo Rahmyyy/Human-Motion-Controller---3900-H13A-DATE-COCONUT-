@@ -18,3 +18,7 @@ export function getPreset(id: string) {
 export function getPresets() {
   return invoke<Preset[]>("get_presets");
 }
+
+export function duplicatePreset(id: string) {
+  return invoke<Preset>("duplicate_preset", { id });
+}
