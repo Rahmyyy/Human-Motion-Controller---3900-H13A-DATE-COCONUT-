@@ -4,15 +4,18 @@ import {
   UNEXPECTED_MOTION_LANDMARKS,
   UNEXPECTED_MOTION_TOLERANCE,
 } from "../recognitionConfig";
-import { TRACKED_LANDMARKS, type NormalizedPoseFrame, type TrackedLandmark } from "../types";
+import { type NormalizedPoseFrame, type TrackedLandmark } from "../types";
 
 export function unexpectedMotionPenalty(
   templateFrames: NormalizedPoseFrame[],
   liveFrames: NormalizedPoseFrame[],
   landmarkWeights: Record<TrackedLandmark, number>,
+  activeLandmarks: TrackedLandmark[],
 ) {
-  const minimumWeight = Math.min(...Object.values(landmarkWeights));
-  const unexpectedMotion = TRACKED_LANDMARKS.flatMap((landmark) => {
+  // Only the active landmarks carry meaningful weights (unselected ones are 0), so the "should be
+  // still" baseline is taken over the active set. With all 12 active this is unchanged.
+  const minimumWeight = Math.min(...activeLandmarks.map((landmark) => landmarkWeights[landmark]));
+  const unexpectedMotion = activeLandmarks.flatMap((landmark) => {
     if (landmarkWeights[landmark] > minimumWeight * INACTIVE_WEIGHT_MULTIPLIER) {
       return [];
     }
