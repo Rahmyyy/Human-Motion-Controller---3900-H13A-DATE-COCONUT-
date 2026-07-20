@@ -37,6 +37,11 @@ export default function PresetSelectionPage() {
   }, []);
 
   const selectedPreset = presets.find((preset) => preset.id === selectedPresetId);
+  const handlePresetDuplicated = (preset: Preset) => {
+    setPresets((currentPresets) => [preset, ...currentPresets]);
+    setSelectedPresetId(preset.id);
+    setError(null);
+  };
 
   return (
     <section className="min-h-screen bg-background px-8 py-10 pb-44">
@@ -71,6 +76,7 @@ export default function PresetSelectionPage() {
             <PresetCollection
               presets={presets}
               selectedPresetId={selectedPresetId}
+              onDuplicatePreset={handlePresetDuplicated}
               onSelectPreset={setSelectedPresetId}
             />
           )}
