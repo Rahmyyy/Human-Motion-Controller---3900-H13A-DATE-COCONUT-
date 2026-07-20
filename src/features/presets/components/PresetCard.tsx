@@ -4,10 +4,12 @@ import { Check, Pencil, PersonStanding, Workflow } from "lucide-react";
 import { Link } from "react-router";
 
 import type { Preset } from "../api/presetsApi";
+import DeletePresetDialog from "./DeletePresetDialog";
 import DuplicatePresetDialog from "./DuplicatePresetDialog";
 
 type PresetCardProps = {
   isSelected: boolean;
+  onDeleted: (presetId: string) => void;
   onDuplicated: (preset: Preset) => void;
   onSelect: () => void;
   preset: Preset;
@@ -15,6 +17,7 @@ type PresetCardProps = {
 
 export default function PresetCard({
   isSelected,
+  onDeleted,
   onDuplicated,
   onSelect,
   preset,
@@ -41,6 +44,7 @@ export default function PresetCard({
 
         <div className="mt-6 flex items-center gap-1 border-t pt-4">
           <DuplicatePresetDialog preset={preset} onDuplicated={onDuplicated} />
+          <DeletePresetDialog preset={preset} onDeleted={onDeleted} />
           <Button asChild variant="ghost" size="icon" title={`Edit ${preset.name} mappings`}>
             <Link to={`/presets/${preset.id}/edit`}>
               <Pencil className="size-4" aria-hidden="true" />

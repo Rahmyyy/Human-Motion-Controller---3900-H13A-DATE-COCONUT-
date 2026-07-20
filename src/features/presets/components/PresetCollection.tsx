@@ -2,6 +2,7 @@ import PresetCard from "./PresetCard";
 import type { Preset } from "../api/presetsApi";
 
 type PresetCollectionProps = {
+  onDeletePreset: (presetId: string) => void;
   onDuplicatePreset: (preset: Preset) => void;
   onSelectPreset: (presetId: string) => void;
   presets: Preset[];
@@ -9,6 +10,7 @@ type PresetCollectionProps = {
 };
 
 export default function PresetCollection({
+  onDeletePreset,
   onDuplicatePreset,
   onSelectPreset,
   presets,
@@ -29,6 +31,7 @@ export default function PresetCollection({
           key={preset.id}
           preset={preset}
           isSelected={selectedPresetId === preset.id}
+          onDeleted={onDeletePreset}
           onDuplicated={onDuplicatePreset}
           onSelect={() => onSelectPreset(preset.id)}
         />
