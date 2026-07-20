@@ -7,9 +7,7 @@ import CreatePresetDialog from "./CreatePresetDialog";
 export default function PresetPageHeader({ patientName }: { patientName: string }) {
   return (
     <header>
-      <BackButton />
-
-      <div className="mt-5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="inline-flex items-center gap-3 self-start rounded-lg border bg-card px-4 py-3">
           <UserRound className="size-6 text-primary" aria-hidden="true" />
           <div>
@@ -19,8 +17,9 @@ export default function PresetPageHeader({ patientName }: { patientName: string 
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <CameraModeToggle />
           <CreatePresetDialog />
+          <BackButton />
+          <CameraModeToggle />
         </div>
       </div>
 
