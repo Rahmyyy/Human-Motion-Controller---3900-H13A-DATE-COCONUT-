@@ -24,6 +24,7 @@ export type RecordingQualityIssue =
   | "no_pose_frames"
   | "insufficient_usable_frames"
   | "low_usable_frame_coverage"
+  | "no_landmarks_selected"
   | "selection_misses_movement";
 
 export type RecordingQuality = {
@@ -65,6 +66,7 @@ export function analyseRecordingQuality(
   const jointVisibility = trackedLandmarkRecord((index) =>
     totalFrames === 0 ? 0 : visibleFrameCounts[index] / totalFrames,
   );
+  const hasNoSelectedLandmarks = selectedLandmarks.length === 0;
   const selectionMissesMovement = detectSelectionMissesMovement(frames, selectedLandmarks);
   const issues: RecordingQualityIssue[] = [];
 
@@ -76,12 +78,18 @@ export function analyseRecordingQuality(
     issues.push("low_usable_frame_coverage");
   }
 
-  if (selectionMissesMovement) {
+  if (hasNoSelectedLandmarks) {
+    issues.push("no_landmarks_selected");
+  } else if (selectionMissesMovement) {
     issues.push("selection_misses_movement");
   }
 
   return {
-    status: qualityStatus(usableFrames, usableFramePercentage, selectionMissesMovement),
+    status: qualityStatus(
+      usableFrames,
+      usableFramePercentage,
+      hasNoSelectedLandmarks || selectionMissesMovement,
+    ),
     totalFrames,
     usableFrames,
     usableFramePercentage,
@@ -92,8 +100,8 @@ export function analyseRecordingQuality(
 
 /**
  * True when the recording clearly contains a movement, but the user's selected landmarks don't
- * capture it — either nothing is selected, or the chosen joints stay still through the motion
- * (e.g. a left-arm raise with only the right arm selected). Reuses recognition's own dynamic/static
+ * capture it because the chosen joints stay still through the motion (e.g. a left-arm raise with
+ * only the right arm selected). Reuses recognition's own dynamic/static
  * classification so the check matches how the matcher would treat the template. A genuinely static
  * recording (a held pose) has no movement to miss, so it is never flagged.
  */
@@ -108,11 +116,6 @@ function detectSelectionMissesMovement(frames: PoseFrame[], selectedLandmarks: n
   ]).isDynamic;
   if (!recordingIsDynamic) {
     return false;
-  }
-
-  // A moving recording with nothing selected has no joints tracking the movement at all.
-  if (selectedLandmarks.length === 0) {
-    return true;
   }
 
   const selectionIsDynamic = createMovementProfile(
