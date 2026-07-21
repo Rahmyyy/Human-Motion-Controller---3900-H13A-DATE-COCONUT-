@@ -8,6 +8,7 @@ import RecordingQualityPanel from "@/features/movement-mapping/components/Record
 import RecordingTrimPanel from "@/features/movement-mapping/components/RecordingTrimPanel";
 import { usePoseRecording } from "@/features/movement-mapping/hooks/usePoseRecording";
 import { analyseRecordingQuality } from "@/features/movement-mapping/recording/analyseRecordingQuality";
+import { TRACKED_LANDMARKS } from "@/features/movement-recognition/recognition/types";
 import { updateDefaultPose, type Preset } from "../api/presetsApi";
 
 type Props = {
@@ -30,7 +31,10 @@ export default function DefaultPoseCalibrationWorkspace({ initialFrames, preset 
     trimRecording,
   } = usePoseRecording(initialFrames, initialFrames.length > 0 ? "recorded" : "idle");
   const quality = useMemo(
-    () => (recordingState === "recorded" ? analyseRecordingQuality(recordedFrames) : null),
+    () =>
+      recordingState === "recorded"
+        ? analyseRecordingQuality(recordedFrames, [...TRACKED_LANDMARKS])
+        : null,
     [recordedFrames, recordingState],
   );
 
