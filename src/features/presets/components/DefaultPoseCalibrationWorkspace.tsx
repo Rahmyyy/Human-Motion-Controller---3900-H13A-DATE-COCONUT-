@@ -17,10 +17,10 @@ type Props = {
 };
 
 export default function DefaultPoseCalibrationWorkspace({
-    initialFrames,
-    patientId,
-    preset,
-  }: Props) {
+  initialFrames,
+  patientId,
+  preset,
+}: Props) {
   const navigate = useNavigate();
   const [saveError, setSaveError] = useState<string | null>(null);
   const {
@@ -43,11 +43,7 @@ export default function DefaultPoseCalibrationWorkspace({
   const saveCalibration = async () => {
     setSaveError(null);
     try {
-      await updateDefaultPose(
-        preset.id,
-        patientId,
-        JSON.stringify(recordedFrames),
-      );
+      await updateDefaultPose(preset.id, patientId, JSON.stringify(recordedFrames));
 
       navigate(`/patients/${patientId}/presets/${preset.id}/edit`);
     } catch (error) {

@@ -15,7 +15,7 @@ import RecognitionStatusPanel from "./components/RecognitionStatusPanel";
 import { useMovementRecognition } from "./hooks/useMovementRecognition";
 
 export default function MovementRecognitionPage() {
-  const { patientId, presetId } = useParams<{ patientId: string, presetId: string }>();
+  const { patientId, presetId } = useParams<{ patientId: string; presetId: string }>();
   const [mappings, setMappings] = useState<PresetMappingCardData[]>([]);
   const [defaultPoseFrames, setDefaultPoseFrames] = useState<PoseFrame[]>([]);
   const [isLoading, setIsLoading] = useState(true);

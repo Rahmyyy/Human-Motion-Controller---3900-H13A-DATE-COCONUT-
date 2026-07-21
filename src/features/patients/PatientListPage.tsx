@@ -16,11 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { UserPlus } from "lucide-react";
 
-import {
-  createPatient,
-  getPatients,
-  type Patient,
-} from "./api/patientsApi";
+import { createPatient, getPatients, type Patient } from "./api/patientsApi";
 
 export default function PatientListPage() {
   const [patients, setPatients] = useState<Patient[]>([]);
@@ -93,10 +89,7 @@ export default function PatientListPage() {
         </header>
 
         <section className="mt-12">
-          <h2 className="text-lg font-semibold tracking-tight">
-            Recent Patients
-
-          </h2>
+          <h2 className="text-lg font-semibold tracking-tight">Recent Patients</h2>
           {isLoading ? (
             <p className="mt-5 text-sm text-muted-foreground">Loading patients...</p>
           ) : error ? (
@@ -123,9 +116,7 @@ export default function PatientListPage() {
                   <h3 className="font-semibold">{patient.displayName}</h3>
 
                   {patient.clinicalNotes && (
-                    <p className="mt-2 text-sm text-muted-foreground">
-                      {patient.clinicalNotes}
-                    </p>
+                    <p className="mt-2 text-sm text-muted-foreground">{patient.clinicalNotes}</p>
                   )}
                 </button>
               ))}
@@ -137,11 +128,7 @@ export default function PatientListPage() {
   );
 }
 
-function AddPatientDialog({
-  onPatientCreated,
-}: {
-  onPatientCreated: () => Promise<void>;
-}) {
+function AddPatientDialog({ onPatientCreated }: { onPatientCreated: () => Promise<void> }) {
   const [isOpen, setIsOpen] = useState(false);
   const [displayName, setDisplayName] = useState("");
   const [clinicalNotes, setClinicalNotes] = useState("");
@@ -158,9 +145,7 @@ function AddPatientDialog({
       <DialogContent className="sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>Add Patient</DialogTitle>
-          <DialogDescription>
-            Create a new patient profile for preset selection.
-          </DialogDescription>
+          <DialogDescription>Create a new patient profile for preset selection.</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-5">
@@ -187,30 +172,27 @@ function AddPatientDialog({
 
         <DialogFooter>
           <Button
-          type="button"
-          onClick={async () => {
-            const trimmedDisplayName = displayName.trim();
+            type="button"
+            onClick={async () => {
+              const trimmedDisplayName = displayName.trim();
 
-            if (!trimmedDisplayName) return;
+              if (!trimmedDisplayName) return;
 
-            try {
-              await createPatient(
-                trimmedDisplayName,
-                clinicalNotes.trim() || undefined,
-              );
+              try {
+                await createPatient(trimmedDisplayName, clinicalNotes.trim() || undefined);
 
-              await onPatientCreated();
+                await onPatientCreated();
 
-              setDisplayName("");
-              setClinicalNotes("");
-              setIsOpen(false);
-            } catch (error) {
-              console.error("Failed to create patient", error);
-            }
-          }}
-        >
-          Create Patient
-        </Button>
+                setDisplayName("");
+                setClinicalNotes("");
+                setIsOpen(false);
+              } catch (error) {
+                console.error("Failed to create patient", error);
+              }
+            }}
+          >
+            Create Patient
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -16,11 +16,7 @@ import PresetNameSection from "./PresetNameSection";
 import PresetStartModeSelector, { type PresetStartMode } from "./PresetStartModeSelector";
 import { createPreset } from "../api/presetsApi";
 
-export default function CreatePresetDialog({
-  patientId,
-}: {
-  patientId: string;
-}) {
+export default function CreatePresetDialog({ patientId }: { patientId: string }) {
   const navigate = useNavigate();
   const [selectedMode, setSelectedMode] = useState<PresetStartMode | null>(null);
   const [presetName, setPresetName] = useState("");

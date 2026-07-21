@@ -13,12 +13,11 @@ import CalibrationRequirementCard from "./components/CalibrationRequirementCard"
 import type { PresetMappingCardData } from "./types";
 
 export default function PresetMappingsPage() {
-  const { patientId, presetId } = useParams<{ patientId: string, presetId: string }>();
+  const { patientId, presetId } = useParams<{ patientId: string; presetId: string }>();
   const [mappings, setMappings] = useState<PresetMappingCardData[]>([]);
   const [preset, setPreset] = useState<Preset | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const displayedError =
-    patientId && presetId ? error : "Patient or preset not found.";
+  const displayedError = patientId && presetId ? error : "Patient or preset not found.";
 
   useEffect(() => {
     if (!patientId || !presetId) return;

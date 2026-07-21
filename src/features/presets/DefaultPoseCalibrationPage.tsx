@@ -5,7 +5,7 @@ import { getPreset, type Preset } from "./api/presetsApi";
 import DefaultPoseCalibrationWorkspace from "./components/DefaultPoseCalibrationWorkspace";
 
 export default function DefaultPoseCalibrationPage() {
-  const { patientId, presetId } = useParams<{ patientId: string, presetId: string }>();
+  const { patientId, presetId } = useParams<{ patientId: string; presetId: string }>();
   const [preset, setPreset] = useState<Preset | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
 
@@ -28,11 +28,7 @@ export default function DefaultPoseCalibrationPage() {
   }, [patientId, presetId]);
 
   if (!patientId || !presetId || loadError) {
-    return (
-      <CalibrationMessage
-        message={loadError ?? "Patient or preset not found."}
-      />
-    );
+    return <CalibrationMessage message={loadError ?? "Patient or preset not found."} />;
   }
 
   if (!preset) {
@@ -47,7 +43,7 @@ export default function DefaultPoseCalibrationPage() {
       patientId={patientId}
       preset={preset}
     />
-      );
+  );
 }
 
 function CalibrationMessage({ message }: { message: string }) {

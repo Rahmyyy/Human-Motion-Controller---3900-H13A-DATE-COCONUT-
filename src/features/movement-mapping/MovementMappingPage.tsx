@@ -5,7 +5,7 @@ import MovementMappingWorkspace from "./components/MovementMappingWorkspace";
 import { createMovementMapping } from "./api/movementMappingsApi";
 
 export default function MovementMappingPage() {
-  const { patientId, presetId } = useParams<{ patientId: string, presetId: string }>();
+  const { patientId, presetId } = useParams<{ patientId: string; presetId: string }>();
   const navigate = useNavigate();
   const [saveError, setSaveError] = useState<string | null>(null);
   const [isCalibrationReady, setIsCalibrationReady] = useState(false);

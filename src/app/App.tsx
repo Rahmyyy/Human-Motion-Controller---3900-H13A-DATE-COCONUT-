@@ -15,17 +15,32 @@ export default function App() {
         <Route path="/" element={<PatientListPage />} />
         <Route path="/patients" element={<PatientListPage />} />
         <Route path="/patients/:patientId/presets" element={<PresetSelectionPage />} />
-        
-        <Route path="/patients/:patientId/presets/:presetId/edit" element={<PresetMappingsPage />} />
-        <Route path="/patients/:patientId/presets/:presetId/default-pose" element={<DefaultPoseCalibrationPage />} />
-        <Route path="/patients/:patientId/presets/:presetId/recognition" element={<MovementRecognitionPage />} />
+
+        <Route
+          path="/patients/:patientId/presets/:presetId/edit"
+          element={<PresetMappingsPage />}
+        />
+        <Route
+          path="/patients/:patientId/presets/:presetId/default-pose"
+          element={<DefaultPoseCalibrationPage />}
+        />
+        <Route
+          path="/patients/:patientId/presets/:presetId/recognition"
+          element={<MovementRecognitionPage />}
+        />
         <Route
           path="/patients/:patientId/presets/:presetId/movements/:mappingId/edit"
           element={<EditMovementMappingPage />}
         />
-        <Route path="/patients/:patientId/presets/:presetId/movements/new" element={<MovementMappingPage />} />
-        <Route path="/patients/:patientId/presets/:presetId/dashboard" element={<LiveDashboardPage />} />
-        
+        <Route
+          path="/patients/:patientId/presets/:presetId/movements/new"
+          element={<MovementMappingPage />}
+        />
+        <Route
+          path="/patients/:patientId/presets/:presetId/dashboard"
+          element={<LiveDashboardPage />}
+        />
+
         {/*old routes*/}
         <Route path="/presets/:presetId/edit" element={<PresetMappingsPage />} />
         <Route path="/presets/:presetId/default-pose" element={<DefaultPoseCalibrationPage />} />
