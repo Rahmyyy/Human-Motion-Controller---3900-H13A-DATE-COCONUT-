@@ -6,6 +6,7 @@ import MovementRecognitionPage from "@/features/movement-recognition/MovementRec
 import PresetMappingsPage from "@/features/preset-mapping/PresetMappingsPage";
 import PresetSelectionPage from "@/features/presets/PresetSelectionPage";
 import DefaultPoseCalibrationPage from "@/features/presets/DefaultPoseCalibrationPage";
+import PatientListPage  from "@/features/patients/PatientListPage";
 
 export default function App() {
   return (
@@ -21,6 +22,7 @@ export default function App() {
         />
         <Route path="/presets/:presetId/movements/new" element={<MovementMappingPage />} />
         <Route path="/presets/:presetId/dashboard" element={<LiveDashboardPage />} />
+        <Route path="/patients" element={<PatientListPage />} />
       </Routes>
     </HashRouter>
   );
