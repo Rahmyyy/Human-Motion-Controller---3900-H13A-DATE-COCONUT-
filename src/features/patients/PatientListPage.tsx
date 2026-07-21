@@ -35,7 +35,7 @@ const initialPatients: Patient[] = [
 
 
 export default function PatientListPage() {
-    const [patients] = useState<Patient[]>(initialPatients);
+    const [patients, setPatients] = useState<Patient[]>(initialPatients);
   return (
     <section className="min-h-screen bg-background px-8 py-10">
       <div className="mx-auto max-w-6xl">
@@ -48,7 +48,11 @@ export default function PatientListPage() {
               Select a patient to view their available preset mappings.
             </p>
           </div>
-          <AddPatientDialog />
+          <AddPatientDialog
+            onCreatePatient={(patient) => {
+              setPatients((currentPatients) => [patient, ...currentPatients]);
+            }}
+          />
         </header>
 
         <section className="mt-12">
@@ -79,7 +83,14 @@ export default function PatientListPage() {
   );
 }
 
-function AddPatientDialog() {
+function AddPatientDialog({
+  onCreatePatient,
+}: {
+  onCreatePatient: (patient: Patient) => void;
+}) {
+  const [displayName, setDisplayName] = useState("");
+  const [clinicalNotes, setClinicalNotes] = useState("");
+
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -100,20 +111,45 @@ function AddPatientDialog() {
         <div className="space-y-5">
           <div className="space-y-2">
             <Label htmlFor="display-name">Patient Display Name</Label>
-            <Input id="display-name" placeholder="e.g. Alex J." />
+            <Input
+              id="display-name"
+              value={displayName}
+              onChange={(event) => setDisplayName(event.target.value)}
+              placeholder="e.g. Alex J."
+            />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="clinical-notes">Clinical Notes Optional</Label>
             <Textarea
               id="clinical-notes"
+              value={clinicalNotes}
+              onChange={(event) => setClinicalNotes(event.target.value)}
               placeholder="e.g. Stroke rehab, upper body focus"
             />
           </div>
         </div>
 
         <DialogFooter>
-          <Button type="button">Create Patient</Button>
+          <Button
+            type="button"
+            onClick={() => {
+              const trimmedDisplayName = displayName.trim();
+
+              if (!trimmedDisplayName) return;
+
+              onCreatePatient({
+                id: crypto.randomUUID(),
+                displayName: trimmedDisplayName,
+                clinicalNotes: clinicalNotes.trim() || undefined,
+              });
+
+              setDisplayName("");
+              setClinicalNotes("");
+            }}
+          >
+            Create Patient
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
