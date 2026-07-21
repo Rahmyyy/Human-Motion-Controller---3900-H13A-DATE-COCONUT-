@@ -16,7 +16,11 @@ import PresetNameSection from "./PresetNameSection";
 import PresetStartModeSelector, { type PresetStartMode } from "./PresetStartModeSelector";
 import { createPreset } from "../api/presetsApi";
 
-export default function CreatePresetDialog() {
+export default function CreatePresetDialog({
+  patientId,
+}: {
+  patientId: string;
+}) {
   const navigate = useNavigate();
   const [selectedMode, setSelectedMode] = useState<PresetStartMode | null>(null);
   const [presetName, setPresetName] = useState("");
@@ -35,7 +39,7 @@ export default function CreatePresetDialog() {
 
     if (selectedMode === "custom") {
       try {
-        const preset = await createPreset(trimmedPresetName);
+        const preset = await createPreset(patientId, trimmedPresetName);
         navigate(`/presets/${preset.id}/edit`);
       } catch (error) {
         console.error("Failed to create preset", error);

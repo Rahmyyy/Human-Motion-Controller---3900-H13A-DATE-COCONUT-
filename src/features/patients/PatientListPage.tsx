@@ -68,27 +68,40 @@ export default function PatientListPage() {
             Recent Patients
 
           </h2>
-          <div className="mt-4 space-y-4">
-            {patients.map((patient) => (
-              <button
-                key={patient.id}
-                type="button"
-                onClick={() => {
-                  navigate(`/patients/${patient.id}/presets`, {
-                    state: { patientName: patient.displayName },
-                  });
-                }}
-                className="w-full rounded-lg border bg-card p-5 text-left shadow-sm transition hover:bg-muted/50"
-              >
-                <h3 className="font-semibold">{patient.displayName}</h3>
-                {patient.clinicalNotes && (
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    {patient.clinicalNotes}
-                  </p>
-                )}
-              </button>
-            ))}
-          </div>
+          {isLoading ? (
+            <p className="mt-5 text-sm text-muted-foreground">Loading patients...</p>
+          ) : error ? (
+            <p className="mt-5 rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+              {error}
+            </p>
+          ) : patients.length === 0 ? (
+            <div className="mt-5 rounded-lg border border-dashed bg-card/50 p-8 text-sm text-muted-foreground">
+              No patients have been added yet. Add a patient to begin.
+            </div>
+          ) : (
+            <div className="mt-4 space-y-4">
+              {patients.map((patient) => (
+                <button
+                  key={patient.id}
+                  type="button"
+                  onClick={() => {
+                    navigate(`/patients/${patient.id}/presets`, {
+                      state: { patientName: patient.displayName },
+                    });
+                  }}
+                  className="w-full rounded-lg border bg-card p-5 text-left shadow-sm transition hover:bg-muted/50"
+                >
+                  <h3 className="font-semibold">{patient.displayName}</h3>
+
+                  {patient.clinicalNotes && (
+                    <p className="mt-2 text-sm text-muted-foreground">
+                      {patient.clinicalNotes}
+                    </p>
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
         </section>
       </div>
     </section>

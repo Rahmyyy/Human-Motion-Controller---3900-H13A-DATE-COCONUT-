@@ -5,47 +5,58 @@ use rusqlite::{params, Connection};
 #[serde(rename_all = "camelCase")]
 pub struct Preset {
     pub id: String,
+    pub patient_id: String,
     pub name: String,
     pub created_at: String,
     pub mapping_count: i64,
     pub default_pose_frames_json: Option<String>,
 }
 
-pub fn insert_preset(conn: &Connection, id: &str, name: &str, created_at: &str) -> Result<()> {
+pub fn insert_preset(
+    conn: &Connection,
+    id: &str,
+    patient_id: &str,
+    name: &str,
+    created_at: &str,
+) -> Result<()> {
     conn.execute(
         "
         INSERT INTO presets (
             id,
+            patient_id,
             name,
             created_at
-        ) VALUES (?1, ?2, ?3)
+        ) VALUES (?1, ?2, ?3, ?4)
         ",
-        params![id, name, created_at],
+        params![id, patient_id, name, created_at],
     )?;
 
     Ok(())
 }
 
-pub fn select_presets(conn: &Connection) -> Result<Vec<Preset>> {
+pub fn select_presets_by_patient(conn: &Connection, patient_id: &str) -> Result<Vec<Preset>> {
     let mut statement = conn.prepare(
         "
-        SELECT presets.id, presets.name, presets.created_at, COUNT(movement_mappings.id),
-               presets.default_pose_frames_json
+        SELECT presets.id, presets.patient_id, presets.name, presets.created_at,
+            COUNT(movement_mappings.id), presets.default_pose_frames_json
         FROM presets
         LEFT JOIN movement_mappings ON movement_mappings.preset_id = presets.id
-        GROUP BY presets.id, presets.name, presets.created_at, presets.default_pose_frames_json
+        WHERE presets.patient_id = ?1
+        GROUP BY presets.id, presets.patient_id, presets.name, presets.created_at,
+                presets.default_pose_frames_json
         ORDER BY presets.created_at DESC
         ",
     )?;
 
     let presets = statement
-        .query_map([], |row| {
+        .query_map(params![patient_id], |row| {
             Ok(Preset {
                 id: row.get(0)?,
-                name: row.get(1)?,
-                created_at: row.get(2)?,
-                mapping_count: row.get(3)?,
-                default_pose_frames_json: row.get(4)?,
+                patient_id: row.get(1)?,
+                name: row.get(2)?,
+                created_at: row.get(3)?,
+                mapping_count: row.get(4)?,
+                default_pose_frames_json: row.get(5)?,
             })
         })?
         .collect::<Result<Vec<_>, _>>()?;
@@ -53,25 +64,27 @@ pub fn select_presets(conn: &Connection) -> Result<Vec<Preset>> {
     Ok(presets)
 }
 
-pub fn select_preset_by_id(conn: &Connection, id: &str) -> Result<Preset> {
+pub fn select_preset_by_id(conn: &Connection, id: &str, patient_id: &str) -> Result<Preset> {
     let mut statement = conn.prepare(
         "
-        SELECT presets.id, presets.name, presets.created_at, COUNT(movement_mappings.id),
-               presets.default_pose_frames_json
+        SELECT presets.id, presets.patient_id, presets.name, presets.created_at,
+            COUNT(movement_mappings.id), presets.default_pose_frames_json
         FROM presets
         LEFT JOIN movement_mappings ON movement_mappings.preset_id = presets.id
-        WHERE presets.id = ?1
-        GROUP BY presets.id, presets.name, presets.created_at, presets.default_pose_frames_json
+        WHERE presets.id = ?1 AND presets.patient_id = ?2
+        GROUP BY presets.id, presets.patient_id, presets.name, presets.created_at,
+                presets.default_pose_frames_json
         ",
     )?;
 
-    let preset = statement.query_row(params![id], |row| {
+    let preset = statement.query_row(params![id, patient_id], |row| {
         Ok(Preset {
             id: row.get(0)?,
-            name: row.get(1)?,
-            created_at: row.get(2)?,
-            mapping_count: row.get(3)?,
-            default_pose_frames_json: row.get(4)?,
+            patient_id: row.get(1)?,
+            name: row.get(2)?,
+            created_at: row.get(3)?,
+            mapping_count: row.get(4)?,
+            default_pose_frames_json: row.get(5)?,
         })
     })?;
 

@@ -9,7 +9,6 @@ import PresetCollection from "./components/PresetCollection";
 
 export default function PresetSelectionPage() {
   const { patientId } = useParams();
-  console.log(patientId);
   const location = useLocation();
   const patientName = location.state?.patientName ?? "selected patient";
   const [presets, setPresets] = useState<Preset[]>([]);
@@ -18,9 +17,15 @@ export default function PresetSelectionPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!patientId) {
+      setError("Missing patient ID.");
+      setIsLoading(false);
+      return;
+    }
+
     let isMounted = true;
 
-    getPresets()
+    getPresets(patientId)
       .then((savedPresets) => {
         if (!isMounted) return;
         setPresets(savedPresets);
@@ -37,7 +42,7 @@ export default function PresetSelectionPage() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [patientId]);
 
   const selectedPreset = presets.find((preset) => preset.id === selectedPresetId);
 
@@ -57,7 +62,7 @@ export default function PresetSelectionPage() {
           <div className="flex items-center gap-3">
             <CameraModeToggle />
             <BackButton />
-            <CreatePresetDialog />
+            {patientId && <CreatePresetDialog patientId={patientId} />}
           </div>
         </header>
 
