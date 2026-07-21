@@ -42,7 +42,7 @@ export default function PatientListPage() {
     } finally {
       setIsLoading(false);
     }
-    }
+  }
 
   useEffect(() => {
     loadPatients();
@@ -60,11 +60,7 @@ export default function PatientListPage() {
               Select a patient to view their available preset mappings.
             </p>
           </div>
-          <AddPatientDialog
-            onCreatePatient={(patient) => {
-              setPatients((currentPatients) => [patient, ...currentPatients]);
-            }}
-          />
+          <AddPatientDialog onPatientCreated={loadPatients} />
         </header>
 
         <section className="mt-12">
@@ -100,9 +96,9 @@ export default function PatientListPage() {
 }
 
 function AddPatientDialog({
-  onCreatePatient,
+  onPatientCreated,
 }: {
-  onCreatePatient: (patient: Patient) => void;
+  onPatientCreated: () => Promise<void>;
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [displayName, setDisplayName] = useState("");
@@ -150,16 +146,13 @@ function AddPatientDialog({
         <DialogFooter>
           <Button
             type="button"
-            onClick={() => {
+            onClick={async () => {
               const trimmedDisplayName = displayName.trim();
 
               if (!trimmedDisplayName) return;
 
-              onCreatePatient({
-                id: crypto.randomUUID(),
-                displayName: trimmedDisplayName,
-                clinicalNotes: clinicalNotes.trim() || undefined,
-              });
+              await createPatient(trimmedDisplayName, clinicalNotes.trim() || undefined);
+              await onPatientCreated();
 
               setDisplayName("");
               setClinicalNotes("");
