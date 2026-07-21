@@ -2,6 +2,7 @@ mod db;
 mod input;
 mod mediapipe;
 mod movement_mapping;
+mod patient;
 mod preset;
 mod streams;
 
@@ -154,6 +155,9 @@ pub fn run() {
             preset::commands::get_presets,
             preset::commands::get_preset,
             preset::commands::update_default_pose,
+            patient::commands::create_patient,
+            patient::commands::get_patients,
+            patient::commands::get_patient,
         ])
         .plugin(
             tauri_plugin_log::Builder::new()

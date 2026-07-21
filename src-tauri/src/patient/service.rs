@@ -54,4 +54,3 @@ pub fn get_patient(conn: &Connection, id: &str) -> Result<Patient> {
 
     repository::select_patient_by_id(conn, id)
 }
-
