@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 
 import { Button } from "@/components/ui/button";
@@ -16,29 +16,37 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { UserPlus } from "lucide-react";
 
-type Patient = {
-  id: string;
-  displayName: string;
-  clinicalNotes?: string;
-};
-
-const initialPatients: Patient[] = [
-  {
-    id: "patient-1",
-    displayName: "Lindsay Collins",
-    clinicalNotes: "Broken 3rd leg",
-  },
-  {
-    id: "patient-2",
-    displayName: "Leo Ng Maisnam",
-    clinicalNotes: "Mums life",
-  },
-];
-
+import {
+  createPatient,
+  getPatients,
+  type Patient,
+} from "./api/patientsApi";
 
 export default function PatientListPage() {
-  const [patients, setPatients] = useState<Patient[]>(initialPatients);
+  const [patients, setPatients] = useState<Patient[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   const navigate = useNavigate();
+
+  async function loadPatients() {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      const savedPatients = await getPatients();
+      setPatients(savedPatients);
+    } catch (error) {
+      console.error("Failed to load patients", error);
+      setError("Failed to load patients.");
+    } finally {
+      setIsLoading(false);
+    }
+    }
+
+  useEffect(() => {
+    loadPatients();
+  }, []);
 
   return (
     <section className="min-h-screen bg-background px-8 py-10">
@@ -64,7 +72,7 @@ export default function PatientListPage() {
             Recent Patients
 
           </h2>
-            <div className="mt-4 space-y-4">
+          <div className="mt-4 space-y-4">
             {patients.map((patient) => (
               <button
                 key={patient.id}
