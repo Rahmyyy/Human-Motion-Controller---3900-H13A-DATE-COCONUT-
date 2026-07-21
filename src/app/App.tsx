@@ -6,7 +6,7 @@ import MovementRecognitionPage from "@/features/movement-recognition/MovementRec
 import PresetMappingsPage from "@/features/preset-mapping/PresetMappingsPage";
 import PresetSelectionPage from "@/features/presets/PresetSelectionPage";
 import DefaultPoseCalibrationPage from "@/features/presets/DefaultPoseCalibrationPage";
-import PatientListPage  from "@/features/patients/PatientListPage";
+import PatientListPage from "@/features/patients/PatientListPage";
 
 export default function App() {
   return (
