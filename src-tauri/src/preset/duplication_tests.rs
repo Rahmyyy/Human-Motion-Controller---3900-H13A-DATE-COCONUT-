@@ -8,19 +8,28 @@ fn duplicate_preset_copies_mappings_and_preserves_source() {
     conn.execute(
         "
         INSERT INTO movement_mappings (
-            id, preset_id, name, keybind, pose_frames_json, created_at
-        ) VALUES (?1, ?2, ?3, ?4, ?5, ?6)
+            id, preset_id, name, keybind, pose_frames_json, selected_landmarks_json, created_at
+        ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
         ",
-        params!["mapping-1", "preset-1", "Squat", "S", "[[1,2,3]]", "1"],
+        params![
+            "mapping-1",
+            "preset-1",
+            "Squat",
+            "S",
+            "[[1,2,3]]",
+            "[11,12]",
+            "1"
+        ],
     )
     .unwrap();
 
     let duplicate = duplicate_preset(&mut conn, "preset-1").unwrap();
-    let copied_mapping: (String, String, String) = conn
+    let copied_mapping: (String, String, String, String) = conn
         .query_row(
-            "SELECT name, keybind, pose_frames_json FROM movement_mappings WHERE preset_id = ?1",
+            "SELECT name, keybind, pose_frames_json, selected_landmarks_json
+             FROM movement_mappings WHERE preset_id = ?1",
             params![&duplicate.id],
-            |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?)),
+            |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?)),
         )
         .unwrap();
 
@@ -28,7 +37,12 @@ fn duplicate_preset_copies_mappings_and_preserves_source() {
     assert_eq!(duplicate.mapping_count, 1);
     assert_eq!(
         copied_mapping,
-        ("Squat".into(), "S".into(), "[[1,2,3]]".into())
+        (
+            "Squat".into(),
+            "S".into(),
+            "[[1,2,3]]".into(),
+            "[11,12]".into()
+        )
     );
     assert_eq!(get_preset(&conn, "preset-1").unwrap().mapping_count, 1);
 }

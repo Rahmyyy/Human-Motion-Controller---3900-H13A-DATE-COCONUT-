@@ -51,7 +51,7 @@ pub fn duplicate_preset_data(
     transaction.execute(
         "
         INSERT INTO movement_mappings (
-            id, preset_id, name, keybind, pose_frames_json, created_at
+            id, preset_id, name, keybind, pose_frames_json, selected_landmarks_json, created_at
         )
         SELECT
             ?1 || '-mapping-' || id,
@@ -59,6 +59,7 @@ pub fn duplicate_preset_data(
             name,
             keybind,
             pose_frames_json,
+            selected_landmarks_json,
             ?2
         FROM movement_mappings
         WHERE preset_id = ?3

@@ -8,10 +8,10 @@ fn delete_preset_removes_preset_and_mappings() {
     conn.execute(
         "
         INSERT INTO movement_mappings (
-            id, preset_id, name, keybind, pose_frames_json, created_at
-        ) VALUES (?1, ?2, ?3, ?4, ?5, ?6)
+            id, preset_id, name, keybind, pose_frames_json, selected_landmarks_json, created_at
+        ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
         ",
-        params!["mapping-1", "preset-1", "Squat", "S", "[]", "1"],
+        params!["mapping-1", "preset-1", "Squat", "S", "[]", "[11,12]", "1"],
     )
     .unwrap();
 
