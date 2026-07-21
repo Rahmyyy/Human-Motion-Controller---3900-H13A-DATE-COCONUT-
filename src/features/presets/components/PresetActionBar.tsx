@@ -41,7 +41,13 @@ export default function PresetActionBar({
             Edit Mappings
           </Button>
 
-          <Button type="button" size="lg" disabled={!selectedPreset} className="min-w-48">
+          <Button
+            type="button"
+            size="lg"
+            disabled={!selectedPreset}
+            onClick={() => selectedPreset && navigate(`/presets/${selectedPreset.id}/session`)}
+            className="min-w-48"
+          >
             <Play className="size-4" aria-hidden="true" />
             Start Session
           </Button>
