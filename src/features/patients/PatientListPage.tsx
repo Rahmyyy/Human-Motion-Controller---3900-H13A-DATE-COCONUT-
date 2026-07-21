@@ -145,22 +145,30 @@ function AddPatientDialog({
 
         <DialogFooter>
           <Button
-            type="button"
-            onClick={async () => {
-              const trimmedDisplayName = displayName.trim();
+          type="button"
+          onClick={async () => {
+            const trimmedDisplayName = displayName.trim();
 
-              if (!trimmedDisplayName) return;
+            if (!trimmedDisplayName) return;
 
-              await createPatient(trimmedDisplayName, clinicalNotes.trim() || undefined);
+            try {
+              await createPatient(
+                trimmedDisplayName,
+                clinicalNotes.trim() || undefined,
+              );
+
               await onPatientCreated();
 
               setDisplayName("");
               setClinicalNotes("");
               setIsOpen(false);
-            }}
-          >
-            Create Patient
-          </Button>
+            } catch (error) {
+              console.error("Failed to create patient", error);
+            }
+          }}
+        >
+          Create Patient
+        </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

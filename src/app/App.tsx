@@ -12,7 +12,9 @@ export default function App() {
   return (
     <HashRouter>
       <Routes>
-        <Route path="/" element={<PresetSelectionPage />} />
+        <Route path="/" element={<PatientListPage />} />
+        <Route path="/patients" element={<PatientListPage />} />
+        <Route path="/patients/:patientId/presets" element={<PresetSelectionPage />} />
         <Route path="/presets/:presetId/edit" element={<PresetMappingsPage />} />
         <Route path="/presets/:presetId/default-pose" element={<DefaultPoseCalibrationPage />} />
         <Route path="/presets/:presetId/recognition" element={<MovementRecognitionPage />} />
@@ -22,8 +24,6 @@ export default function App() {
         />
         <Route path="/presets/:presetId/movements/new" element={<MovementMappingPage />} />
         <Route path="/presets/:presetId/dashboard" element={<LiveDashboardPage />} />
-        <Route path="/patients/:patientId/presets" element={<PresetSelectionPage />} />
-        <Route path="/patients" element={<PatientListPage />} />
       </Routes>
     </HashRouter>
   );
