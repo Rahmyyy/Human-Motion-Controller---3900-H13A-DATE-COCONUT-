@@ -6,6 +6,7 @@ interface CreateMovementMappingInput extends Record<string, unknown> {
   name: string;
   poseFramesJson: string;
   presetId: string;
+  selectedLandmarks: number[];
 }
 
 export interface MovementMappingDetailsResponse {
@@ -14,6 +15,8 @@ export interface MovementMappingDetailsResponse {
   name: string;
   keybind: string;
   pose_frames_json: string;
+  // Details is serialized snake_case on the Rust side (unlike the camelCase list summary).
+  selected_landmarks: number[];
 }
 
 export function createMovementMapping(input: CreateMovementMappingInput) {
@@ -38,6 +41,7 @@ interface UpdateMovementMappingInput extends Record<string, unknown> {
   name: string;
   keybind: string;
   poseFramesJson: string;
+  selectedLandmarks: number[];
 }
 
 export function updateMovementMapping(input: UpdateMovementMappingInput) {

@@ -8,6 +8,7 @@ pub struct MovementMappingSummary {
     pub name: String,
     pub keybind: String,
     pub pose_frames_json: String,
+    pub selected_landmarks: Vec<u32>,
 }
 
 #[derive(serde::Serialize)]
@@ -17,17 +18,28 @@ pub struct MovementMappingDetails {
     pub name: String,
     pub keybind: String,
     pub pose_frames_json: String,
+    pub selected_landmarks: Vec<u32>,
 }
 
-pub fn insert_movement_mapping(
-    conn: &Connection,
-    id: &str,
-    preset_id: &str,
-    name: &str,
-    keybind: &str,
-    pose_frames_json: &str,
-    created_at: &str,
-) -> Result<()> {
+/// Decode the stored `selected_landmarks_json` column. An empty selection (stored as `[]`) is
+/// treated as "all tracked landmarks" downstream.
+fn parse_selected_landmarks(raw: String) -> Vec<u32> {
+    serde_json::from_str::<Vec<u32>>(&raw).unwrap_or_default()
+}
+
+/// Column values for a new `movement_mappings` row, grouped so the insert takes one argument
+/// instead of eight positional strings.
+pub struct NewMovementMapping<'a> {
+    pub id: &'a str,
+    pub preset_id: &'a str,
+    pub name: &'a str,
+    pub keybind: &'a str,
+    pub pose_frames_json: &'a str,
+    pub selected_landmarks_json: &'a str,
+    pub created_at: &'a str,
+}
+
+pub fn insert_movement_mapping(conn: &Connection, mapping: &NewMovementMapping) -> Result<()> {
     conn.execute(
         "
         INSERT INTO movement_mappings (
@@ -36,10 +48,19 @@ pub fn insert_movement_mapping(
             name,
             keybind,
             pose_frames_json,
+            selected_landmarks_json,
             created_at
-        ) VALUES (?1, ?2, ?3, ?4, ?5, ?6)
+        ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
         ",
-        params![id, preset_id, name, keybind, pose_frames_json, created_at],
+        params![
+            mapping.id,
+            mapping.preset_id,
+            mapping.name,
+            mapping.keybind,
+            mapping.pose_frames_json,
+            mapping.selected_landmarks_json,
+            mapping.created_at
+        ],
     )?;
 
     Ok(())
@@ -67,7 +88,7 @@ pub fn select_movement_mappings_by_preset(
 ) -> Result<Vec<MovementMappingSummary>> {
     let mut statement = conn.prepare(
         "
-      SELECT id, name, keybind, pose_frames_json
+      SELECT id, name, keybind, pose_frames_json, selected_landmarks_json
       FROM movement_mappings
       WHERE preset_id = ?1
       ORDER BY created_at DESC
@@ -81,6 +102,7 @@ pub fn select_movement_mappings_by_preset(
                 name: row.get(1)?,
                 keybind: row.get(2)?,
                 pose_frames_json: row.get(3)?,
+                selected_landmarks: parse_selected_landmarks(row.get(4)?),
             })
         })?
         .collect::<Result<Vec<_>, _>>()?;
@@ -95,14 +117,22 @@ pub fn update_movement_mapping(
     name: &str,
     keybind: &str,
     pose_frames_json: &str,
+    selected_landmarks_json: &str,
 ) -> Result<usize> {
     let rows_affected = conn.execute(
         "
         UPDATE movement_mappings
-        SET name = ?1, keybind = ?2, pose_frames_json = ?3
-        WHERE id = ?4 AND preset_id = ?5
+        SET name = ?1, keybind = ?2, pose_frames_json = ?3, selected_landmarks_json = ?4
+        WHERE id = ?5 AND preset_id = ?6
         ",
-        params![name, keybind, pose_frames_json, id, preset_id],
+        params![
+            name,
+            keybind,
+            pose_frames_json,
+            selected_landmarks_json,
+            id,
+            preset_id
+        ],
     )?;
 
     Ok(rows_affected)
@@ -127,7 +157,7 @@ pub fn select_movement_mapping_by_id(
 ) -> Result<MovementMappingDetails> {
     let mut statement = conn.prepare(
         "
-        SELECT id, preset_id, name, keybind, pose_frames_json
+        SELECT id, preset_id, name, keybind, pose_frames_json, selected_landmarks_json
         FROM movement_mappings
         WHERE id = ?1 AND preset_id = ?2
         ",
@@ -140,6 +170,7 @@ pub fn select_movement_mapping_by_id(
             name: row.get(2)?,
             keybind: row.get(3)?,
             pose_frames_json: row.get(4)?,
+            selected_landmarks: parse_selected_landmarks(row.get(5)?),
         })
     })?;
 
