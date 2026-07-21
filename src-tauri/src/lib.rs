@@ -156,6 +156,8 @@ pub fn run() {
             preset::commands::create_preset,
             preset::commands::get_presets,
             preset::commands::get_preset,
+            preset::commands::duplicate_preset,
+            preset::commands::delete_preset,
             preset::commands::update_default_pose,
             overlay::open_overlay,
             overlay::close_overlay,

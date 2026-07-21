@@ -1,10 +1,8 @@
-import BackButton from "@/components/BackButton";
 import { useEffect, useState } from "react";
 import { getPresets, type Preset } from "./api/presetsApi";
-import CameraModeToggle from "./components/CameraModeToggle";
-import CreatePresetDialog from "./components/CreatePresetDialog";
 import PresetActionBar from "./components/PresetActionBar";
 import PresetCollection from "./components/PresetCollection";
+import PresetPageHeader from "./components/PresetPageHeader";
 
 const patientName = "Lindsay Collins";
 
@@ -37,30 +35,26 @@ export default function PresetSelectionPage() {
   }, []);
 
   const selectedPreset = presets.find((preset) => preset.id === selectedPresetId);
+  const handlePresetDuplicated = (preset: Preset) => {
+    setPresets((currentPresets) => [preset, ...currentPresets]);
+    setSelectedPresetId(preset.id);
+    setError(null);
+  };
+  const handlePresetSelection = (presetId: string) => {
+    setSelectedPresetId((currentId) => (currentId === presetId ? null : presetId));
+  };
+  const handlePresetDeleted = (presetId: string) => {
+    setPresets((currentPresets) => currentPresets.filter((preset) => preset.id !== presetId));
+    setSelectedPresetId((currentId) => (currentId === presetId ? null : currentId));
+    setError(null);
+  };
 
   return (
-    <section className="min-h-screen bg-background px-8 py-10 pb-32">
-      <div className="mx-auto max-w-6xl">
-        <header className="flex items-start justify-between gap-6">
-          <div className="max-w-3xl">
-            <h1 className="text-4xl font-semibold tracking-tight text-foreground">
-              Choose or Create a Preset for {patientName}.
-            </h1>
-            <p className="mt-3 text-base text-muted-foreground">
-              Select a pre-existing mapping profile or create a new one to begin.
-            </p>
-          </div>
+    <section className="min-h-screen bg-muted/20 px-8 py-8 pb-40">
+      <div className="mx-auto max-w-7xl">
+        <PresetPageHeader patientName={patientName} />
 
-          <div className="flex items-center gap-3">
-            <CameraModeToggle />
-            <BackButton />
-            <CreatePresetDialog />
-          </div>
-        </header>
-
-        <section className="mt-12">
-          <h2 className="text-lg font-semibold tracking-tight">Existing Presets</h2>
-
+        <section className="mt-8" aria-label="Saved presets">
           {isLoading ? (
             <p className="mt-5 text-sm text-muted-foreground">Loading presets...</p>
           ) : error ? (
@@ -71,13 +65,15 @@ export default function PresetSelectionPage() {
             <PresetCollection
               presets={presets}
               selectedPresetId={selectedPresetId}
-              onSelectPreset={setSelectedPresetId}
+              onDeletePreset={handlePresetDeleted}
+              onDuplicatePreset={handlePresetDuplicated}
+              onSelectPreset={handlePresetSelection}
             />
           )}
         </section>
       </div>
 
-      <PresetActionBar selectedPreset={selectedPreset} />
+      <PresetActionBar patientName={patientName} selectedPreset={selectedPreset} />
     </section>
   );
 }
