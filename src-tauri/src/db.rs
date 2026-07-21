@@ -19,6 +19,18 @@ pub fn init_db(app: &AppHandle) -> Result<DbState> {
 
     conn.execute(
         "
+        CREATE TABLE IF NOT EXISTS patients (
+            id TEXT PRIMARY KEY,
+            display_name TEXT NOT NULL,
+            clinical_notes TEXT,
+            created_at TEXT NOT NULL
+        )
+        ",
+        [],
+    )?;
+
+    conn.execute(
+        "
         CREATE TABLE IF NOT EXISTS presets (
             id TEXT PRIMARY KEY,
             name TEXT NOT NULL,
