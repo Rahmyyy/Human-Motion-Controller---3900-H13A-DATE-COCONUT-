@@ -9,6 +9,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { UserPlus } from "lucide-react";
 
 type Patient = {
@@ -93,6 +96,21 @@ function AddPatientDialog() {
             Create a new patient profile for preset selection.
           </DialogDescription>
         </DialogHeader>
+
+        <div className="space-y-5">
+          <div className="space-y-2">
+            <Label htmlFor="display-name">Patient Display Name</Label>
+            <Input id="display-name" placeholder="e.g. Alex J." />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="clinical-notes">Clinical Notes Optional</Label>
+            <Textarea
+              id="clinical-notes"
+              placeholder="e.g. Stroke rehab, upper body focus"
+            />
+          </div>
+        </div>
 
         <DialogFooter>
           <Button type="button">Create Patient</Button>
