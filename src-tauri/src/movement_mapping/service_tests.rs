@@ -36,8 +36,15 @@ fn create_rejects_missing_preset() {
 fn create_requires_default_pose_calibration() {
     let conn = setup_test_conn();
     conn.execute(
-        "INSERT INTO presets (id, name, created_at) VALUES (?1, ?2, ?3)",
-        params!["uncalibrated", "Uncalibrated", "1"],
+        "
+        INSERT INTO presets (
+            id,
+            patient_id,
+            name,
+            created_at
+        ) VALUES (?1, ?2, ?3, ?4)
+        ",
+        params!["uncalibrated", "patient-1", "Uncalibrated", "1"],
     )
     .unwrap();
 
