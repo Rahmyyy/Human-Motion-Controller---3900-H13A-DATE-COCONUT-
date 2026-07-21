@@ -1,6 +1,6 @@
 use tauri::State;
 
-use super::{deletion, repository::Preset, service};
+use super::{repository::Preset, service};
 
 use crate::db::DbState;
 
@@ -51,7 +51,7 @@ pub fn delete_preset(state: State<'_, DbState>, id: String) -> Result<(), String
         .lock()
         .map_err(|_| "failed to lock database connection".to_string())?;
 
-    deletion::delete_preset(&conn, &id).map_err(|error| error.to_string())
+    service::delete_preset(&conn, &id).map_err(|error| error.to_string())
 }
 
 #[tauri::command]

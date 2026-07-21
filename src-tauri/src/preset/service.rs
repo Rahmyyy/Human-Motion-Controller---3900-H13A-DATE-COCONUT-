@@ -70,6 +70,19 @@ pub fn duplicate_preset(conn: &mut Connection, source_id: &str) -> Result<Preset
     repository::select_preset_by_id(conn, &duplicate_id)
 }
 
+pub fn delete_preset(conn: &Connection, id: &str) -> Result<()> {
+    if id.trim().is_empty() {
+        return Err(anyhow!("Preset ID cannot be empty"));
+    }
+
+    let rows_affected = repository::delete_preset(conn, id)?;
+    if rows_affected == 0 {
+        return Err(anyhow!("Preset not found"));
+    }
+
+    Ok(())
+}
+
 pub fn update_default_pose(
     conn: &Connection,
     id: &str,
@@ -101,3 +114,7 @@ mod tests;
 #[cfg(test)]
 #[path = "duplication_tests.rs"]
 mod duplication_tests;
+
+#[cfg(test)]
+#[path = "deletion_tests.rs"]
+mod deletion_tests;
