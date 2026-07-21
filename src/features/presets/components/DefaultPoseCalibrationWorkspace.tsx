@@ -12,10 +12,15 @@ import { updateDefaultPose, type Preset } from "../api/presetsApi";
 
 type Props = {
   initialFrames: PoseFrame[];
+  patientId: string;
   preset: Preset;
 };
 
-export default function DefaultPoseCalibrationWorkspace({ initialFrames, preset }: Props) {
+export default function DefaultPoseCalibrationWorkspace({
+    initialFrames,
+    patientId,
+    preset,
+  }: Props) {
   const navigate = useNavigate();
   const [saveError, setSaveError] = useState<string | null>(null);
   const {
@@ -38,8 +43,13 @@ export default function DefaultPoseCalibrationWorkspace({ initialFrames, preset 
   const saveCalibration = async () => {
     setSaveError(null);
     try {
-      await updateDefaultPose(preset.id, JSON.stringify(recordedFrames));
-      navigate(`/presets/${preset.id}/edit`);
+      await updateDefaultPose(
+        preset.id,
+        patientId,
+        JSON.stringify(recordedFrames),
+      );
+
+      navigate(`/patients/${patientId}/presets/${preset.id}/edit`);
     } catch (error) {
       console.error("Failed to save default pose", error);
       setSaveError("Failed to save the default pose. Please try again.");

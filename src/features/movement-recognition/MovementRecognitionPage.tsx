@@ -15,7 +15,7 @@ import RecognitionStatusPanel from "./components/RecognitionStatusPanel";
 import { useMovementRecognition } from "./hooks/useMovementRecognition";
 
 export default function MovementRecognitionPage() {
-  const { presetId } = useParams<{ presetId: string }>();
+  const { patientId, presetId } = useParams<{ patientId: string, presetId: string }>();
   const [mappings, setMappings] = useState<PresetMappingCardData[]>([]);
   const [defaultPoseFrames, setDefaultPoseFrames] = useState<PoseFrame[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -25,11 +25,11 @@ export default function MovementRecognitionPage() {
   const displayedLoadError = presetId ? loadError : "Preset not found.";
 
   useEffect(() => {
-    if (!presetId) return;
+    if (!patientId || !presetId) return;
 
     let isMounted = true;
 
-    Promise.all([getPreset(presetId), getMovementMappings(presetId)])
+    Promise.all([getPreset(presetId, patientId), getMovementMappings(presetId)])
       .then(([preset, savedMappings]) => {
         if (!isMounted) return;
         if (!preset.defaultPoseFramesJson) {
@@ -54,7 +54,7 @@ export default function MovementRecognitionPage() {
     return () => {
       isMounted = false;
     };
-  }, [presetId]);
+  }, [patientId, presetId]);
 
   return (
     <main className="grid h-screen w-full grid-rows-[auto_minmax(0,1fr)] gap-4 overflow-hidden bg-slate-50 p-8">

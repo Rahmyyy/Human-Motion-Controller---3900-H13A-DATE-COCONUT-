@@ -13,18 +13,19 @@ import CalibrationRequirementCard from "./components/CalibrationRequirementCard"
 import type { PresetMappingCardData } from "./types";
 
 export default function PresetMappingsPage() {
-  const { presetId } = useParams<{ presetId: string }>();
+  const { patientId, presetId } = useParams<{ patientId: string, presetId: string }>();
   const [mappings, setMappings] = useState<PresetMappingCardData[]>([]);
   const [preset, setPreset] = useState<Preset | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const displayedError = presetId ? error : "Preset not found.";
+  const displayedError =
+    patientId && presetId ? error : "Patient or preset not found.";
 
   useEffect(() => {
-    if (!presetId) return;
+    if (!patientId || !presetId) return;
 
     let isMounted = true;
 
-    Promise.all([getPreset(presetId), getMovementMappings(presetId)])
+    Promise.all([getPreset(presetId, patientId), getMovementMappings(presetId)])
       .then(([preset, savedMappings]) => {
         if (isMounted) {
           setPreset(preset);
@@ -42,7 +43,7 @@ export default function PresetMappingsPage() {
     return () => {
       isMounted = false;
     };
-  }, [presetId]);
+  }, [patientId, presetId]);
 
   function handleDelete(id: string) {
     if (!presetId) return;
@@ -75,7 +76,7 @@ export default function PresetMappingsPage() {
             <BackButton />
             {preset?.defaultPoseFramesJson ? (
               <Button asChild size="lg">
-                <Link to={`/presets/${presetId}/movements/new`}>
+                <Link to={`/patients/${patientId}/presets/${presetId}/movements/new`}>
                   <Plus className="size-4" aria-hidden="true" />
                   Add New Movement
                 </Link>
@@ -95,9 +96,10 @@ export default function PresetMappingsPage() {
           </p>
         )}
 
-        {preset && (
+        {preset && patientId && (
           <CalibrationRequirementCard
             isCalibrated={Boolean(preset.defaultPoseFramesJson)}
+            patientId={patientId}
             presetId={preset.id}
           />
         )}
@@ -115,7 +117,9 @@ export default function PresetMappingsPage() {
         <div className="mx-auto flex max-w-6xl justify-end">
           {preset?.defaultPoseFramesJson ? (
             <Button asChild size="lg">
-              <Link to={`/presets/${presetId}/recognition`}>Test Recognition</Link>
+              <Link to={`/patients/${patientId}/presets/${presetId}/recognition`}>
+                Test Recognition
+              </Link>
             </Button>
           ) : (
             <Button disabled size="lg">

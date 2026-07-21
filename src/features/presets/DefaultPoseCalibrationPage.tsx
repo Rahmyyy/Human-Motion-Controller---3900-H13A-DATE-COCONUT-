@@ -5,15 +5,15 @@ import { getPreset, type Preset } from "./api/presetsApi";
 import DefaultPoseCalibrationWorkspace from "./components/DefaultPoseCalibrationWorkspace";
 
 export default function DefaultPoseCalibrationPage() {
-  const { presetId } = useParams<{ presetId: string }>();
+  const { patientId, presetId } = useParams<{ patientId: string, presetId: string }>();
   const [preset, setPreset] = useState<Preset | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!presetId) return;
+    if (!patientId || !presetId) return;
 
     let isMounted = true;
-    getPreset(presetId)
+    getPreset(presetId, patientId)
       .then((loadedPreset) => {
         if (isMounted) setPreset(loadedPreset);
       })
@@ -25,10 +25,14 @@ export default function DefaultPoseCalibrationPage() {
     return () => {
       isMounted = false;
     };
-  }, [presetId]);
+  }, [patientId, presetId]);
 
-  if (!presetId || loadError) {
-    return <CalibrationMessage message={loadError ?? "Preset not found."} />;
+  if (!patientId || !presetId || loadError) {
+    return (
+      <CalibrationMessage
+        message={loadError ?? "Patient or preset not found."}
+      />
+    );
   }
 
   if (!preset) {
@@ -40,9 +44,10 @@ export default function DefaultPoseCalibrationPage() {
     <DefaultPoseCalibrationWorkspace
       key={preset.defaultPoseFramesJson ?? "new-calibration"}
       initialFrames={initialFrames}
+      patientId={patientId}
       preset={preset}
     />
-  );
+      );
 }
 
 function CalibrationMessage({ message }: { message: string }) {

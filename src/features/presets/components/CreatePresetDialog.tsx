@@ -40,7 +40,7 @@ export default function CreatePresetDialog({
     if (selectedMode === "custom") {
       try {
         const preset = await createPreset(patientId, trimmedPresetName);
-        navigate(`/presets/${preset.id}/edit`);
+        navigate(`/patients/${patientId}/presets/${preset.id}/edit`);
       } catch (error) {
         console.error("Failed to create preset", error);
       }

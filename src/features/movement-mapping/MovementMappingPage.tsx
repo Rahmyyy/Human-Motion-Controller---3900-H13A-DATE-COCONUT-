@@ -5,20 +5,22 @@ import MovementMappingWorkspace from "./components/MovementMappingWorkspace";
 import { createMovementMapping } from "./api/movementMappingsApi";
 
 export default function MovementMappingPage() {
-  const { presetId } = useParams<{ presetId: string }>();
+  const { patientId, presetId } = useParams<{ patientId: string, presetId: string }>();
   const navigate = useNavigate();
   const [saveError, setSaveError] = useState<string | null>(null);
   const [isCalibrationReady, setIsCalibrationReady] = useState(false);
 
   useEffect(() => {
-    if (!presetId) return;
+    if (!patientId || !presetId) return;
 
     let isMounted = true;
-    getPreset(presetId)
+    getPreset(presetId, patientId)
       .then((preset) => {
         if (!isMounted) return;
         if (!preset.defaultPoseFramesJson) {
-          navigate(`/presets/${presetId}/default-pose`, { replace: true });
+          navigate(`/patients/${patientId}/presets/${presetId}/default-pose`, {
+            replace: true,
+          });
           return;
         }
         setIsCalibrationReady(true);
@@ -31,7 +33,7 @@ export default function MovementMappingPage() {
     return () => {
       isMounted = false;
     };
-  }, [navigate, presetId]);
+  }, [patientId, navigate, presetId]);
 
   if (!isCalibrationReady) {
     return (
@@ -51,8 +53,8 @@ export default function MovementMappingPage() {
       onSave={async ({ frames, keybind, name }) => {
         setSaveError(null);
 
-        if (!presetId) {
-          setSaveError("Cannot save this movement because the preset was not found.");
+        if (!patientId || !presetId) {
+          setSaveError("Cannot save this movement because the patient or preset was not found.");
           return;
         }
 
@@ -64,7 +66,7 @@ export default function MovementMappingPage() {
             presetId,
           });
 
-          navigate(-1);
+          navigate(`/patients/${patientId}/presets/${presetId}/edit`);
         } catch (error) {
           console.error("Failed to save movement mapping", error);
           setSaveError("Failed to save movement mapping. Please try again.");
