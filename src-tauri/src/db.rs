@@ -33,9 +33,13 @@ pub fn init_db(app: &AppHandle) -> Result<DbState> {
         "
         CREATE TABLE IF NOT EXISTS presets (
             id TEXT PRIMARY KEY,
+            patient_id TEXT NOT NULL,
             name TEXT NOT NULL,
             created_at TEXT NOT NULL,
-            default_pose_frames_json TEXT
+            default_pose_frames_json TEXT,
+            FOREIGN KEY (patient_id)
+                REFERENCES patients(id)
+                ON DELETE CASCADE
         )
         ",
         [],

@@ -1,6 +1,6 @@
 import BackButton from "@/components/BackButton";
 import { useEffect, useState } from "react";
-import { useLocation } from "react-router";
+import { useLocation, useParams } from "react-router";
 import { getPresets, type Preset } from "./api/presetsApi";
 import CameraModeToggle from "./components/CameraModeToggle";
 import CreatePresetDialog from "./components/CreatePresetDialog";
@@ -8,6 +8,8 @@ import PresetActionBar from "./components/PresetActionBar";
 import PresetCollection from "./components/PresetCollection";
 
 export default function PresetSelectionPage() {
+  const { patientId } = useParams();
+  console.log(patientId);
   const location = useLocation();
   const patientName = location.state?.patientName ?? "selected patient";
   const [presets, setPresets] = useState<Preset[]>([]);
