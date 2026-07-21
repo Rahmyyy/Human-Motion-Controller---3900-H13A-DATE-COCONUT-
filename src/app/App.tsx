@@ -22,6 +22,7 @@ export default function App() {
         />
         <Route path="/presets/:presetId/movements/new" element={<MovementMappingPage />} />
         <Route path="/presets/:presetId/dashboard" element={<LiveDashboardPage />} />
+        <Route path="/patients/:patientId/presets" element={<PresetSelectionPage />} />
         <Route path="/patients" element={<PatientListPage />} />
       </Routes>
     </HashRouter>

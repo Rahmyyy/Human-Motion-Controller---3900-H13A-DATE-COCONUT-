@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useNavigate } from "react-router";
+
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -35,7 +37,9 @@ const initialPatients: Patient[] = [
 
 
 export default function PatientListPage() {
-    const [patients, setPatients] = useState<Patient[]>(initialPatients);
+  const [patients, setPatients] = useState<Patient[]>(initialPatients);
+  const navigate = useNavigate();
+
   return (
     <section className="min-h-screen bg-background px-8 py-10">
       <div className="mx-auto max-w-6xl">
@@ -62,21 +66,25 @@ export default function PatientListPage() {
           </h2>
             <div className="mt-4 space-y-4">
             {patients.map((patient) => (
-                <button
+              <button
                 key={patient.id}
                 type="button"
+                onClick={() => {
+                  navigate(`/patients/${patient.id}/presets`, {
+                    state: { patientName: patient.displayName },
+                  });
+                }}
                 className="w-full rounded-lg border bg-card p-5 text-left shadow-sm transition hover:bg-muted/50"
-                >
+              >
                 <h3 className="font-semibold">{patient.displayName}</h3>
-
                 {patient.clinicalNotes && (
-                    <p className="mt-2 text-sm text-muted-foreground">
+                  <p className="mt-2 text-sm text-muted-foreground">
                     {patient.clinicalNotes}
-                    </p>
+                  </p>
                 )}
-                </button>
+              </button>
             ))}
-            </div>
+          </div>
         </section>
       </div>
     </section>
@@ -88,11 +96,12 @@ function AddPatientDialog({
 }: {
   onCreatePatient: (patient: Patient) => void;
 }) {
+  const [isOpen, setIsOpen] = useState(false);
   const [displayName, setDisplayName] = useState("");
   const [clinicalNotes, setClinicalNotes] = useState("");
 
   return (
-    <Dialog>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <Button type="button" className="gap-2">
           <UserPlus className="size-4" aria-hidden="true" />
@@ -146,6 +155,7 @@ function AddPatientDialog({
 
               setDisplayName("");
               setClinicalNotes("");
+              setIsOpen(false);
             }}
           >
             Create Patient

@@ -1,14 +1,15 @@
 import BackButton from "@/components/BackButton";
 import { useEffect, useState } from "react";
+import { useLocation } from "react-router";
 import { getPresets, type Preset } from "./api/presetsApi";
 import CameraModeToggle from "./components/CameraModeToggle";
 import CreatePresetDialog from "./components/CreatePresetDialog";
 import PresetActionBar from "./components/PresetActionBar";
 import PresetCollection from "./components/PresetCollection";
 
-const patientName = "Lindsay Collins";
-
 export default function PresetSelectionPage() {
+  const location = useLocation();
+  const patientName = location.state?.patientName ?? "selected patient";
   const [presets, setPresets] = useState<Preset[]>([]);
   const [selectedPresetId, setSelectedPresetId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
