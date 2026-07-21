@@ -45,6 +45,27 @@ fn duplicate_preset_keeps_name_within_limit() {
 }
 
 #[test]
+fn duplicate_preset_copies_default_pose() {
+    let mut conn = setup_test_conn();
+    let frames = r#"[{"timestampMs":0},{"timestampMs":33}]"#;
+    update_default_pose(&conn, "preset-1", frames).unwrap();
+
+    let duplicate = duplicate_preset(&mut conn, "preset-1").unwrap();
+
+    assert_eq!(duplicate.default_pose_frames_json.as_deref(), Some(frames));
+}
+
+#[test]
+fn duplicate_preset_preserves_missing_default_pose() {
+    let mut conn = setup_test_conn();
+    let source = create_preset(&conn, "Uncalibrated Preset").unwrap();
+
+    let duplicate = duplicate_preset(&mut conn, &source.id).unwrap();
+
+    assert_eq!(duplicate.default_pose_frames_json, None);
+}
+
+#[test]
 fn duplicate_preset_rejects_empty_id() {
     let mut conn = setup_test_conn();
     let result = duplicate_preset(&mut conn, "   ");

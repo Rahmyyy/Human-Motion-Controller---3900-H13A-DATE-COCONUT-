@@ -68,6 +68,7 @@ pub fn duplicate_preset(conn: &mut Connection, source_id: &str) -> Result<Preset
         &duplicate_id,
         &duplicate_name,
         &created_at,
+        source.default_pose_frames_json.as_deref(),
     )?;
     repository::select_preset_by_id(conn, &duplicate_id)
 }

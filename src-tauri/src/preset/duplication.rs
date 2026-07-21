@@ -7,12 +7,21 @@ pub fn duplicate_preset_data(
     duplicate_id: &str,
     duplicate_name: &str,
     created_at: &str,
+    default_pose_frames_json: Option<&str>,
 ) -> Result<()> {
     let transaction = conn.transaction()?;
 
     transaction.execute(
-        "INSERT INTO presets (id, name, created_at) VALUES (?1, ?2, ?3)",
-        params![duplicate_id, duplicate_name, created_at],
+        "
+        INSERT INTO presets (id, name, created_at, default_pose_frames_json)
+        VALUES (?1, ?2, ?3, ?4)
+        ",
+        params![
+            duplicate_id,
+            duplicate_name,
+            created_at,
+            default_pose_frames_json
+        ],
     )?;
     transaction.execute(
         "
