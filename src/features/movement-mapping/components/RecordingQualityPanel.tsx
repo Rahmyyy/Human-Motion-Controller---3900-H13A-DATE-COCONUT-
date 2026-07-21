@@ -98,6 +98,29 @@ function qualityPresentation(quality: RecordingQuality) {
     };
   }
 
+  if (quality.issues.includes("no_landmarks_selected")) {
+    return {
+      label: "Unusable",
+      message: "Select at least one body point before saving this movement.",
+      className: "border-destructive/30 bg-destructive/10 text-destructive",
+      icon: CircleX,
+    };
+  }
+
+  // A pure selection problem (frames are fine): the chosen body points don't move in this recording.
+  if (
+    !quality.issues.includes("insufficient_usable_frames") &&
+    quality.issues.includes("selection_misses_movement")
+  ) {
+    return {
+      label: "Unusable",
+      message:
+        "The selected body points don't capture the movement in this recording. Select at least one joint that moves, or record the movement again.",
+      className: "border-destructive/30 bg-destructive/10 text-destructive",
+      icon: CircleX,
+    };
+  }
+
   return {
     label: "Unusable",
     message:

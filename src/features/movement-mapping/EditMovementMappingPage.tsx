@@ -60,8 +60,9 @@ export default function EditMovementMappingPage() {
       initialFrames={mapping.frames}
       initialKeybind={mapping.details.keybind}
       initialName={mapping.details.name}
+      initialSelectedLandmarks={mapping.details.selected_landmarks}
       saveError={saveError}
-      onSave={async ({ frames, keybind, name }) => {
+      onSave={async ({ frames, keybind, name, selectedLandmarks }) => {
         setSaveError(null);
 
         if (!presetId) {
@@ -76,6 +77,7 @@ export default function EditMovementMappingPage() {
             name,
             keybind,
             poseFramesJson: JSON.stringify(frames),
+            selectedLandmarks,
           });
 
           navigate(-1);

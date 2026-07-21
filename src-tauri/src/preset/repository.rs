@@ -26,6 +26,51 @@ pub fn insert_preset(conn: &Connection, id: &str, name: &str, created_at: &str) 
     Ok(())
 }
 
+pub fn duplicate_preset_data(
+    conn: &mut Connection,
+    source_id: &str,
+    duplicate_id: &str,
+    duplicate_name: &str,
+    created_at: &str,
+    default_pose_frames_json: Option<&str>,
+) -> Result<()> {
+    let transaction = conn.transaction()?;
+
+    transaction.execute(
+        "
+        INSERT INTO presets (id, name, created_at, default_pose_frames_json)
+        VALUES (?1, ?2, ?3, ?4)
+        ",
+        params![
+            duplicate_id,
+            duplicate_name,
+            created_at,
+            default_pose_frames_json
+        ],
+    )?;
+    transaction.execute(
+        "
+        INSERT INTO movement_mappings (
+            id, preset_id, name, keybind, pose_frames_json, selected_landmarks_json, created_at
+        )
+        SELECT
+            ?1 || '-mapping-' || id,
+            ?1,
+            name,
+            keybind,
+            pose_frames_json,
+            selected_landmarks_json,
+            ?2
+        FROM movement_mappings
+        WHERE preset_id = ?3
+        ",
+        params![duplicate_id, created_at, source_id],
+    )?;
+
+    transaction.commit()?;
+    Ok(())
+}
+
 pub fn select_presets(conn: &Connection) -> Result<Vec<Preset>> {
     let mut statement = conn.prepare(
         "
@@ -76,6 +121,11 @@ pub fn select_preset_by_id(conn: &Connection, id: &str) -> Result<Preset> {
     })?;
 
     Ok(preset)
+}
+
+pub fn delete_preset(conn: &Connection, id: &str) -> Result<usize> {
+    let rows_affected = conn.execute("DELETE FROM presets WHERE id = ?1", params![id])?;
+    Ok(rows_affected)
 }
 
 pub fn update_default_pose_frames(

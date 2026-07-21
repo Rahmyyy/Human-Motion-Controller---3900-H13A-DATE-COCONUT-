@@ -51,7 +51,7 @@ export default function CreatePresetDialog() {
       <DialogTrigger asChild>
         <Button type="button" size="lg" className="shadow-sm">
           <Plus className="size-4" aria-hidden="true" />
-          Create New Preset
+          Add Preset
         </Button>
       </DialogTrigger>
 

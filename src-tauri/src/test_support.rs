@@ -19,6 +19,7 @@ pub fn setup_test_conn() -> Connection {
             name TEXT NOT NULL,
             keybind TEXT NOT NULL,
             pose_frames_json TEXT NOT NULL,
+            selected_landmarks_json TEXT NOT NULL,
             created_at TEXT NOT NULL,
             FOREIGN KEY (preset_id)
                 REFERENCES presets(id)
