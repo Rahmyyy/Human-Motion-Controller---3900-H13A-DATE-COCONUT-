@@ -17,27 +17,41 @@ export default function PresetSelectionPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!patientId) {
-      setError("Missing patient ID.");
-      setIsLoading(false);
-      return;
-    }
-
     let isMounted = true;
 
-    getPresets(patientId)
-      .then((savedPresets) => {
-        if (!isMounted) return;
-        setPresets(savedPresets);
+    async function loadPresets() {
+      if (!patientId) {
+        if (isMounted) {
+          setError("Missing patient ID.");
+          setIsLoading(false);
+        }
+
+        return;
+      }
+
+      try {
+        setIsLoading(true);
         setError(null);
-      })
-      .catch((error) => {
+
+        const savedPresets = await getPresets(patientId);
+
+        if (!isMounted) return;
+
+        setPresets(savedPresets);
+      } catch (error) {
         console.error("Failed to load presets", error);
-        if (isMounted) setError("Failed to load presets.");
-      })
-      .finally(() => {
-        if (isMounted) setIsLoading(false);
-      });
+
+        if (isMounted) {
+          setError("Failed to load presets.");
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    void loadPresets();
 
     return () => {
       isMounted = false;

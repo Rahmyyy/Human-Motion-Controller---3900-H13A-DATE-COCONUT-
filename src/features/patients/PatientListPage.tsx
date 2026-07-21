@@ -45,7 +45,36 @@ export default function PatientListPage() {
   }
 
   useEffect(() => {
-    loadPatients();
+    let isMounted = true;
+
+    async function loadInitialPatients() {
+      try {
+        setIsLoading(true);
+        setError(null);
+
+        const savedPatients = await getPatients();
+
+        if (!isMounted) return;
+
+        setPatients(savedPatients);
+      } catch (error) {
+        console.error("Failed to load patients", error);
+
+        if (isMounted) {
+          setError("Failed to load patients.");
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    void loadInitialPatients();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   return (
