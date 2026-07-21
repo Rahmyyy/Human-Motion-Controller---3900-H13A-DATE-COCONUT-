@@ -1,18 +1,19 @@
 import { landmarkCenter, usableFrames } from "../landmarkStatistics";
 import { MIN_VISIBLE_LANDMARKS, STATIC_POSE_ERROR_LANDMARKS } from "../recognitionConfig";
-import { TRACKED_LANDMARKS, type NormalizedPoseFrame } from "../types";
+import { type NormalizedPoseFrame, type TrackedLandmark } from "../types";
 import { distanceToConfidence } from "./confidence";
 
 export function compareStaticPose(
   templateFrames: NormalizedPoseFrame[],
   liveFrames: NormalizedPoseFrame[],
+  activeLandmarks: TrackedLandmark[],
 ) {
   const template = usableFrames(templateFrames);
   const live = usableFrames(liveFrames);
   const liveFrame = live[live.length - 1];
   if (template.length === 0 || !liveFrame) return 0;
 
-  const landmarkDistances = TRACKED_LANDMARKS.flatMap((landmark) => {
+  const landmarkDistances = activeLandmarks.flatMap((landmark) => {
     const templatePoint = landmarkCenter(template, landmark);
     const livePoint = liveFrame.landmarks[landmark];
     if (!templatePoint || !livePoint) return [];
@@ -20,7 +21,8 @@ export function compareStaticPose(
     return [Math.hypot(templatePoint.x - livePoint.x, templatePoint.y - livePoint.y)];
   });
 
-  if (landmarkDistances.length < MIN_VISIBLE_LANDMARKS) return 0;
+  // Relative to the active count: stays MIN_VISIBLE_LANDMARKS when all 12 are active.
+  if (landmarkDistances.length < Math.min(activeLandmarks.length, MIN_VISIBLE_LANDMARKS)) return 0;
 
   const largestErrors = landmarkDistances
     .sort((first, second) => second - first)

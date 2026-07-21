@@ -144,4 +144,12 @@ body,
   html {
     @apply font-sans;
   }
+
+  /* Set by the always-on-top overlay window, which must let the app behind it
+     show through. Overrides the opaque body background above. */
+  html.transparent-window,
+  html.transparent-window body,
+  html.transparent-window #root {
+    background: transparent;
+  }
 }

@@ -1,7 +1,7 @@
 import { parsePoseFrames } from "@/features/camera/parsePoseFrames";
 import type { PresetMappingCardData } from "@/features/preset-mapping/types";
 import { normalizePoseFrames } from "./normalizePose";
-import type { PreparedMovementTemplate } from "./types";
+import { resolveActiveLandmarks, type PreparedMovementTemplate } from "./types";
 import { createMovementProfile } from "./template/createMovementProfile";
 import { trimLeadingIdleFrames } from "./template/trimLeadingIdleFrames";
 
@@ -19,7 +19,8 @@ export function prepareMovementTemplates(
       return [];
     }
 
-    const movementProfile = createMovementProfile(normalizedFrames);
+    const activeLandmarks = resolveActiveLandmarks(mapping.selectedLandmarks);
+    const movementProfile = createMovementProfile(normalizedFrames, activeLandmarks);
 
     return {
       id: mapping.id,
@@ -27,6 +28,7 @@ export function prepareMovementTemplates(
       keybind: mapping.keybind,
       frames: normalizedFrames,
       landmarkWeights: movementProfile.landmarkWeights,
+      activeLandmarks,
       isDynamic: movementProfile.isDynamic,
       durationMs: movementDurationMs(normalizedFrames),
     };

@@ -2,6 +2,7 @@ mod db;
 mod input;
 mod mediapipe;
 mod movement_mapping;
+mod overlay;
 mod preset;
 mod streams;
 
@@ -110,6 +111,8 @@ pub fn run() {
 
             app.set_menu(menu)?;
 
+            overlay::close_with_main_window(app.handle());
+
             set_model_path(
                 get_path(app.handle(), model_paths.first().unwrap()),
                 &mediapipe_tx,
@@ -156,6 +159,8 @@ pub fn run() {
             preset::commands::duplicate_preset,
             preset::commands::delete_preset,
             preset::commands::update_default_pose,
+            overlay::open_overlay,
+            overlay::close_overlay,
         ])
         .plugin(
             tauri_plugin_log::Builder::new()

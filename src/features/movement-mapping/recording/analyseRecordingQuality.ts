@@ -1,11 +1,17 @@
 import type { PoseFrame } from "@/features/camera/poseFrame";
-import { normalizePoseFrame } from "@/features/movement-recognition/recognition/normalizePose";
+import {
+  normalizePoseFrame,
+  normalizePoseFrames,
+} from "@/features/movement-recognition/recognition/normalizePose";
 import { isVisible } from "@/features/movement-recognition/recognition/poseGeometry";
 import {
   MIN_VISIBLE_LANDMARKS,
   RECOGNITION_FRAME_COUNT,
 } from "@/features/movement-recognition/recognition/recognitionConfig";
+import { createMovementProfile } from "@/features/movement-recognition/recognition/template/createMovementProfile";
+import { trimLeadingIdleFrames } from "@/features/movement-recognition/recognition/template/trimLeadingIdleFrames";
 import {
+  resolveActiveLandmarks,
   TRACKED_LANDMARKS,
   type TrackedLandmark,
 } from "@/features/movement-recognition/recognition/types";
@@ -17,7 +23,9 @@ export type RecordingQualityStatus = "good" | "warning" | "unusable";
 export type RecordingQualityIssue =
   | "no_pose_frames"
   | "insufficient_usable_frames"
-  | "low_usable_frame_coverage";
+  | "low_usable_frame_coverage"
+  | "no_landmarks_selected"
+  | "selection_misses_movement";
 
 export type RecordingQuality = {
   status: RecordingQualityStatus;
@@ -36,7 +44,10 @@ export type RecordingQuality = {
  * per-joint visibility values are intended to support later adaptive joint
  * selection as well as the current post-recording quality UI.
  */
-export function analyseRecordingQuality(frames: PoseFrame[]): RecordingQuality {
+export function analyseRecordingQuality(
+  frames: PoseFrame[],
+  selectedLandmarks: number[] = [],
+): RecordingQuality {
   const visibleFrameCounts = trackedLandmarkRecord(() => 0);
 
   for (const frame of frames) {
@@ -55,6 +66,8 @@ export function analyseRecordingQuality(frames: PoseFrame[]): RecordingQuality {
   const jointVisibility = trackedLandmarkRecord((index) =>
     totalFrames === 0 ? 0 : visibleFrameCounts[index] / totalFrames,
   );
+  const hasNoSelectedLandmarks = selectedLandmarks.length === 0;
+  const selectionMissesMovement = detectSelectionMissesMovement(frames, selectedLandmarks);
   const issues: RecordingQualityIssue[] = [];
 
   if (totalFrames === 0) {
@@ -65,14 +78,51 @@ export function analyseRecordingQuality(frames: PoseFrame[]): RecordingQuality {
     issues.push("low_usable_frame_coverage");
   }
 
+  if (hasNoSelectedLandmarks) {
+    issues.push("no_landmarks_selected");
+  } else if (selectionMissesMovement) {
+    issues.push("selection_misses_movement");
+  }
+
   return {
-    status: qualityStatus(usableFrames, usableFramePercentage),
+    status: qualityStatus(
+      usableFrames,
+      usableFramePercentage,
+      hasNoSelectedLandmarks || selectionMissesMovement,
+    ),
     totalFrames,
     usableFrames,
     usableFramePercentage,
     jointVisibility,
     issues,
   };
+}
+
+/**
+ * True when the recording clearly contains a movement, but the user's selected landmarks don't
+ * capture it because the chosen joints stay still through the motion (e.g. a left-arm raise with
+ * only the right arm selected). Reuses recognition's own dynamic/static
+ * classification so the check matches how the matcher would treat the template. A genuinely static
+ * recording (a held pose) has no movement to miss, so it is never flagged.
+ */
+function detectSelectionMissesMovement(frames: PoseFrame[], selectedLandmarks: number[]): boolean {
+  const movementFrames = trimLeadingIdleFrames(normalizePoseFrames(frames));
+  if (movementFrames.length < 2) {
+    return false;
+  }
+
+  const recordingIsDynamic = createMovementProfile(movementFrames, [
+    ...TRACKED_LANDMARKS,
+  ]).isDynamic;
+  if (!recordingIsDynamic) {
+    return false;
+  }
+
+  const selectionIsDynamic = createMovementProfile(
+    movementFrames,
+    resolveActiveLandmarks(selectedLandmarks),
+  ).isDynamic;
+  return !selectionIsDynamic;
 }
 
 /**
@@ -84,12 +134,13 @@ function isMatcherUsableFrame(frame: PoseFrame) {
   return Boolean(normalizedFrame && normalizedFrame.visibleCount >= MIN_VISIBLE_LANDMARKS);
 }
 
-/** Classifies a recording from its usable-frame count and overall coverage. */
+/** Classifies a recording from its usable-frame count, overall coverage, and landmark selection. */
 function qualityStatus(
   usableFrames: number,
   usableFramePercentage: number,
+  selectionMissesMovement: boolean,
 ): RecordingQualityStatus {
-  if (usableFrames < RECOGNITION_FRAME_COUNT) {
+  if (usableFrames < RECOGNITION_FRAME_COUNT || selectionMissesMovement) {
     return "unusable";
   }
 

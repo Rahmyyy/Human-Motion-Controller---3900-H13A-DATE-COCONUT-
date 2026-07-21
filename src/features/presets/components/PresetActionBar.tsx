@@ -1,7 +1,10 @@
 import { Button } from "@/components/ui/button";
-import { Play } from "lucide-react";
+import { Play, SlidersHorizontal } from "lucide-react";
+import { useNavigate } from "react-router";
+
 
 type SelectedPreset = {
+  id: number;
   mappingCount: number;
   name: string;
 };
@@ -13,8 +16,9 @@ export default function PresetActionBar({
   patientName: string;
   selectedPreset: SelectedPreset | undefined;
 }) {
+  const navigate = useNavigate();
   return (
-    <footer className="fixed right-0 bottom-0 left-[var(--sidebar-width)] border-t bg-background px-8 py-5 transition-[left] duration-150">
+    <footer className="fixed right-0 bottom-0 left-(--sidebar-width) border-t bg-background px-8 py-5 transition-[left] duration-150">
       <div className="mx-auto flex max-w-7xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-sm text-muted-foreground">Selected for {patientName}</p>
@@ -30,15 +34,30 @@ export default function PresetActionBar({
           </div>
         </div>
 
-        <Button
-          type="button"
-          size="lg"
-          disabled={!selectedPreset}
-          className="min-w-64 shadow-none transition-colors focus-visible:border-primary-foreground/70 focus-visible:ring-0 focus-visible:shadow-none focus-visible:outline-none"
-        >
-          <Play className="size-4" aria-hidden="true" />
-          {selectedPreset ? `Start Session with ${selectedPreset.name}` : "Start Session"}
-        </Button>
+        <div className="flex items-center gap-3">
+          <Button
+            type="button"
+            size="lg"
+            variant="outline"
+            disabled={!selectedPreset}
+            onClick={() => selectedPreset && navigate(`/presets/${selectedPreset.id}/edit`)}
+            className="min-w-40"
+          >
+            <SlidersHorizontal className="size-4" aria-hidden="true" />
+            Edit Mappings
+          </Button>
+
+          <Button
+            type="button"
+            size="lg"
+            disabled={!selectedPreset}
+            onClick={() => selectedPreset && navigate(`/presets/${selectedPreset.id}/session`)}
+            className="min-w-48"
+          >
+            <Play className="size-4" aria-hidden="true" />
+            Start Session
+          </Button>
+        </div>
       </div>
     </footer>
   );

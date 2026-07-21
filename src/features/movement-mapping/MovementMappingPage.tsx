@@ -48,7 +48,7 @@ export default function MovementMappingPage() {
       title="Record and Map New Movement"
       description="Capture a physical movement and assign it to a keybind."
       saveError={saveError}
-      onSave={async ({ frames, keybind, name }) => {
+      onSave={async ({ frames, keybind, name, selectedLandmarks }) => {
         setSaveError(null);
 
         if (!presetId) {
@@ -62,6 +62,7 @@ export default function MovementMappingPage() {
             name,
             poseFramesJson: JSON.stringify(frames),
             presetId,
+            selectedLandmarks,
           });
 
           navigate(-1);
