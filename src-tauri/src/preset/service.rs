@@ -72,6 +72,30 @@ pub fn duplicate_preset(conn: &mut Connection, source_id: &str) -> Result<Preset
     repository::select_preset_by_id(conn, &duplicate_id)
 }
 
+pub fn update_default_pose(
+    conn: &Connection,
+    id: &str,
+    default_pose_frames_json: &str,
+) -> Result<Preset> {
+    let parsed_frames: serde_json::Value = serde_json::from_str(default_pose_frames_json)
+        .map_err(|_| anyhow!("Default pose frames must be valid JSON"))?;
+    let frame_count = parsed_frames
+        .as_array()
+        .map(Vec::len)
+        .ok_or_else(|| anyhow!("Default pose frames must be a JSON array"))?;
+
+    if frame_count < 2 {
+        return Err(anyhow!("Default pose must contain at least two frames"));
+    }
+
+    let rows_affected = repository::update_default_pose_frames(conn, id, default_pose_frames_json)?;
+    if rows_affected == 0 {
+        return Err(anyhow!("Preset not found"));
+    }
+
+    repository::select_preset_by_id(conn, id)
+}
+
 #[cfg(test)]
 #[path = "service_tests.rs"]
 mod tests;

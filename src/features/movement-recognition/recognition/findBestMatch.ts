@@ -1,12 +1,10 @@
 import { compareMovement } from "./compareMovement";
+import { LIVE_BUFFER_MS, MIN_TEMPLATE_WINDOW_MS } from "./recognitionConfig";
 import {
-  LIVE_BUFFER_MS,
   type NormalizedPoseFrame,
   type PreparedMovementTemplate,
   type RecognitionMatch,
 } from "./types";
-
-const MIN_TEMPLATE_WINDOW_MS = 700;
 
 export function trimLiveBuffer(frames: NormalizedPoseFrame[], nowMs: number) {
   const cutoffMs = nowMs - LIVE_BUFFER_MS;
@@ -29,7 +27,12 @@ export function findTemplateMatches(
 
   for (const template of templates) {
     const liveWindow = liveWindowForTemplate(liveFrames, template.durationMs);
-    const confidence = compareMovement(template.frames, liveWindow);
+    const confidence = compareMovement(
+      template.frames,
+      liveWindow,
+      template.landmarkWeights,
+      template.isDynamic,
+    );
     const match = {
       id: template.id,
       name: template.name,

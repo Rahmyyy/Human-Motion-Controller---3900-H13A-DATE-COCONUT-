@@ -53,3 +53,18 @@ pub fn delete_preset(state: State<'_, DbState>, id: String) -> Result<(), String
 
     deletion::delete_preset(&conn, &id).map_err(|error| error.to_string())
 }
+
+#[tauri::command]
+pub fn update_default_pose(
+    state: State<'_, DbState>,
+    id: String,
+    default_pose_frames_json: String,
+) -> Result<Preset, String> {
+    let conn = state
+        .conn
+        .lock()
+        .map_err(|_| "failed to lock database connection".to_string())?;
+
+    service::update_default_pose(&conn, &id, &default_pose_frames_json)
+        .map_err(|error| error.to_string())
+}

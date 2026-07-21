@@ -1,5 +1,6 @@
 use super::*;
 use crate::test_support::setup_test_conn;
+use rusqlite::params;
 
 #[test]
 fn update_then_delete_round_trip() {
@@ -29,6 +30,23 @@ fn create_rejects_missing_preset() {
     let result = create_movement_mapping(&conn, "missing-preset", "Squat", "S", "[]");
 
     assert!(result.is_err());
+}
+
+#[test]
+fn create_requires_default_pose_calibration() {
+    let conn = setup_test_conn();
+    conn.execute(
+        "INSERT INTO presets (id, name, created_at) VALUES (?1, ?2, ?3)",
+        params!["uncalibrated", "Uncalibrated", "1"],
+    )
+    .unwrap();
+
+    let result = create_movement_mapping(&conn, "uncalibrated", "Squat", "S", "[]");
+
+    assert_eq!(
+        result.unwrap_err().to_string(),
+        "Record a default resting pose before creating movement mappings"
+    );
 }
 
 #[test]

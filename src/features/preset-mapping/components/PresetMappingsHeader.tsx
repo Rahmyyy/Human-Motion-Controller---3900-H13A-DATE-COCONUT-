@@ -4,11 +4,16 @@ import { Info, Plus } from "lucide-react";
 import { Link } from "react-router";
 
 type PresetMappingsHeaderProps = {
+  canAddMovement: boolean;
   presetId: string | undefined;
   presetName: string | null;
 };
 
-export default function PresetMappingsHeader({ presetId, presetName }: PresetMappingsHeaderProps) {
+export default function PresetMappingsHeader({
+  canAddMovement,
+  presetId,
+  presetName,
+}: PresetMappingsHeaderProps) {
   return (
     <header>
       <BackButton />
@@ -38,8 +43,8 @@ export default function PresetMappingsHeader({ presetId, presetName }: PresetMap
           </div>
         </div>
 
-        <Button asChild={Boolean(presetId)} size="lg" disabled={!presetId}>
-          {presetId ? (
+        <Button asChild={Boolean(presetId && canAddMovement)} size="lg" disabled={!canAddMovement}>
+          {presetId && canAddMovement ? (
             <Link to={`/presets/${presetId}/movements/new`}>
               <Plus className="size-4" aria-hidden="true" />
               Add New Movement

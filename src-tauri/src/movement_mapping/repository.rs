@@ -45,6 +45,22 @@ pub fn insert_movement_mapping(
     Ok(())
 }
 
+pub fn preset_has_default_pose(conn: &Connection, preset_id: &str) -> Result<bool> {
+    let has_default_pose = conn.query_row(
+        "
+        SELECT EXISTS(
+            SELECT 1
+            FROM presets
+            WHERE id = ?1 AND default_pose_frames_json IS NOT NULL
+        )
+        ",
+        params![preset_id],
+        |row| row.get(0),
+    )?;
+
+    Ok(has_default_pose)
+}
+
 pub fn select_movement_mappings_by_preset(
     conn: &Connection,
     preset_id: &str,

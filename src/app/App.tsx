@@ -9,6 +9,7 @@ import PatientsPage from "@/features/patients/PatientsPage";
 import PresetMappingsPage from "@/features/preset-mapping/PresetMappingsPage";
 import PresetSelectionPage from "@/features/presets/PresetSelectionPage";
 import SessionHistoryPage from "@/features/sessions/SessionHistoryPage";
+import DefaultPoseCalibrationPage from "@/features/presets/DefaultPoseCalibrationPage";
 
 export default function App() {
   return (
@@ -21,6 +22,7 @@ export default function App() {
           <Route path="/session-history" element={<SessionHistoryPage />} />
         </Route>
         <Route path="/presets/:presetId/edit" element={<PresetMappingsPage />} />
+        <Route path="/presets/:presetId/default-pose" element={<DefaultPoseCalibrationPage />} />
         <Route path="/presets/:presetId/recognition" element={<MovementRecognitionPage />} />
         <Route
           path="/presets/:presetId/movements/:mappingId/edit"

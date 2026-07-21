@@ -22,7 +22,8 @@ pub fn init_db(app: &AppHandle) -> Result<DbState> {
         CREATE TABLE IF NOT EXISTS presets (
             id TEXT PRIMARY KEY,
             name TEXT NOT NULL,
-            created_at TEXT NOT NULL
+            created_at TEXT NOT NULL,
+            default_pose_frames_json TEXT
         )
         ",
         [],

@@ -1,15 +1,17 @@
 import type { PresetMappingCardData } from "@/features/preset-mapping/types";
-import {
-  CONFIDENCE_THRESHOLD,
-  type RecognitionMappingStatus,
-  type RecognitionMatch,
-} from "./types";
+import { selectAcceptedMatch } from "./selectAcceptedMatch";
+import type { RecognitionMappingStatus, RecognitionMatch } from "./types";
 
 export function buildMappingStatuses(
   mappings: PresetMappingCardData[],
   matches: RecognitionMatch[],
+  defaultPoseConfidence = 0,
+  canActivate = true,
 ): RecognitionMappingStatus[] {
   const matchesById = new Map(matches.map((match) => [match.id, match]));
+  const acceptedMatchId = canActivate
+    ? selectAcceptedMatch(matches, defaultPoseConfidence)?.id
+    : undefined;
 
   return mappings.map((mapping) => {
     const match = matchesById.get(mapping.id);
@@ -20,7 +22,7 @@ export function buildMappingStatuses(
       name: mapping.name,
       keybind: mapping.keybind,
       confidence,
-      isActive: confidence >= CONFIDENCE_THRESHOLD,
+      isActive: mapping.id === acceptedMatchId,
     };
   });
 }

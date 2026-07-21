@@ -5,6 +5,7 @@ export interface Preset {
   name: string;
   createdAt: string;
   mappingCount: number;
+  defaultPoseFramesJson: string | null;
 }
 
 export function createPreset(name: string) {
@@ -25,4 +26,8 @@ export function duplicatePreset(id: string) {
 
 export function deletePreset(id: string) {
   return invoke<void>("delete_preset", { id });
+}
+
+export function updateDefaultPose(id: string, defaultPoseFramesJson: string) {
+  return invoke<Preset>("update_default_pose", { id, defaultPoseFramesJson });
 }

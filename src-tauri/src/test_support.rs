@@ -9,7 +9,8 @@ pub fn setup_test_conn() -> Connection {
         CREATE TABLE presets (
             id TEXT PRIMARY KEY,
             name TEXT NOT NULL,
-            created_at TEXT NOT NULL
+            created_at TEXT NOT NULL,
+            default_pose_frames_json TEXT
         );
 
         CREATE TABLE movement_mappings (
@@ -24,8 +25,8 @@ pub fn setup_test_conn() -> Connection {
                 ON DELETE CASCADE
         );
 
-        INSERT INTO presets (id, name, created_at)
-        VALUES ('preset-1', 'Test Preset', '0');
+        INSERT INTO presets (id, name, created_at, default_pose_frames_json)
+        VALUES ('preset-1', 'Test Preset', '0', '[]');
         ",
     )
     .unwrap();

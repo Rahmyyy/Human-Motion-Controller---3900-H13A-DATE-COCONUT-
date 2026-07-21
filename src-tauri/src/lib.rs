@@ -155,6 +155,7 @@ pub fn run() {
             preset::commands::get_preset,
             preset::commands::duplicate_preset,
             preset::commands::delete_preset,
+            preset::commands::update_default_pose,
         ])
         .plugin(
             tauri_plugin_log::Builder::new()

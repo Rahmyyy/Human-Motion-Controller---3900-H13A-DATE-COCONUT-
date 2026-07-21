@@ -8,6 +8,7 @@ pub struct Preset {
     pub name: String,
     pub created_at: String,
     pub mapping_count: i64,
+    pub default_pose_frames_json: Option<String>,
 }
 
 pub fn insert_preset(conn: &Connection, id: &str, name: &str, created_at: &str) -> Result<()> {
@@ -28,10 +29,11 @@ pub fn insert_preset(conn: &Connection, id: &str, name: &str, created_at: &str) 
 pub fn select_presets(conn: &Connection) -> Result<Vec<Preset>> {
     let mut statement = conn.prepare(
         "
-        SELECT presets.id, presets.name, presets.created_at, COUNT(movement_mappings.id)
+        SELECT presets.id, presets.name, presets.created_at, COUNT(movement_mappings.id),
+               presets.default_pose_frames_json
         FROM presets
         LEFT JOIN movement_mappings ON movement_mappings.preset_id = presets.id
-        GROUP BY presets.id, presets.name, presets.created_at
+        GROUP BY presets.id, presets.name, presets.created_at, presets.default_pose_frames_json
         ORDER BY presets.created_at DESC
         ",
     )?;
@@ -43,6 +45,7 @@ pub fn select_presets(conn: &Connection) -> Result<Vec<Preset>> {
                 name: row.get(1)?,
                 created_at: row.get(2)?,
                 mapping_count: row.get(3)?,
+                default_pose_frames_json: row.get(4)?,
             })
         })?
         .collect::<Result<Vec<_>, _>>()?;
@@ -53,11 +56,12 @@ pub fn select_presets(conn: &Connection) -> Result<Vec<Preset>> {
 pub fn select_preset_by_id(conn: &Connection, id: &str) -> Result<Preset> {
     let mut statement = conn.prepare(
         "
-        SELECT presets.id, presets.name, presets.created_at, COUNT(movement_mappings.id)
+        SELECT presets.id, presets.name, presets.created_at, COUNT(movement_mappings.id),
+               presets.default_pose_frames_json
         FROM presets
         LEFT JOIN movement_mappings ON movement_mappings.preset_id = presets.id
         WHERE presets.id = ?1
-        GROUP BY presets.id, presets.name, presets.created_at
+        GROUP BY presets.id, presets.name, presets.created_at, presets.default_pose_frames_json
         ",
     )?;
 
@@ -67,6 +71,7 @@ pub fn select_preset_by_id(conn: &Connection, id: &str) -> Result<Preset> {
             name: row.get(1)?,
             created_at: row.get(2)?,
             mapping_count: row.get(3)?,
+            default_pose_frames_json: row.get(4)?,
         })
     })?;
 
@@ -75,5 +80,22 @@ pub fn select_preset_by_id(conn: &Connection, id: &str) -> Result<Preset> {
 
 pub fn delete_preset(conn: &Connection, id: &str) -> Result<usize> {
     let rows_affected = conn.execute("DELETE FROM presets WHERE id = ?1", params![id])?;
+    Ok(rows_affected)
+}
+
+pub fn update_default_pose_frames(
+    conn: &Connection,
+    id: &str,
+    default_pose_frames_json: &str,
+) -> Result<usize> {
+    let rows_affected = conn.execute(
+        "
+        UPDATE presets
+        SET default_pose_frames_json = ?1
+        WHERE id = ?2
+        ",
+        params![default_pose_frames_json, id],
+    )?;
+
     Ok(rows_affected)
 }
