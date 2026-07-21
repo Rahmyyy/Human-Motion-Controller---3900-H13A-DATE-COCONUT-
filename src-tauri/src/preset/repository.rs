@@ -26,6 +26,50 @@ pub fn insert_preset(conn: &Connection, id: &str, name: &str, created_at: &str) 
     Ok(())
 }
 
+pub fn duplicate_preset_data(
+    conn: &mut Connection,
+    source_id: &str,
+    duplicate_id: &str,
+    duplicate_name: &str,
+    created_at: &str,
+    default_pose_frames_json: Option<&str>,
+) -> Result<()> {
+    let transaction = conn.transaction()?;
+
+    transaction.execute(
+        "
+        INSERT INTO presets (id, name, created_at, default_pose_frames_json)
+        VALUES (?1, ?2, ?3, ?4)
+        ",
+        params![
+            duplicate_id,
+            duplicate_name,
+            created_at,
+            default_pose_frames_json
+        ],
+    )?;
+    transaction.execute(
+        "
+        INSERT INTO movement_mappings (
+            id, preset_id, name, keybind, pose_frames_json, created_at
+        )
+        SELECT
+            ?1 || '-mapping-' || id,
+            ?1,
+            name,
+            keybind,
+            pose_frames_json,
+            ?2
+        FROM movement_mappings
+        WHERE preset_id = ?3
+        ",
+        params![duplicate_id, created_at, source_id],
+    )?;
+
+    transaction.commit()?;
+    Ok(())
+}
+
 pub fn select_presets(conn: &Connection) -> Result<Vec<Preset>> {
     let mut statement = conn.prepare(
         "

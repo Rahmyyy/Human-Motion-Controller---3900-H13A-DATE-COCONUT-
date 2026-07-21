@@ -1,7 +1,4 @@
-use super::{
-    duplication,
-    repository::{self, Preset},
-};
+use super::repository::{self, Preset};
 use anyhow::{anyhow, Result};
 use rusqlite::Connection;
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -62,7 +59,7 @@ pub fn duplicate_preset(conn: &mut Connection, source_id: &str) -> Result<Preset
     let duplicate_id = format!("preset-{}", now.as_nanos());
     let created_at = now.as_secs().to_string();
 
-    duplication::duplicate_preset_data(
+    repository::duplicate_preset_data(
         conn,
         source_id,
         &duplicate_id,
