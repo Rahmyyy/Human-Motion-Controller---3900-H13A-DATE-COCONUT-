@@ -3,8 +3,23 @@ import { Button } from "@/components/ui/button";
 import { Info, UserRound } from "lucide-react";
 import CameraModeToggle from "./CameraModeToggle";
 import CreatePresetDialog from "./CreatePresetDialog";
+import type { Preset } from "../api/presetsApi";
 
-export default function PresetPageHeader({ patientName }: { patientName: string }) {
+interface PresetPageHeaderProps {
+  createError: string | null;
+  isCreating: boolean;
+  onClearCreateError: () => void;
+  onCreatePreset: (name: string) => Promise<Preset | null>;
+  patientName: string;
+}
+
+export default function PresetPageHeader({
+  createError,
+  isCreating,
+  onClearCreateError,
+  onCreatePreset,
+  patientName,
+}: PresetPageHeaderProps) {
   return (
     <header>
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -17,7 +32,12 @@ export default function PresetPageHeader({ patientName }: { patientName: string 
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <CreatePresetDialog />
+          <CreatePresetDialog
+            error={createError}
+            isCreating={isCreating}
+            onClearError={onClearCreateError}
+            onCreate={onCreatePreset}
+          />
           <BackButton />
           <CameraModeToggle />
         </div>
