@@ -1,7 +1,7 @@
 import { poseService } from "@/features/camera/services/poseService";
 import type { PoseFrame } from "@/features/camera/poseFrame";
 import type { PresetMappingCardData } from "@/features/preset-mapping/types";
-import { recordSuccessfulTrigger } from "@/lib/liveSessionState";
+import { sessionService } from "@/features/session/services/sessionService";
 import { buildMappingStatuses } from "../recognition/buildMappingStatuses";
 import { normalizePoseFrames } from "../recognition/normalizePose";
 import { prepareMovementTemplates } from "../recognition/prepareTemplates";
@@ -15,6 +15,7 @@ import type { RecognitionService, RecognitionStatus } from "./recognitionService
 
 type Listener = () => void;
 const NOTIFICATION_INTERVAL_MS = 100;
+const TRIGGER_FEEDBACK_MS = 500;
 
 class MovementRecognitionService implements RecognitionService {
   private readonly mappings: PresetMappingCardData[];
@@ -25,6 +26,7 @@ class MovementRecognitionService implements RecognitionService {
   private readonly listeners = new Set<Listener>();
   private unsubscribeFrames: (() => void) | null = null;
   private notificationTimer: number | null = null;
+  private triggerFeedbackTimer: number | null = null;
   private lastNotificationAt = 0;
 
   constructor(mappings: PresetMappingCardData[], defaultPoseFrames: PoseFrame[]) {
@@ -34,6 +36,7 @@ class MovementRecognitionService implements RecognitionService {
     this.snapshot = {
       bestMatch: null,
       mappingStatuses: buildMappingStatuses(mappings, []),
+      triggeredMappingId: null,
       waitingForDefaultPose: false,
       error: null,
     };
@@ -57,6 +60,7 @@ class MovementRecognitionService implements RecognitionService {
     this.unsubscribeFrames = null;
     if (this.notificationTimer !== null) window.clearTimeout(this.notificationTimer);
     this.notificationTimer = null;
+    this.clearTriggerFeedback();
   };
 
   private processFrame = (frame: PoseFrame) => {
@@ -78,9 +82,12 @@ class MovementRecognitionService implements RecognitionService {
         result.defaultPoseConfidence,
         !result.waitingForDefaultPose,
       ),
+      triggeredMappingId: this.snapshot.triggeredMappingId,
       waitingForDefaultPose: result.waitingForDefaultPose,
       error: this.snapshot.error,
     };
+
+    if (result.triggeredMatch) this.showTriggerFeedback(result.triggeredMatch.id);
 
     const didRearm = wasWaiting && !result.waitingForDefaultPose;
     if (result.triggeredMatch || didRearm) {
@@ -95,7 +102,7 @@ class MovementRecognitionService implements RecognitionService {
   private fireTrigger(match: RecognitionMatch) {
     void pressMatchedKey(match)
       .then(() => {
-        recordSuccessfulTrigger();
+        sessionService.recordSuccessfulTrigger();
         this.snapshot = { ...this.snapshot, error: null };
         this.notifyImmediately();
       })
@@ -106,6 +113,24 @@ class MovementRecognitionService implements RecognitionService {
         };
         this.notifyImmediately();
       });
+  }
+
+  private showTriggerFeedback(mappingId: string) {
+    this.clearTriggerFeedback();
+    this.snapshot = { ...this.snapshot, triggeredMappingId: mappingId };
+    this.triggerFeedbackTimer = window.setTimeout(() => {
+      this.triggerFeedbackTimer = null;
+      this.snapshot = { ...this.snapshot, triggeredMappingId: null };
+      this.notifyImmediately();
+    }, TRIGGER_FEEDBACK_MS);
+  }
+
+  private clearTriggerFeedback() {
+    if (this.triggerFeedbackTimer !== null) window.clearTimeout(this.triggerFeedbackTimer);
+    this.triggerFeedbackTimer = null;
+    if (this.snapshot.triggeredMappingId !== null) {
+      this.snapshot = { ...this.snapshot, triggeredMappingId: null };
+    }
   }
 
   private notifyThrottled() {

@@ -3,6 +3,7 @@ import type { RecognitionMappingStatus, RecognitionMatch } from "../recognition/
 export interface RecognitionStatus {
   bestMatch: RecognitionMatch | null;
   mappingStatuses: RecognitionMappingStatus[];
+  triggeredMappingId: string | null;
   waitingForDefaultPose: boolean;
   error: string | null;
 }
