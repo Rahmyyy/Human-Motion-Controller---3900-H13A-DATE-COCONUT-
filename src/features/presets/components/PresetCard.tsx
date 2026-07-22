@@ -9,16 +9,28 @@ import DuplicatePresetDialog from "./DuplicatePresetDialog";
 
 type PresetCardProps = {
   isSelected: boolean;
-  onDeleted: (presetId: string) => void;
-  onDuplicated: (preset: Preset) => void;
+  deleteError: string | null;
+  duplicateError: string | null;
+  isDeleting: boolean;
+  isDuplicating: boolean;
+  onClearDeleteError: () => void;
+  onClearDuplicateError: () => void;
+  onDelete: (presetId: string) => Promise<boolean>;
+  onDuplicate: (presetId: string) => Promise<Preset | null>;
   onSelect: () => void;
   preset: Preset;
 };
 
 export default function PresetCard({
   isSelected,
-  onDeleted,
-  onDuplicated,
+  deleteError,
+  duplicateError,
+  isDeleting,
+  isDuplicating,
+  onClearDeleteError,
+  onClearDuplicateError,
+  onDelete,
+  onDuplicate,
   onSelect,
   preset,
 }: PresetCardProps) {
@@ -43,14 +55,26 @@ export default function PresetCard({
         </div>
 
         <div className="mt-6 flex items-center gap-1 border-t pt-4">
-          <DuplicatePresetDialog preset={preset} onDuplicated={onDuplicated} />
+          <DuplicatePresetDialog
+            error={duplicateError}
+            isDuplicating={isDuplicating}
+            onClearError={onClearDuplicateError}
+            onDuplicate={onDuplicate}
+            preset={preset}
+          />
           <Button asChild variant="ghost" size="icon" title={`Edit ${preset.name} mappings`}>
             <Link to={`/presets/${preset.id}/edit`}>
               <Pencil className="size-4" aria-hidden="true" />
               <span className="sr-only">Edit {preset.name} mappings</span>
             </Link>
           </Button>
-          <DeletePresetDialog preset={preset} onDeleted={onDeleted} />
+          <DeletePresetDialog
+            error={deleteError}
+            isDeleting={isDeleting}
+            onClearError={onClearDeleteError}
+            onDelete={onDelete}
+            preset={preset}
+          />
           <Button
             type="button"
             variant={isSelected ? "default" : "secondary"}

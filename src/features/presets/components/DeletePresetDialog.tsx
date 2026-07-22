@@ -10,38 +10,33 @@ import {
 } from "@/components/ui/dialog";
 import { Trash2 } from "lucide-react";
 import { useState } from "react";
-import { deletePreset, type Preset } from "../api/presetsApi";
+import type { Preset } from "../api/presetsApi";
 
 type DeletePresetDialogProps = {
-  onDeleted: (presetId: string) => void;
+  error: string | null;
+  isDeleting: boolean;
+  onClearError: () => void;
+  onDelete: (presetId: string) => Promise<boolean>;
   preset: Preset;
 };
 
-export default function DeletePresetDialog({ onDeleted, preset }: DeletePresetDialogProps) {
+export default function DeletePresetDialog({
+  error,
+  isDeleting,
+  onClearError,
+  onDelete,
+  preset,
+}: DeletePresetDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const handleOpenChange = (open: boolean) => {
     if (isDeleting) return;
     setIsOpen(open);
-    if (open) setError(null);
+    if (open) onClearError();
   };
 
   const handleDelete = async () => {
-    setIsDeleting(true);
-    setError(null);
-
-    try {
-      await deletePreset(preset.id);
-      onDeleted(preset.id);
-      setIsOpen(false);
-    } catch (error) {
-      console.error("Failed to delete preset", error);
-      setError("This preset could not be deleted. Please try again.");
-    } finally {
-      setIsDeleting(false);
-    }
+    if (await onDelete(preset.id)) setIsOpen(false);
   };
 
   return (

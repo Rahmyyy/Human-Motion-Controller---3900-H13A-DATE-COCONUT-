@@ -10,42 +10,34 @@ import {
 } from "@/components/ui/dialog";
 import { Copy } from "lucide-react";
 import { useState } from "react";
-import { duplicatePreset, type Preset } from "../api/presetsApi";
+import type { Preset } from "../api/presetsApi";
 import { getDuplicatePresetName } from "../presetDisplay";
 
 type DuplicatePresetDialogProps = {
-  onDuplicated: (preset: Preset) => void;
+  error: string | null;
+  isDuplicating: boolean;
+  onClearError: () => void;
+  onDuplicate: (presetId: string) => Promise<Preset | null>;
   preset: Preset;
 };
 
 export default function DuplicatePresetDialog({
-  onDuplicated,
+  error,
+  isDuplicating,
+  onClearError,
+  onDuplicate,
   preset,
 }: DuplicatePresetDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [isDuplicating, setIsDuplicating] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const handleOpenChange = (open: boolean) => {
     if (isDuplicating) return;
     setIsOpen(open);
-    if (open) setError(null);
+    if (open) onClearError();
   };
 
   const handleDuplicate = async () => {
-    setIsDuplicating(true);
-    setError(null);
-
-    try {
-      const duplicate = await duplicatePreset(preset.id);
-      onDuplicated(duplicate);
-      setIsOpen(false);
-    } catch (error) {
-      console.error("Failed to duplicate preset", error);
-      setError("This preset could not be duplicated. Please try again.");
-    } finally {
-      setIsDuplicating(false);
-    }
+    if (await onDuplicate(preset.id)) setIsOpen(false);
   };
 
   return (

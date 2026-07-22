@@ -1,9 +1,8 @@
-import { useEffect, useState } from "react";
-import { invoke } from "@tauri-apps/api/core";
-import { listen } from "@tauri-apps/api/event";
+import { useEffect } from "react";
 import { Square } from "lucide-react";
 import { useNavigate, useParams } from "react-router";
 import { Button } from "@/components/ui/button";
+import { useSessionLauncher } from "./hooks/useSessionLauncher";
 
 /**
  * Main-window view for a running session. The overlay window does the real
@@ -14,30 +13,11 @@ import { Button } from "@/components/ui/button";
 export default function LiveSessionPage() {
   const { presetId } = useParams<{ presetId: string }>();
   const navigate = useNavigate();
-  const [error, setError] = useState<string | null>(presetId ? null : "Preset not found.");
+  const { endSession, error, status } = useSessionLauncher(presetId);
 
   useEffect(() => {
-    if (!presetId) return;
-
-    invoke("open_overlay", { presetId }).catch((error) => {
-      setError(error instanceof Error ? error.message : String(error));
-    });
-  }, [presetId]);
-
-  // The overlay's own End Session button, and the app shutting the overlay for
-  // any other reason, both land here so this page never claims a session is
-  // still running after it has stopped.
-  useEffect(() => {
-    const unlisten = listen("session-ended", () => navigate("/"));
-
-    return () => {
-      void unlisten.then((off) => off());
-    };
-  }, [navigate]);
-
-  function handleStop() {
-    void invoke("close_overlay").catch(() => navigate("/"));
-  }
+    if (status === "ended") navigate("/");
+  }, [navigate, status]);
 
   return (
     <main className="grid h-screen place-items-center bg-slate-950 p-8">
@@ -64,7 +44,7 @@ export default function LiveSessionPage() {
               The overlay stays on top of other windows. Your movements are being sent as key
               presses to whichever window is in focus, so bring your game forward and play.
             </p>
-            <Button type="button" variant="destructive" onClick={handleStop}>
+            <Button type="button" variant="destructive" onClick={endSession}>
               <Square className="size-3.5" aria-hidden="true" />
               End Session
             </Button>

@@ -1,9 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import type { PresetMappingCardData } from "../types";
+import type { PresetMappingViewData } from "../services/presetMappingsService.types";
 import MappingPosePreview from "./MappingPosePreview";
 
 interface PresetMappingCardProps {
-  mapping: PresetMappingCardData;
+  mapping: PresetMappingViewData;
 }
 
 interface KeybindBadgeProps {
@@ -26,7 +26,7 @@ function KeybindBadge({ keybind }: KeybindBadgeProps) {
 export default function PresetMappingCard({ mapping }: PresetMappingCardProps) {
   return (
     <Card className="gap-0 py-0 transition-colors hover:bg-muted/30">
-      <MappingPosePreview poseFramesJson={mapping.poseFramesJson} />
+      <MappingPosePreview frames={mapping.poseFrames} />
       <CardHeader className="pt-4 pb-1">
         <CardTitle className="text-xl font-semibold leading-tight text-foreground">
           {mapping.name}

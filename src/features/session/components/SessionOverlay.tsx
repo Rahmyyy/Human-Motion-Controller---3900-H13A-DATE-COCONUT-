@@ -1,7 +1,7 @@
 import { GripHorizontal, Square } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import type { RecognitionStatus } from "@/features/movement-recognition/services/recognitionService";
 import { cn } from "@/lib/utils";
-import type { RecognitionStatus } from "@/features/movement-recognition/hooks/useMovementRecognition";
 
 interface SessionOverlayProps {
   presetName: string;
@@ -55,28 +55,32 @@ export default function SessionOverlay({
       >
         {status.mappingStatuses.length > 0 ? (
           <ul className="grid gap-2">
-            {status.mappingStatuses.map((mapping) => (
-              <li
-                key={mapping.id}
-                className={cn(
-                  "grid gap-2 rounded-lg border border-white/10 bg-white/5 p-2.5",
-                  mapping.isActive && "border-emerald-400/60 bg-emerald-400/15",
-                )}
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <span className="truncate text-sm font-medium">{mapping.name}</span>
-                  <kbd className="shrink-0 rounded bg-white/15 px-1.5 py-0.5 font-mono text-xs font-semibold">
-                    {mapping.keybind}
-                  </kbd>
-                </div>
-                <div className="flex items-center gap-2">
-                  <ConfidenceBar confidence={mapping.confidence} isActive={mapping.isActive} />
-                  <span className="w-9 shrink-0 text-right text-xs tabular-nums text-white/70">
-                    {formatConfidence(mapping.confidence)}
-                  </span>
-                </div>
-              </li>
-            ))}
+            {status.mappingStatuses.map((mapping) => {
+              const isHighlighted = mapping.isActive || mapping.id === status.triggeredMappingId;
+
+              return (
+                <li
+                  key={mapping.id}
+                  className={cn(
+                    "grid gap-2 rounded-lg border border-white/10 bg-white/5 p-2.5",
+                    isHighlighted && "border-emerald-400/60 bg-emerald-400/15",
+                  )}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="truncate text-sm font-medium">{mapping.name}</span>
+                    <kbd className="shrink-0 rounded bg-white/15 px-1.5 py-0.5 font-mono text-xs font-semibold">
+                      {mapping.keybind}
+                    </kbd>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <ConfidenceBar confidence={mapping.confidence} isActive={isHighlighted} />
+                    <span className="w-9 shrink-0 text-right text-xs tabular-nums text-white/70">
+                      {formatConfidence(mapping.confidence)}
+                    </span>
+                  </div>
+                </li>
+              );
+            })}
           </ul>
         ) : (
           <p className="text-sm text-white/60">No mappings saved.</p>

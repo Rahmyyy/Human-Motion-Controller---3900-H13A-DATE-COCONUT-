@@ -1,79 +1,53 @@
-import { useEffect, useState } from "react";
-import { getPresets, type Preset } from "./api/presetsApi";
 import PresetActionBar from "./components/PresetActionBar";
 import PresetCollection from "./components/PresetCollection";
 import PresetPageHeader from "./components/PresetPageHeader";
+import { usePresetSelection } from "./hooks/usePresetSelection";
 
 const patientName = "Lindsay Collins";
 
 export default function PresetSelectionPage() {
-  const [presets, setPresets] = useState<Preset[]>([]);
-  const [selectedPresetId, setSelectedPresetId] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    let isMounted = true;
-
-    getPresets()
-      .then((savedPresets) => {
-        if (!isMounted) return;
-        setPresets(savedPresets);
-        setError(null);
-      })
-      .catch((error) => {
-        console.error("Failed to load presets", error);
-        if (isMounted) setError("Failed to load presets.");
-      })
-      .finally(() => {
-        if (isMounted) setIsLoading(false);
-      });
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  const selectedPreset = presets.find((preset) => preset.id === selectedPresetId);
-  const handlePresetDuplicated = (preset: Preset) => {
-    setPresets((currentPresets) => [preset, ...currentPresets]);
-    setSelectedPresetId(preset.id);
-    setError(null);
-  };
-  const handlePresetSelection = (presetId: string) => {
-    setSelectedPresetId((currentId) => (currentId === presetId ? null : presetId));
-  };
-  const handlePresetDeleted = (presetId: string) => {
-    setPresets((currentPresets) => currentPresets.filter((preset) => preset.id !== presetId));
-    setSelectedPresetId((currentId) => (currentId === presetId ? null : currentId));
-    setError(null);
-  };
+  const presets = usePresetSelection();
 
   return (
     <section className="min-h-screen bg-muted/20 px-8 py-8 pb-40">
       <div className="mx-auto max-w-7xl">
-        <PresetPageHeader patientName={patientName} />
+        <PresetPageHeader
+          patientName={patientName}
+          createError={presets.createError}
+          isCreating={presets.isCreating}
+          onClearCreateError={presets.clearCreateError}
+          onCreatePreset={presets.createPreset}
+        />
 
         <section className="mt-8" aria-label="Saved presets">
-          {isLoading ? (
+          {presets.isLoading ? (
             <p className="mt-5 text-sm text-muted-foreground">Loading presets...</p>
-          ) : error ? (
+          ) : presets.error ? (
             <p className="mt-5 rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
-              {error}
+              {presets.error}
             </p>
           ) : (
             <PresetCollection
-              presets={presets}
-              selectedPresetId={selectedPresetId}
-              onDeletePreset={handlePresetDeleted}
-              onDuplicatePreset={handlePresetDuplicated}
-              onSelectPreset={handlePresetSelection}
+              presets={presets.presets}
+              selectedPresetId={presets.selectedPresetId}
+              deletingPresetId={presets.deletingPresetId}
+              deleteError={presets.deleteError}
+              duplicatingPresetId={presets.duplicatingPresetId}
+              duplicateError={presets.duplicateError}
+              onClearDeleteError={presets.clearDeleteError}
+              onClearDuplicateError={presets.clearDuplicateError}
+              onDeletePreset={presets.deletePreset}
+              onDuplicatePreset={presets.duplicatePreset}
+              onSelectPreset={presets.selectPreset}
             />
           )}
         </section>
       </div>
 
-      <PresetActionBar patientName={patientName} selectedPreset={selectedPreset} />
+      <PresetActionBar
+        patientName={patientName}
+        selectedPreset={presets.selectedPreset ?? undefined}
+      />
     </section>
   );
 }

@@ -1,15 +1,28 @@
 import PresetCard from "./PresetCard";
 import type { Preset } from "../api/presetsApi";
+import type { PresetMutationError } from "../services/presetSelectionService.types";
 
 type PresetCollectionProps = {
-  onDeletePreset: (presetId: string) => void;
-  onDuplicatePreset: (preset: Preset) => void;
+  deleteError: PresetMutationError | null;
+  deletingPresetId: string | null;
+  duplicateError: PresetMutationError | null;
+  duplicatingPresetId: string | null;
+  onClearDeleteError: () => void;
+  onClearDuplicateError: () => void;
+  onDeletePreset: (presetId: string) => Promise<boolean>;
+  onDuplicatePreset: (presetId: string) => Promise<Preset | null>;
   onSelectPreset: (presetId: string) => void;
   presets: Preset[];
   selectedPresetId: string | null;
 };
 
 export default function PresetCollection({
+  deleteError,
+  deletingPresetId,
+  duplicateError,
+  duplicatingPresetId,
+  onClearDeleteError,
+  onClearDuplicateError,
   onDeletePreset,
   onDuplicatePreset,
   onSelectPreset,
@@ -31,8 +44,14 @@ export default function PresetCollection({
           key={preset.id}
           preset={preset}
           isSelected={selectedPresetId === preset.id}
-          onDeleted={onDeletePreset}
-          onDuplicated={onDuplicatePreset}
+          deleteError={deleteError?.presetId === preset.id ? deleteError.message : null}
+          duplicateError={duplicateError?.presetId === preset.id ? duplicateError.message : null}
+          isDeleting={deletingPresetId === preset.id}
+          isDuplicating={duplicatingPresetId === preset.id}
+          onClearDeleteError={onClearDeleteError}
+          onClearDuplicateError={onClearDuplicateError}
+          onDelete={onDeletePreset}
+          onDuplicate={onDuplicatePreset}
           onSelect={() => onSelectPreset(preset.id)}
         />
       ))}
