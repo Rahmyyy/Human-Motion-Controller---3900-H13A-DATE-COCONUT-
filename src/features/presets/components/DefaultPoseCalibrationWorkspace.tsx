@@ -1,54 +1,44 @@
-import { useMemo, useState } from "react";
-import { useNavigate } from "react-router";
 import BackButton from "@/components/BackButton";
 import type { PoseFrame } from "@/features/camera/poseFrame";
 import MovementCameraPanel from "@/features/movement-mapping/components/MovementCameraPanel";
 import RecordingControls from "@/features/movement-mapping/components/RecordingControls";
 import RecordingQualityPanel from "@/features/movement-mapping/components/RecordingQualityPanel";
 import RecordingTrimPanel from "@/features/movement-mapping/components/RecordingTrimPanel";
-import { usePoseRecording } from "@/features/movement-mapping/hooks/usePoseRecording";
-import { analyseRecordingQuality } from "@/features/movement-mapping/recording/analyseRecordingQuality";
-import { TRACKED_LANDMARKS } from "@/features/movement-recognition/recognition/types";
-import { updateDefaultPose, type Preset } from "../api/presetsApi";
+import type { RecordingQuality } from "@/features/movement-mapping/recording/analyseRecordingQuality";
+import type { RecordingTrimRange } from "@/features/movement-mapping/recording/trimRecording";
+import type { RecordingState } from "@/features/movement-mapping/services/recordingService.types";
 
 type Props = {
-  initialFrames: PoseFrame[];
-  preset: Preset;
+  canSave: boolean;
+  countdownSeconds: number | null;
+  error: string | null;
+  onCancelCountdown: () => void;
+  onResetRecording: () => void;
+  onSave: () => void;
+  onStartRecording: () => void;
+  onStopRecording: () => void;
+  onTrimRecording: (range: RecordingTrimRange) => void;
+  recordedFrames: PoseFrame[];
+  recordingQuality: RecordingQuality | null;
+  recordingState: RecordingState;
+  recordingTrim: RecordingTrimRange | null;
 };
 
-export default function DefaultPoseCalibrationWorkspace({ initialFrames, preset }: Props) {
-  const navigate = useNavigate();
-  const [saveError, setSaveError] = useState<string | null>(null);
-  const {
-    cancelCountdown,
-    countdownSeconds,
-    recordedFrames,
-    recordingTrim,
-    recordingState,
-    resetRecording,
-    startRecording,
-    stopRecording,
-    trimRecording,
-  } = usePoseRecording(initialFrames, initialFrames.length > 0 ? "recorded" : "idle");
-  const quality = useMemo(
-    () =>
-      recordingState === "recorded"
-        ? analyseRecordingQuality(recordedFrames, [...TRACKED_LANDMARKS])
-        : null,
-    [recordedFrames, recordingState],
-  );
-
-  const saveCalibration = async () => {
-    setSaveError(null);
-    try {
-      await updateDefaultPose(preset.id, JSON.stringify(recordedFrames));
-      navigate(`/presets/${preset.id}/edit`);
-    } catch (error) {
-      console.error("Failed to save default pose", error);
-      setSaveError("Failed to save the default pose. Please try again.");
-    }
-  };
-
+export default function DefaultPoseCalibrationWorkspace({
+  canSave,
+  countdownSeconds,
+  error,
+  onCancelCountdown,
+  onResetRecording,
+  onSave,
+  onStartRecording,
+  onStopRecording,
+  onTrimRecording,
+  recordedFrames,
+  recordingQuality,
+  recordingState,
+  recordingTrim,
+}: Props) {
   return (
     <main className="grid h-screen w-full grid-rows-[auto_minmax(0,1fr)] gap-4 overflow-hidden bg-slate-50 p-8">
       <header className="flex items-start justify-between gap-6">
@@ -76,22 +66,22 @@ export default function DefaultPoseCalibrationWorkspace({ initialFrames, preset 
             the camera position or the patient's resting posture changes significantly.
           </section>
           {recordingState === "recorded" && recordingTrim && (
-            <RecordingTrimPanel trim={recordingTrim} onChange={trimRecording} />
+            <RecordingTrimPanel trim={recordingTrim} onChange={onTrimRecording} />
           )}
-          {quality && <RecordingQualityPanel quality={quality} />}
-          {saveError && (
+          {recordingQuality && <RecordingQualityPanel quality={recordingQuality} />}
+          {error && (
             <p className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
-              {saveError}
+              {error}
             </p>
           )}
           <RecordingControls
             state={recordingState}
-            canSave={quality?.status !== "unusable"}
-            onCancel={cancelCountdown}
-            onReRecord={resetRecording}
-            onSave={saveCalibration}
-            onStart={startRecording}
-            onStop={stopRecording}
+            canSave={canSave}
+            onCancel={onCancelCountdown}
+            onReRecord={onResetRecording}
+            onSave={onSave}
+            onStart={onStartRecording}
+            onStop={onStopRecording}
             saveLabel="Save Default State"
             startLabel="Start Calibration"
           />
