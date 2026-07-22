@@ -2,9 +2,8 @@ import { Button } from "@/components/ui/button";
 import { Play, SlidersHorizontal } from "lucide-react";
 import { useNavigate } from "react-router";
 
-
 type SelectedPreset = {
-  id: number;
+  id: string;
   mappingCount: number;
   name: string;
 };
