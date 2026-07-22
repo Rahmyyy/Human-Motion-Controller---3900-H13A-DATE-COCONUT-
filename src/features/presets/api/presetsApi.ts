@@ -20,6 +20,14 @@ export function getPresets() {
   return invoke<Preset[]>("get_presets");
 }
 
+export function duplicatePreset(id: string) {
+  return invoke<Preset>("duplicate_preset", { id });
+}
+
+export function deletePreset(id: string) {
+  return invoke<void>("delete_preset", { id });
+}
+
 export function updateDefaultPose(id: string, defaultPoseFramesJson: string) {
   return invoke<Preset>("update_default_pose", { id, defaultPoseFramesJson });
 }

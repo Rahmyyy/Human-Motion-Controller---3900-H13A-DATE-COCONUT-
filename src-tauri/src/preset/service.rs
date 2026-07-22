@@ -38,6 +38,51 @@ pub fn get_preset(conn: &Connection, id: &str) -> Result<Preset> {
     repository::select_preset_by_id(conn, id)
 }
 
+pub fn duplicate_preset(conn: &mut Connection, source_id: &str) -> Result<Preset> {
+    if source_id.trim().is_empty() {
+        return Err(anyhow!("Preset ID cannot be empty"));
+    }
+
+    let source = repository::select_preset_by_id(conn, source_id)?;
+    let suffix = " (Copy)";
+    let available_characters = MAX_PRESET_NAME_LENGTH - suffix.chars().count();
+    let duplicate_name = format!(
+        "{}{}",
+        source
+            .name
+            .chars()
+            .take(available_characters)
+            .collect::<String>(),
+        suffix
+    );
+    let now = SystemTime::now().duration_since(UNIX_EPOCH)?;
+    let duplicate_id = format!("preset-{}", now.as_nanos());
+    let created_at = now.as_secs().to_string();
+
+    repository::duplicate_preset_data(
+        conn,
+        source_id,
+        &duplicate_id,
+        &duplicate_name,
+        &created_at,
+        source.default_pose_frames_json.as_deref(),
+    )?;
+    repository::select_preset_by_id(conn, &duplicate_id)
+}
+
+pub fn delete_preset(conn: &Connection, id: &str) -> Result<()> {
+    if id.trim().is_empty() {
+        return Err(anyhow!("Preset ID cannot be empty"));
+    }
+
+    let rows_affected = repository::delete_preset(conn, id)?;
+    if rows_affected == 0 {
+        return Err(anyhow!("Preset not found"));
+    }
+
+    Ok(())
+}
+
 pub fn update_default_pose(
     conn: &Connection,
     id: &str,
@@ -65,3 +110,11 @@ pub fn update_default_pose(
 #[cfg(test)]
 #[path = "service_tests.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "duplication_tests.rs"]
+mod duplication_tests;
+
+#[cfg(test)]
+#[path = "deletion_tests.rs"]
+mod deletion_tests;

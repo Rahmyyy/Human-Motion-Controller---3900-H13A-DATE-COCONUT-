@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import type { RecognitionStatus } from "../hooks/useMovementRecognition";
+import type { RecognitionStatus } from "../services/recognitionService";
 
 interface RecognitionStatusPanelProps {
   isLoading: boolean;
@@ -21,30 +21,36 @@ export default function RecognitionStatusPanel({
 
       {status.mappingStatuses.length > 0 ? (
         <ul className="grid gap-3">
-          {status.mappingStatuses.map((mapping) => (
-            <li
-              key={mapping.id}
-              className={cn(
-                "rounded-lg border p-3",
-                mapping.isActive && "border-primary/40 bg-primary/10",
-              )}
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <div className="truncate text-sm font-medium text-foreground">{mapping.name}</div>
-                  <div className="mt-1 text-xs text-muted-foreground">
-                    Triggering: {mapping.keybind}
+          {status.mappingStatuses.map((mapping) => {
+            const isHighlighted = mapping.isActive || mapping.id === status.triggeredMappingId;
+
+            return (
+              <li
+                key={mapping.id}
+                className={cn(
+                  "rounded-lg border p-3",
+                  isHighlighted && "border-primary/40 bg-primary/10",
+                )}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="truncate text-sm font-medium text-foreground">
+                      {mapping.name}
+                    </div>
+                    <div className="mt-1 text-xs text-muted-foreground">
+                      Triggering: {mapping.keybind}
+                    </div>
+                  </div>
+                  <div className="text-right text-sm font-medium text-foreground">
+                    {formatConfidence(mapping.confidence)}
                   </div>
                 </div>
-                <div className="text-right text-sm font-medium text-foreground">
-                  {formatConfidence(mapping.confidence)}
+                <div className="mt-3 text-xs text-muted-foreground">
+                  {isHighlighted ? "Active" : "Inactive"}
                 </div>
-              </div>
-              <div className="mt-3 text-xs text-muted-foreground">
-                {mapping.isActive ? "Active" : "Inactive"}
-              </div>
-            </li>
-          ))}
+              </li>
+            );
+          })}
         </ul>
       ) : (
         <p className="text-sm text-muted-foreground">No mappings saved.</p>
