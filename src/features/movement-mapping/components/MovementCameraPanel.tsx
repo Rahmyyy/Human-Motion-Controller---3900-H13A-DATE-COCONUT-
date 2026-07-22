@@ -5,7 +5,7 @@ import { getCameraMode } from "@/features/camera/cameraMode";
 import type { PoseFrame } from "@/features/camera/poseFrame";
 import PoseReplay from "./PoseReplay";
 import RecordingCountdown from "./RecordingCountdown";
-import type { RecordingState } from "../hooks/usePoseRecording";
+import type { RecordingState } from "../services/recordingService.types";
 
 // Shows live pose capture until recording stops, then swaps to replay.
 interface MovementCameraPanelProps {

@@ -1,11 +1,7 @@
 import { Input } from "@/components/ui/input";
 import { Pencil, SlidersHorizontal } from "lucide-react";
 import type { KeyboardEvent } from "react";
-
-export interface Keybind {
-  code: string;
-  label: string;
-}
+import type { Keybind } from "../services/mappingEditorService.types";
 
 interface MappingDetailsPanelProps {
   keybind: Keybind | null;
