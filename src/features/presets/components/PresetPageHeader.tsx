@@ -38,7 +38,7 @@ export default function PresetPageHeader({
             onClearError={onClearCreateError}
             onCreate={onCreatePreset}
           />
-          <BackButton />
+          <BackButton to="/patients" />
           <CameraModeToggle />
         </div>
       </div>

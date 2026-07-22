@@ -27,7 +27,7 @@ export default function MovementRecognitionPage() {
               Dashboard
             </Link>
           </Button>
-          <BackButton />
+          <BackButton to={`/presets/${presetId}/edit`} />
         </div>
       </header>
 

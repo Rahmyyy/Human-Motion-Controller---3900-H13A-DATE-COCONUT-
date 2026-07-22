@@ -9,8 +9,8 @@ export default function EditMovementMappingPage() {
   const editor = useMappingEditor(presetId, mappingId);
 
   useEffect(() => {
-    if (editor.status === "saved") navigate(-1);
-  }, [editor.status, navigate]);
+    if (editor.status === "saved" && presetId) navigate(`/presets/${presetId}/edit`);
+  }, [editor.status, navigate, presetId]);
 
   if (editor.status === "error") {
     return (
@@ -30,6 +30,7 @@ export default function EditMovementMappingPage() {
 
   return (
     <MovementMappingWorkspace
+      backTo={`/presets/${presetId}/edit`}
       title="Edit Mapping"
       description="Review the saved movement and adjust its mapping details."
       canSave={editor.canSave}

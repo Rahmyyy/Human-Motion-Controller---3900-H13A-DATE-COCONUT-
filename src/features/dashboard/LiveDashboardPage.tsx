@@ -49,7 +49,7 @@ export default function LiveDashboardPage() {
             Monitor mappings, session duration, and triggers while a session is running.
           </p>
         </div>
-        <BackButton />
+        <BackButton to={`/presets/${presetId}/recognition`} />
       </header>
 
       <div className="mt-6 grid gap-4 md:grid-cols-3">
