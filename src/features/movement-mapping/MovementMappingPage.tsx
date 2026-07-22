@@ -11,8 +11,8 @@ export default function MovementMappingPage() {
   useEffect(() => {
     if (editor.status === "needs-calibration" && presetId) {
       navigate(`/presets/${presetId}/default-pose`, { replace: true });
-    } else if (editor.status === "saved") {
-      navigate(-1);
+    } else if (editor.status === "saved" && presetId) {
+      navigate(`/presets/${presetId}/edit`);
     }
   }, [editor.status, navigate, presetId]);
 
@@ -28,6 +28,7 @@ export default function MovementMappingPage() {
 
   return (
     <MovementMappingWorkspace
+      backTo={`/presets/${presetId}/edit`}
       title="Record and Map New Movement"
       description="Capture a physical movement and assign it to a keybind."
       canSave={editor.canSave}

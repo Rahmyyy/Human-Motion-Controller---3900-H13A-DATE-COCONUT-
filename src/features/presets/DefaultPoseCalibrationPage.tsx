@@ -24,6 +24,7 @@ export default function DefaultPoseCalibrationPage() {
 
   return (
     <DefaultPoseCalibrationWorkspace
+      backTo={`/presets/${presetId}/edit`}
       canSave={calibration.canSave}
       countdownSeconds={calibration.countdownSeconds}
       error={calibration.error}

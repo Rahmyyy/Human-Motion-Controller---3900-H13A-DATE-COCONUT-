@@ -9,6 +9,7 @@ import type { RecordingTrimRange } from "@/features/movement-mapping/recording/t
 import type { RecordingState } from "@/features/movement-mapping/services/recordingService.types";
 
 type Props = {
+  backTo: string;
   canSave: boolean;
   countdownSeconds: number | null;
   error: string | null;
@@ -25,6 +26,7 @@ type Props = {
 };
 
 export default function DefaultPoseCalibrationWorkspace({
+  backTo,
   canSave,
   countdownSeconds,
   error,
@@ -51,7 +53,7 @@ export default function DefaultPoseCalibrationWorkspace({
             calibration helps recognition separate rest from intentional movement.
           </p>
         </div>
-        <BackButton />
+        <BackButton to={backTo} />
       </header>
 
       <div className="grid min-h-0 gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
