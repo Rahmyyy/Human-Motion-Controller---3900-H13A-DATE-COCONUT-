@@ -2,8 +2,8 @@ mod db;
 mod input;
 mod mediapipe;
 mod movement_mapping;
-mod patient;
 mod overlay;
+mod patient;
 mod preset;
 mod streams;
 
