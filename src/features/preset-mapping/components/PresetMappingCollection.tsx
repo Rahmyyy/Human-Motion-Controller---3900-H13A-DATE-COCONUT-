@@ -12,17 +12,21 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import PresetMappingCard from "./PresetMappingCard";
-import type { PresetMappingCardData } from "../types";
+import type { PresetMappingViewData } from "../services/presetMappingsService.types";
 
 interface PresetMappingCollectionProps {
-  mappings: PresetMappingCardData[];
-  onDelete: (id: string) => void;
+  deletingMappingId: string | null;
+  mappings: PresetMappingViewData[];
+  onDelete: (id: string) => Promise<boolean>;
+  patientId: string;
   presetId: string;
 }
 
 export default function PresetMappingCollection({
+  deletingMappingId,
   mappings,
   onDelete,
+  patientId,
   presetId,
 }: PresetMappingCollectionProps) {
   if (mappings.length === 0) {
@@ -37,7 +41,7 @@ export default function PresetMappingCollection({
     <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {mappings.map((mapping) => (
         <div key={mapping.id} className="relative">
-          <Link to={`/presets/${presetId}/movements/${mapping.id}/edit`}>
+          <Link to={`/patients/${patientId}/presets/${presetId}/movements/${mapping.id}/edit`}>
             <PresetMappingCard mapping={mapping} />
           </Link>
           <Dialog>
@@ -48,6 +52,7 @@ export default function PresetMappingCollection({
                 size="icon"
                 className="absolute right-3 top-3"
                 aria-label={`Delete ${mapping.name}`}
+                disabled={deletingMappingId === mapping.id}
               >
                 <Trash2 className="size-4" aria-hidden="true" />
               </Button>
@@ -67,8 +72,13 @@ export default function PresetMappingCollection({
                   </Button>
                 </DialogClose>
                 <DialogClose asChild>
-                  <Button type="button" variant="destructive" onClick={() => onDelete(mapping.id)}>
-                    Delete
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    onClick={() => void onDelete(mapping.id)}
+                    disabled={deletingMappingId === mapping.id}
+                  >
+                    {deletingMappingId === mapping.id ? "Deleting…" : "Delete"}
                   </Button>
                 </DialogClose>
               </DialogFooter>

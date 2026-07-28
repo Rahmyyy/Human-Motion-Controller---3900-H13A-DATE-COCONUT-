@@ -3,6 +3,7 @@ mod input;
 mod mediapipe;
 mod movement_mapping;
 mod patient;
+mod overlay;
 mod preset;
 mod streams;
 
@@ -111,6 +112,8 @@ pub fn run() {
 
             app.set_menu(menu)?;
 
+            overlay::close_with_main_window(app.handle());
+
             set_model_path(
                 get_path(app.handle(), model_paths.first().unwrap()),
                 &mediapipe_tx,
@@ -154,10 +157,14 @@ pub fn run() {
             preset::commands::create_preset,
             preset::commands::get_presets,
             preset::commands::get_preset,
+            preset::commands::duplicate_preset,
+            preset::commands::delete_preset,
             preset::commands::update_default_pose,
             patient::commands::create_patient,
             patient::commands::get_patients,
             patient::commands::get_patient,
+            overlay::open_overlay,
+            overlay::close_overlay,
         ])
         .plugin(
             tauri_plugin_log::Builder::new()

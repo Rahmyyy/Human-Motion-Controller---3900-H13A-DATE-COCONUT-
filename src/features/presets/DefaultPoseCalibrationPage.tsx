@@ -1,47 +1,43 @@
-import { useEffect, useState } from "react";
-import { useParams } from "react-router";
-import { parsePoseFrames } from "@/features/camera/parsePoseFrames";
-import { getPreset, type Preset } from "./api/presetsApi";
+import { useEffect } from "react";
+import { useNavigate, useParams } from "react-router";
 import DefaultPoseCalibrationWorkspace from "./components/DefaultPoseCalibrationWorkspace";
+import { useDefaultPoseCalibration } from "./hooks/useDefaultPoseCalibration";
 
 export default function DefaultPoseCalibrationPage() {
   const { patientId, presetId } = useParams<{ patientId: string; presetId: string }>();
-  const [preset, setPreset] = useState<Preset | null>(null);
-  const [loadError, setLoadError] = useState<string | null>(null);
+  const navigate = useNavigate();
+  const calibration = useDefaultPoseCalibration(patientId, presetId);
 
   useEffect(() => {
-    if (!patientId || !presetId) return;
+    if (calibration.status === "saved" && presetId) {
+      navigate(`/patients/${patientId}/presets/${presetId}/edit`);
+    }
+  }, [calibration.status, navigate, patientId, presetId]);
 
-    let isMounted = true;
-    getPreset(presetId, patientId)
-      .then((loadedPreset) => {
-        if (isMounted) setPreset(loadedPreset);
-      })
-      .catch((error) => {
-        console.error("Failed to load preset calibration", error);
-        if (isMounted) setLoadError("Failed to load this preset.");
-      });
-
-    return () => {
-      isMounted = false;
-    };
-  }, [patientId, presetId]);
-
-  if (!patientId || !presetId || loadError) {
-    return <CalibrationMessage message={loadError ?? "Patient or preset not found."} />;
+  if (calibration.status === "error") {
+    return <CalibrationMessage message={calibration.error ?? "Preset not found."} />;
   }
 
-  if (!preset) {
+  if (calibration.status !== "ready" && calibration.status !== "saving") {
     return <CalibrationMessage message="Loading calibration..." />;
   }
 
-  const initialFrames = parsePoseFrames(preset.defaultPoseFramesJson);
   return (
     <DefaultPoseCalibrationWorkspace
-      key={preset.defaultPoseFramesJson ?? "new-calibration"}
-      initialFrames={initialFrames}
-      patientId={patientId}
-      preset={preset}
+      backTo={`/patients/${patientId}/presets/${presetId}/edit`}
+      canSave={calibration.canSave}
+      countdownSeconds={calibration.countdownSeconds}
+      error={calibration.error}
+      onCancelCountdown={calibration.cancelCountdown}
+      onResetRecording={calibration.resetRecording}
+      onSave={calibration.save}
+      onStartRecording={calibration.startRecording}
+      onStopRecording={calibration.stopRecording}
+      onTrimRecording={calibration.trimRecording}
+      recordedFrames={calibration.recordedFrames}
+      recordingQuality={calibration.recordingQuality}
+      recordingState={calibration.recordingState}
+      recordingTrim={calibration.recordingTrim}
     />
   );
 }

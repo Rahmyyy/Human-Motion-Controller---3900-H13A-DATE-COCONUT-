@@ -14,9 +14,23 @@ import { useState } from "react";
 import { useNavigate } from "react-router";
 import PresetNameSection from "./PresetNameSection";
 import PresetStartModeSelector, { type PresetStartMode } from "./PresetStartModeSelector";
-import { createPreset } from "../api/presetsApi";
+import type { Preset } from "../api/presetsApi";
 
-export default function CreatePresetDialog({ patientId }: { patientId: string }) {
+interface CreatePresetDialogProps {
+  error: string | null;
+  isCreating: boolean;
+  onClearError: () => void;
+  onCreate: (name: string) => Promise<Preset | null>;
+  patientId: string | undefined;
+}
+
+export default function CreatePresetDialog({
+  error,
+  isCreating,
+  onClearError,
+  onCreate,
+  patientId,
+}: CreatePresetDialogProps) {
   const navigate = useNavigate();
   const [selectedMode, setSelectedMode] = useState<PresetStartMode | null>(null);
   const [presetName, setPresetName] = useState("");
@@ -34,24 +48,26 @@ export default function CreatePresetDialog({ patientId }: { patientId: string })
     if (!canContinue) return;
 
     if (selectedMode === "custom") {
-      try {
-        const preset = await createPreset(patientId, trimmedPresetName);
+      const preset = await onCreate(trimmedPresetName);
+      if (preset && patientId) {
         navigate(`/patients/${patientId}/presets/${preset.id}/edit`);
-      } catch (error) {
-        console.error("Failed to create preset", error);
       }
-
       return;
     }
     // later add to here, functionality for existing templates
   };
 
   return (
-    <Dialog onOpenChange={(open) => !open && resetDialog()}>
+    <Dialog
+      onOpenChange={(open) => {
+        if (open) onClearError();
+        else resetDialog();
+      }}
+    >
       <DialogTrigger asChild>
         <Button type="button" size="lg" className="shadow-sm">
           <Plus className="size-4" aria-hidden="true" />
-          Create New Preset
+          Add Preset
         </Button>
       </DialogTrigger>
 
@@ -67,14 +83,16 @@ export default function CreatePresetDialog({ patientId }: { patientId: string })
           <PresetNameSection value={presetName} onChange={setPresetName} />
         )}
 
+        {error && <p className="text-sm text-destructive">{error}</p>}
+
         <DialogFooter>
           <DialogClose asChild>
             <Button type="button" variant="outline">
               Cancel
             </Button>
           </DialogClose>
-          <Button type="button" onClick={handleContinue} disabled={!canContinue}>
-            {selectedMode === "custom" ? "Create Preset" : "Continue"}
+          <Button type="button" onClick={handleContinue} disabled={!canContinue || isCreating}>
+            {isCreating ? "Creating…" : selectedMode === "custom" ? "Create Preset" : "Continue"}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -1,21 +1,29 @@
 import { HashRouter, Route, Routes } from "react-router";
+import { AppShell } from "@/components/layout/AppShell";
 import LiveDashboardPage from "@/features/dashboard/LiveDashboardPage";
+import MainDashboardPage from "@/features/dashboard/MainDashboardPage";
 import EditMovementMappingPage from "@/features/movement-mapping/EditMovementMappingPage";
 import MovementMappingPage from "@/features/movement-mapping/MovementMappingPage";
 import MovementRecognitionPage from "@/features/movement-recognition/MovementRecognitionPage";
+import PatientListPage from "@/features/patients/PatientListPage";
 import PresetMappingsPage from "@/features/preset-mapping/PresetMappingsPage";
 import PresetSelectionPage from "@/features/presets/PresetSelectionPage";
+import SessionHistoryPage from "@/features/sessions/SessionHistoryPage";
 import DefaultPoseCalibrationPage from "@/features/presets/DefaultPoseCalibrationPage";
-import PatientListPage from "@/features/patients/PatientListPage";
+import LiveSessionPage from "@/features/session/LiveSessionPage";
+import SessionOverlayWindow from "@/features/session/SessionOverlayWindow";
 
 export default function App() {
   return (
     <HashRouter>
       <Routes>
-        <Route path="/" element={<PatientListPage />} />
-        <Route path="/patients" element={<PatientListPage />} />
+        <Route element={<AppShell />}>
+          <Route path="/" element={<PatientListPage />} />
+          <Route path="/dashboard" element={<MainDashboardPage />} />
+          <Route path="/patients" element={<PatientListPage />} />
+          <Route path="/session-history" element={<SessionHistoryPage />} />
+        </Route>
         <Route path="/patients/:patientId/presets" element={<PresetSelectionPage />} />
-
         <Route
           path="/patients/:patientId/presets/:presetId/edit"
           element={<PresetMappingsPage />}
@@ -40,17 +48,14 @@ export default function App() {
           path="/patients/:patientId/presets/:presetId/dashboard"
           element={<LiveDashboardPage />}
         />
-
-        {/*old routes*/}
-        <Route path="/presets/:presetId/edit" element={<PresetMappingsPage />} />
-        <Route path="/presets/:presetId/default-pose" element={<DefaultPoseCalibrationPage />} />
-        <Route path="/presets/:presetId/recognition" element={<MovementRecognitionPage />} />
         <Route
-          path="/presets/:presetId/movements/:mappingId/edit"
-          element={<EditMovementMappingPage />}
+          path="/patients/:patientId/presets/:presetId/session"
+          element={<LiveSessionPage />}
         />
-        <Route path="/presets/:presetId/movements/new" element={<MovementMappingPage />} />
-        <Route path="/presets/:presetId/dashboard" element={<LiveDashboardPage />} />
+        <Route
+          path="/patients/:patientId/presets/:presetId/overlay"
+          element={<SessionOverlayWindow />}
+        />
       </Routes>
     </HashRouter>
   );

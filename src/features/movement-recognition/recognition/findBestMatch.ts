@@ -32,6 +32,7 @@ export function findTemplateMatches(
       liveWindow,
       template.landmarkWeights,
       template.isDynamic,
+      template.activeLandmarks,
     );
     const match = {
       id: template.id,

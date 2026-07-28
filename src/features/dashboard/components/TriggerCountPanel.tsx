@@ -1,8 +1,7 @@
-import { useSyncExternalStore } from "react";
-import { getTriggerCount, subscribe } from "@/lib/liveSessionState";
+import { useSession } from "@/features/session/hooks/useSession";
 
 export default function TriggerCountPanel() {
-  const triggerCount = useSyncExternalStore(subscribe, getTriggerCount);
+  const { triggerCount } = useSession();
 
   return (
     <section className="grid content-start gap-4 rounded-lg border bg-background p-5 shadow-sm">

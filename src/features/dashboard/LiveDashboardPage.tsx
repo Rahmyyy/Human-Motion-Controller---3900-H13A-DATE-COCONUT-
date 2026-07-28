@@ -8,7 +8,7 @@ import SessionStatusPanel from "./components/SessionStatusPanel";
 import TriggerCountPanel from "./components/TriggerCountPanel";
 
 export default function LiveDashboardPage() {
-  const { presetId } = useParams<{ presetId: string }>();
+  const { patientId, presetId } = useParams<{ patientId: string; presetId: string }>();
   const [mappings, setMappings] = useState<PresetMappingCardData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -49,7 +49,7 @@ export default function LiveDashboardPage() {
             Monitor mappings, session duration, and triggers while a session is running.
           </p>
         </div>
-        <BackButton />
+        <BackButton to={`/patients/${patientId}/presets/${presetId}/recognition`} />
       </header>
 
       <div className="mt-6 grid gap-4 md:grid-cols-3">

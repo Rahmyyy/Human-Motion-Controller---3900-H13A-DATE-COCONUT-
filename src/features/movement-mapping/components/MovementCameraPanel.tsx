@@ -5,20 +5,18 @@ import { getCameraMode } from "@/features/camera/cameraMode";
 import type { PoseFrame } from "@/features/camera/poseFrame";
 import PoseReplay from "./PoseReplay";
 import RecordingCountdown from "./RecordingCountdown";
-import type { RecordingState } from "../hooks/usePoseRecording";
+import type { RecordingState } from "../services/recordingService.types";
 
 // Shows live pose capture until recording stops, then swaps to replay.
 interface MovementCameraPanelProps {
   countdownSeconds: number | null;
   frames: PoseFrame[];
-  onPoseFrame: (frame: PoseFrame) => void;
   recordingState: RecordingState;
 }
 
 export default function MovementCameraPanel({
   countdownSeconds,
   frames,
-  onPoseFrame,
   recordingState,
 }: MovementCameraPanelProps) {
   const [cameraMode] = useState(() => getCameraMode());
@@ -33,7 +31,7 @@ export default function MovementCameraPanel({
       ) : cameraMode === "backend" ? (
         <AnnotatedPreview />
       ) : (
-        <MediaPipePosePreview onPoseFrame={onPoseFrame} />
+        <MediaPipePosePreview />
       )}
       {recordingState === "countdown" && (
         <RecordingCountdown secondsRemaining={countdownSeconds ?? 1} />
