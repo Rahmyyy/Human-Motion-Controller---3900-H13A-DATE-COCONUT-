@@ -19,7 +19,7 @@ export interface LiveSessionSnapshot {
 export interface LiveSessionService {
   getSnapshot(): LiveSessionSnapshot;
   subscribe(listener: () => void): () => void;
-  start(presetId: string | undefined): Promise<void>;
+  start(patientId: string | undefined, presetId: string | undefined): Promise<void>;
   end(): Promise<void>;
   dispose(): void;
 }

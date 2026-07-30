@@ -10,8 +10,10 @@ type SelectedPreset = {
 
 export default function PresetActionBar({
   patientName,
+  patientId,
   selectedPreset,
 }: {
+  patientId: string | undefined;
   patientName: string;
   selectedPreset: SelectedPreset | undefined;
 }) {
@@ -39,7 +41,11 @@ export default function PresetActionBar({
             size="lg"
             variant="outline"
             disabled={!selectedPreset}
-            onClick={() => selectedPreset && navigate(`/presets/${selectedPreset.id}/edit`)}
+            onClick={() =>
+              selectedPreset &&
+              patientId &&
+              navigate(`/patients/${patientId}/presets/${selectedPreset.id}/edit`)
+            }
             className="min-w-40"
           >
             <SlidersHorizontal className="size-4" aria-hidden="true" />
@@ -50,7 +56,11 @@ export default function PresetActionBar({
             type="button"
             size="lg"
             disabled={!selectedPreset}
-            onClick={() => selectedPreset && navigate(`/presets/${selectedPreset.id}/session`)}
+            onClick={() =>
+              selectedPreset &&
+              patientId &&
+              navigate(`/patients/${patientId}/presets/${selectedPreset.id}/session`)
+            }
             className="min-w-48"
           >
             <Play className="size-4" aria-hidden="true" />

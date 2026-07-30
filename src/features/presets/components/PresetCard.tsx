@@ -63,7 +63,7 @@ export default function PresetCard({
             preset={preset}
           />
           <Button asChild variant="ghost" size="icon" title={`Edit ${preset.name} mappings`}>
-            <Link to={`/presets/${preset.id}/edit`}>
+            <Link to={`/patients/${preset.patientId}/presets/${preset.id}/edit`}>
               <Pencil className="size-4" aria-hidden="true" />
               <span className="sr-only">Edit {preset.name} mappings</span>
             </Link>

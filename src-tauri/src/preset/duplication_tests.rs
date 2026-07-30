@@ -44,13 +44,18 @@ fn duplicate_preset_copies_mappings_and_preserves_source() {
             "[11,12]".into()
         )
     );
-    assert_eq!(get_preset(&conn, "preset-1").unwrap().mapping_count, 1);
+    assert_eq!(
+        get_preset(&conn, "preset-1", "patient-1")
+            .unwrap()
+            .mapping_count,
+        1
+    );
 }
 
 #[test]
 fn duplicate_preset_keeps_name_within_limit() {
     let mut conn = setup_test_conn();
-    let source = create_preset(&conn, &"a".repeat(60)).unwrap();
+    let source = create_preset(&conn, "patient-1", &"a".repeat(60)).unwrap();
 
     let duplicate = duplicate_preset(&mut conn, &source.id).unwrap();
 
@@ -62,7 +67,7 @@ fn duplicate_preset_keeps_name_within_limit() {
 fn duplicate_preset_copies_default_pose() {
     let mut conn = setup_test_conn();
     let frames = r#"[{"timestampMs":0},{"timestampMs":33}]"#;
-    update_default_pose(&conn, "preset-1", frames).unwrap();
+    update_default_pose(&conn, "preset-1", "patient-1", frames).unwrap();
 
     let duplicate = duplicate_preset(&mut conn, "preset-1").unwrap();
 
@@ -72,7 +77,7 @@ fn duplicate_preset_copies_default_pose() {
 #[test]
 fn duplicate_preset_preserves_missing_default_pose() {
     let mut conn = setup_test_conn();
-    let source = create_preset(&conn, "Uncalibrated Preset").unwrap();
+    let source = create_preset(&conn, "patient-1", "Uncalibrated Preset").unwrap();
 
     let duplicate = duplicate_preset(&mut conn, &source.id).unwrap();
 

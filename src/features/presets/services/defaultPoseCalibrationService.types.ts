@@ -27,7 +27,7 @@ export interface DefaultPoseCalibrationSnapshot {
 export interface DefaultPoseCalibrationService {
   getSnapshot(): DefaultPoseCalibrationSnapshot;
   subscribe(listener: () => void): () => void;
-  start(presetId: string | undefined): Promise<void>;
+  start(patientId: string | undefined, presetId: string | undefined): Promise<void>;
   dispose(): void;
   startRecording(): void;
   cancelCountdown(): void;

@@ -6,14 +6,15 @@ import PresetMappingsHeader from "./components/PresetMappingsHeader";
 import { usePresetMappings } from "./hooks/usePresetMappings";
 
 export default function PresetMappingsPage() {
-  const { presetId } = useParams<{ presetId: string }>();
-  const mappings = usePresetMappings(presetId);
+  const { patientId, presetId } = useParams<{ patientId: string; presetId: string }>();
+  const mappings = usePresetMappings(patientId, presetId);
 
   return (
     <section className="min-h-screen bg-background px-8 py-10">
       <div className="mx-auto max-w-6xl">
         <PresetMappingsHeader
           canAddMovement={Boolean(mappings.preset?.defaultPoseFramesJson)}
+          patientId={patientId}
           presetId={presetId}
           presetName={mappings.preset?.name ?? null}
         />
@@ -27,6 +28,7 @@ export default function PresetMappingsPage() {
         {mappings.preset && (
           <CalibrationRequirementCard
             isCalibrated={Boolean(mappings.preset.defaultPoseFramesJson)}
+            patientId={patientId ?? ""}
             presetId={mappings.preset.id}
           />
         )}
@@ -36,6 +38,7 @@ export default function PresetMappingsPage() {
             deletingMappingId={mappings.deletingMappingId}
             mappings={mappings.mappings}
             onDelete={mappings.deleteMapping}
+            patientId={patientId ?? ""}
             presetId={presetId}
           />
         )}
@@ -45,7 +48,9 @@ export default function PresetMappingsPage() {
         <div className="mx-auto flex max-w-6xl justify-end">
           {mappings.preset?.defaultPoseFramesJson ? (
             <Button asChild size="lg">
-              <Link to={`/presets/${presetId}/recognition`}>Test Recognition</Link>
+              <Link to={`/patients/${patientId}/presets/${presetId}/recognition`}>
+                Test Recognition
+              </Link>
             </Button>
           ) : (
             <Button disabled size="lg">

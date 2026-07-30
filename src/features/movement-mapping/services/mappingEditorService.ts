@@ -35,7 +35,7 @@ class MovementMappingEditorService implements MappingEditorService {
     return () => this.listeners.delete(listener);
   };
 
-  start = async ({ mappingId, presetId }: MappingEditorInput) => {
+  start = async ({ mappingId, patientId, presetId }: MappingEditorInput) => {
     const token = ++this.operationToken;
     this.stopRecordingService();
     this.presetId = presetId ?? null;
@@ -43,7 +43,7 @@ class MovementMappingEditorService implements MappingEditorService {
     this.snapshot = { ...emptySnapshot(), status: "loading" };
     this.notify();
 
-    if (!presetId) {
+    if (!patientId || !presetId) {
       this.publishLoadError("Preset not found.");
       return;
     }
@@ -64,7 +64,7 @@ class MovementMappingEditorService implements MappingEditorService {
         return;
       }
 
-      const preset = await getPreset(presetId);
+      const preset = await getPreset(presetId, patientId);
       if (token !== this.operationToken) return;
       if (!preset.defaultPoseFramesJson) {
         this.snapshot = { ...this.snapshot, status: "needs-calibration" };

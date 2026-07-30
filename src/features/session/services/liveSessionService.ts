@@ -34,7 +34,7 @@ class OverlayLiveSessionService implements LiveSessionService {
     return () => this.listeners.delete(listener);
   };
 
-  start = async (presetId: string | undefined) => {
+  start = async (patientId: string | undefined, presetId: string | undefined) => {
     const token = ++this.operationToken;
     this.stopRuntime();
 
@@ -47,7 +47,7 @@ class OverlayLiveSessionService implements LiveSessionService {
       triggerCount: 0,
     };
 
-    if (!presetId) {
+    if (!patientId || !presetId) {
       this.publishError("Preset not found.");
       return;
     }
@@ -62,7 +62,7 @@ class OverlayLiveSessionService implements LiveSessionService {
       this.unsubscribeRecognitionRuntime = recognitionRuntime.subscribe(
         this.publishRecognitionRuntime,
       );
-      await recognitionRuntime.start(presetId);
+      await recognitionRuntime.start(patientId, presetId);
       if (token !== this.operationToken) return;
 
       const runtime = recognitionRuntime.getSnapshot();

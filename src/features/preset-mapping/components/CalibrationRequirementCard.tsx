@@ -4,10 +4,11 @@ import { Button } from "@/components/ui/button";
 
 type Props = {
   isCalibrated: boolean;
+  patientId: string;
   presetId: string;
 };
 
-export default function CalibrationRequirementCard({ isCalibrated, presetId }: Props) {
+export default function CalibrationRequirementCard({ isCalibrated, patientId, presetId }: Props) {
   return (
     <section
       className={`mt-6 flex items-center justify-between gap-6 rounded-lg border p-4 ${
@@ -32,7 +33,7 @@ export default function CalibrationRequirementCard({ isCalibrated, presetId }: P
         </div>
       </div>
       <Button asChild variant={isCalibrated ? "outline" : "default"}>
-        <Link to={`/presets/${presetId}/default-pose`}>
+        <Link to={`/patients/${patientId}/presets/${presetId}/default-pose`}>
           {isCalibrated ? "Re-record" : "Record Default State"}
         </Link>
       </Button>

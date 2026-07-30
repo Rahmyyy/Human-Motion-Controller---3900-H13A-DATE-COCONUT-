@@ -1,17 +1,20 @@
+import { useLocation, useParams } from "react-router";
 import PresetActionBar from "./components/PresetActionBar";
 import PresetCollection from "./components/PresetCollection";
 import PresetPageHeader from "./components/PresetPageHeader";
 import { usePresetSelection } from "./hooks/usePresetSelection";
 
-const patientName = "Lindsay Collins";
-
 export default function PresetSelectionPage() {
-  const presets = usePresetSelection();
+  const { patientId } = useParams<{ patientId: string }>();
+  const location = useLocation();
+  const patientName = location.state?.patientName ?? "selected patient";
+  const presets = usePresetSelection(patientId);
 
   return (
     <section className="min-h-screen bg-muted/20 px-8 py-8 pb-40">
       <div className="mx-auto max-w-7xl">
         <PresetPageHeader
+          patientId={patientId}
           patientName={patientName}
           createError={presets.createError}
           isCreating={presets.isCreating}
@@ -45,6 +48,7 @@ export default function PresetSelectionPage() {
       </div>
 
       <PresetActionBar
+        patientId={patientId}
         patientName={patientName}
         selectedPreset={presets.selectedPreset ?? undefined}
       />

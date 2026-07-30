@@ -1,7 +1,11 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { createMappingEditorService } from "../services/mappingEditorService";
 
-export function useMappingEditor(presetId: string | undefined, mappingId?: string) {
+export function useMappingEditor(
+  patientId: string | undefined,
+  presetId: string | undefined,
+  mappingId?: string,
+) {
   const [service] = useState(createMappingEditorService);
   const snapshot = useSyncExternalStore(
     service.subscribe,
@@ -10,9 +14,9 @@ export function useMappingEditor(presetId: string | undefined, mappingId?: strin
   );
 
   useEffect(() => {
-    void service.start({ mappingId, presetId });
+    void service.start({ mappingId, patientId, presetId });
     return service.dispose;
-  }, [mappingId, presetId, service]);
+  }, [mappingId, patientId, presetId, service]);
 
   return {
     ...snapshot,

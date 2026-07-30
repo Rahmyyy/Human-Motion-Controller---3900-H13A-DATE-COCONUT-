@@ -1,7 +1,10 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { createDefaultPoseCalibrationService } from "../services/defaultPoseCalibrationService";
 
-export function useDefaultPoseCalibration(presetId: string | undefined) {
+export function useDefaultPoseCalibration(
+  patientId: string | undefined,
+  presetId: string | undefined,
+) {
   const [service] = useState(createDefaultPoseCalibrationService);
   const snapshot = useSyncExternalStore(
     service.subscribe,
@@ -10,9 +13,9 @@ export function useDefaultPoseCalibration(presetId: string | undefined) {
   );
 
   useEffect(() => {
-    void service.start(presetId);
+    void service.start(patientId, presetId);
     return service.dispose;
-  }, [presetId, service]);
+  }, [patientId, presetId, service]);
 
   return {
     ...snapshot,

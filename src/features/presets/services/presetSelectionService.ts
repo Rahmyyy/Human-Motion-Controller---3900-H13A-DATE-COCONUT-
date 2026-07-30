@@ -16,6 +16,7 @@ class PresetLibrarySelectionService implements PresetSelectionService {
   private snapshot: PresetSelectionSnapshot = emptySnapshot();
   private readonly listeners = new Set<Listener>();
   private operationToken = 0;
+  private patientId: string | null = null;
 
   getSnapshot = () => this.snapshot;
 
@@ -24,12 +25,17 @@ class PresetLibrarySelectionService implements PresetSelectionService {
     return () => this.listeners.delete(listener);
   };
 
-  start = async () => {
+  start = async (patientId: string | undefined) => {
     const token = ++this.operationToken;
+    this.patientId = patientId ?? null;
     this.publish({ error: null, isLoading: true });
+    if (!patientId) {
+      this.publish({ error: "Patient not found.", isLoading: false });
+      return;
+    }
 
     try {
-      const presets = await getPresets();
+      const presets = await getPresets(patientId);
       if (token !== this.operationToken) return;
       this.publish({ isLoading: false, presets });
     } catch (error) {
@@ -50,11 +56,11 @@ class PresetLibrarySelectionService implements PresetSelectionService {
 
   createPreset = async (name: string) => {
     const trimmedName = name.trim();
-    if (!trimmedName || this.snapshot.isCreating) return null;
+    if (!trimmedName || !this.patientId || this.snapshot.isCreating) return null;
 
     this.publish({ createError: null, isCreating: true });
     try {
-      const created = await createPresetApi(trimmedName);
+      const created = await createPresetApi(this.patientId, trimmedName);
       this.snapshot = {
         ...this.snapshot,
         createError: null,

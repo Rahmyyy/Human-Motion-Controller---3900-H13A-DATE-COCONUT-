@@ -36,7 +36,7 @@ class PresetRecognitionRuntimeService implements RecognitionRuntimeService {
     return () => this.listeners.delete(listener);
   };
 
-  start = async (presetId: string | undefined) => {
+  start = async (patientId: string | undefined, presetId: string | undefined) => {
     const token = ++this.operationToken;
     this.stopRecognition();
     this.snapshot = {
@@ -47,7 +47,7 @@ class PresetRecognitionRuntimeService implements RecognitionRuntimeService {
       recognitionStatus: emptyRecognitionStatus(),
     };
 
-    if (!presetId) {
+    if (!patientId || !presetId) {
       this.publishError("Preset not found.");
       return;
     }
@@ -56,7 +56,7 @@ class PresetRecognitionRuntimeService implements RecognitionRuntimeService {
 
     try {
       const [preset, mappings] = await Promise.all([
-        getPreset(presetId),
+        getPreset(presetId, patientId),
         getMovementMappings(presetId),
       ]);
       if (token !== this.operationToken) return;

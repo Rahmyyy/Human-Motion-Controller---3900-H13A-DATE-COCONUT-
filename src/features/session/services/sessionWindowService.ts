@@ -3,7 +3,8 @@ import { listen } from "@tauri-apps/api/event";
 import type { SessionWindowService } from "./sessionWindowService.types";
 
 class TauriSessionWindowService implements SessionWindowService {
-  openOverlay = (presetId: string) => invoke<void>("open_overlay", { presetId });
+  openOverlay = (patientId: string, presetId: string) =>
+    invoke<void>("open_overlay", { patientId, presetId });
 
   closeOverlay = () => invoke<void>("close_overlay");
 

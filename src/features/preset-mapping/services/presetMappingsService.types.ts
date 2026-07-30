@@ -18,7 +18,7 @@ export interface PresetMappingsSnapshot {
 export interface PresetMappingsService {
   getSnapshot(): PresetMappingsSnapshot;
   subscribe(listener: () => void): () => void;
-  start(presetId: string | undefined): Promise<void>;
+  start(patientId: string | undefined, presetId: string | undefined): Promise<void>;
   dispose(): void;
   deleteMapping(mappingId: string): Promise<boolean>;
 }

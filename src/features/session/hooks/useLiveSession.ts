@@ -1,7 +1,7 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { createLiveSessionService } from "../services/liveSessionService";
 
-export function useLiveSession(presetId: string | undefined) {
+export function useLiveSession(patientId: string | undefined, presetId: string | undefined) {
   const [service] = useState(createLiveSessionService);
   const snapshot = useSyncExternalStore(
     service.subscribe,
@@ -10,9 +10,9 @@ export function useLiveSession(presetId: string | undefined) {
   );
 
   useEffect(() => {
-    void service.start(presetId);
+    void service.start(patientId, presetId);
     return service.dispose;
-  }, [presetId, service]);
+  }, [patientId, presetId, service]);
 
   return { ...snapshot, endSession: service.end };
 }

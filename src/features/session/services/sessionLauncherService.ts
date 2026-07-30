@@ -20,11 +20,11 @@ class MainWindowSessionLauncherService implements SessionLauncherService {
     return () => this.listeners.delete(listener);
   };
 
-  start = async (presetId: string | undefined) => {
+  start = async (patientId: string | undefined, presetId: string | undefined) => {
     const token = ++this.operationToken;
     this.clearSessionEndedListener();
 
-    if (!presetId) {
+    if (!patientId || !presetId) {
       this.publish({ error: "Preset not found.", status: "error" });
       return;
     }
@@ -39,7 +39,7 @@ class MainWindowSessionLauncherService implements SessionLauncherService {
       }
       this.unlistenSessionEnded = unlisten;
 
-      const openPromise = sessionWindowService.openOverlay(presetId);
+      const openPromise = sessionWindowService.openOverlay(patientId, presetId);
       this.openPromise = openPromise;
       await openPromise;
       if (token !== this.operationToken || this.snapshot.status === "ended") return;

@@ -4,13 +4,19 @@ import MovementMappingWorkspace from "./components/MovementMappingWorkspace";
 import { useMappingEditor } from "./hooks/useMappingEditor";
 
 export default function EditMovementMappingPage() {
-  const { mappingId, presetId } = useParams<{ mappingId: string; presetId: string }>();
+  const { mappingId, patientId, presetId } = useParams<{
+    mappingId: string;
+    patientId: string;
+    presetId: string;
+  }>();
   const navigate = useNavigate();
-  const editor = useMappingEditor(presetId, mappingId);
+  const editor = useMappingEditor(patientId, presetId, mappingId);
 
   useEffect(() => {
-    if (editor.status === "saved" && presetId) navigate(`/presets/${presetId}/edit`);
-  }, [editor.status, navigate, presetId]);
+    if (editor.status === "saved" && patientId && presetId) {
+      navigate(`/patients/${patientId}/presets/${presetId}/edit`);
+    }
+  }, [editor.status, navigate, patientId, presetId]);
 
   if (editor.status === "error") {
     return (
@@ -30,7 +36,7 @@ export default function EditMovementMappingPage() {
 
   return (
     <MovementMappingWorkspace
-      backTo={`/presets/${presetId}/edit`}
+      backTo={`/patients/${patientId}/presets/${presetId}/edit`}
       title="Edit Mapping"
       description="Review the saved movement and adjust its mapping details."
       canSave={editor.canSave}

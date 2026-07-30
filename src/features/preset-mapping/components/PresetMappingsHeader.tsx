@@ -5,18 +5,20 @@ import { Link } from "react-router";
 
 type PresetMappingsHeaderProps = {
   canAddMovement: boolean;
+  patientId: string | undefined;
   presetId: string | undefined;
   presetName: string | null;
 };
 
 export default function PresetMappingsHeader({
   canAddMovement,
+  patientId,
   presetId,
   presetName,
 }: PresetMappingsHeaderProps) {
   return (
     <header>
-      <BackButton to="/" />
+      <BackButton to={patientId ? `/patients/${patientId}/presets` : "/"} />
 
       <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2">
@@ -45,7 +47,7 @@ export default function PresetMappingsHeader({
 
         <Button asChild={Boolean(presetId && canAddMovement)} size="lg" disabled={!canAddMovement}>
           {presetId && canAddMovement ? (
-            <Link to={`/presets/${presetId}/movements/new`}>
+            <Link to={`/patients/${patientId}/presets/${presetId}/movements/new`}>
               <Plus className="size-4" aria-hidden="true" />
               Add New Movement
             </Link>

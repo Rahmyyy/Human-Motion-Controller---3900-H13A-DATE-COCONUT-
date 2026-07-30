@@ -26,7 +26,11 @@ const SCREEN_MARGIN: f64 = 24.0;
 /// building a webview window there deadlocks WebView2 on Windows — the window
 /// appears but never paints, and the event loop stops servicing anything else.
 #[tauri::command]
-pub async fn open_overlay(app: AppHandle, preset_id: String) -> Result<(), String> {
+pub async fn open_overlay(
+    app: AppHandle,
+    patient_id: String,
+    preset_id: String,
+) -> Result<(), String> {
     // Held for the whole command; there is no await inside, so it is never
     // held across a suspension point.
     let _guard = OPEN_LOCK.lock().map_err(|e| e.to_string())?;
@@ -40,7 +44,7 @@ pub async fn open_overlay(app: AppHandle, preset_id: String) -> Result<(), Strin
     }
 
     // HashRouter, so the route travels in the fragment of the shared entrypoint.
-    let url = format!("index.html#/presets/{preset_id}/overlay");
+    let url = format!("index.html#/patients/{patient_id}/presets/{preset_id}/overlay");
 
     let overlay = WebviewWindowBuilder::new(&app, OVERLAY_LABEL, WebviewUrl::App(url.into()))
         .title("Human Controller Overlay")

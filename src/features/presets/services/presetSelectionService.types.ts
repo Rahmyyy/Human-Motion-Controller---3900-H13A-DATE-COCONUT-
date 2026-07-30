@@ -23,7 +23,7 @@ export interface PresetSelectionSnapshot {
 export interface PresetSelectionService {
   getSnapshot(): PresetSelectionSnapshot;
   subscribe(listener: () => void): () => void;
-  start(): Promise<void>;
+  start(patientId: string | undefined): Promise<void>;
   dispose(): void;
   selectPreset(presetId: string): void;
   createPreset(name: string): Promise<Preset | null>;

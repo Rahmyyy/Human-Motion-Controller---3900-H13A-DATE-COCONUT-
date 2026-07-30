@@ -33,6 +33,7 @@ export interface MappingEditorSnapshot {
 
 export interface MappingEditorInput {
   mappingId?: string;
+  patientId?: string;
   presetId?: string;
 }
 

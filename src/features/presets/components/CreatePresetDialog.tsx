@@ -21,6 +21,7 @@ interface CreatePresetDialogProps {
   isCreating: boolean;
   onClearError: () => void;
   onCreate: (name: string) => Promise<Preset | null>;
+  patientId: string | undefined;
 }
 
 export default function CreatePresetDialog({
@@ -28,6 +29,7 @@ export default function CreatePresetDialog({
   isCreating,
   onClearError,
   onCreate,
+  patientId,
 }: CreatePresetDialogProps) {
   const navigate = useNavigate();
   const [selectedMode, setSelectedMode] = useState<PresetStartMode | null>(null);
@@ -47,7 +49,9 @@ export default function CreatePresetDialog({
 
     if (selectedMode === "custom") {
       const preset = await onCreate(trimmedPresetName);
-      if (preset) navigate(`/presets/${preset.id}/edit`);
+      if (preset && patientId) {
+        navigate(`/patients/${patientId}/presets/${preset.id}/edit`);
+      }
       return;
     }
     // later add to here, functionality for existing templates

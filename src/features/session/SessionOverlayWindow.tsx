@@ -16,9 +16,9 @@ import { useTransparentWindow } from "./hooks/useTransparentWindow";
  * and shutdown; this component only renders its snapshot.
  */
 export default function SessionOverlayWindow() {
-  const { presetId } = useParams<{ presetId: string }>();
+  const { patientId, presetId } = useParams<{ patientId: string; presetId: string }>();
   const { cameraMode, elapsedMs, endSession, presetName, recognitionStatus, triggerCount } =
-    useLiveSession(presetId);
+    useLiveSession(patientId, presetId);
 
   useTransparentWindow();
 

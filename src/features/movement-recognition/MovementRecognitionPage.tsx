@@ -8,8 +8,11 @@ import RecognitionStatusPanel from "./components/RecognitionStatusPanel";
 import { useRecognitionRuntime } from "./hooks/useRecognitionRuntime";
 
 export default function MovementRecognitionPage() {
-  const { presetId } = useParams<{ presetId: string }>();
-  const { cameraMode, error, phase, recognitionStatus } = useRecognitionRuntime(presetId);
+  const { patientId, presetId } = useParams<{ patientId: string; presetId: string }>();
+  const { cameraMode, error, phase, recognitionStatus } = useRecognitionRuntime(
+    patientId,
+    presetId,
+  );
 
   return (
     <main className="grid h-screen w-full grid-rows-[auto_minmax(0,1fr)] gap-4 overflow-hidden bg-slate-50 p-8">
@@ -22,12 +25,12 @@ export default function MovementRecognitionPage() {
         </div>
         <div className="flex items-center gap-3">
           <Button asChild variant="outline">
-            <Link to={`/presets/${presetId}/dashboard`}>
+            <Link to={`/patients/${patientId}/presets/${presetId}/dashboard`}>
               <LayoutDashboard className="size-4" aria-hidden="true" />
               Dashboard
             </Link>
           </Button>
-          <BackButton to={`/presets/${presetId}/edit`} />
+          <BackButton to={`/patients/${patientId}/presets/${presetId}/edit`} />
         </div>
       </header>
 

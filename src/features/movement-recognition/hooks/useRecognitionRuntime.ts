@@ -1,7 +1,7 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { createRecognitionRuntimeService } from "../services/recognitionRuntimeService";
 
-export function useRecognitionRuntime(presetId: string | undefined) {
+export function useRecognitionRuntime(patientId: string | undefined, presetId: string | undefined) {
   const [service] = useState(() =>
     createRecognitionRuntimeService({
       defaultPoseRequiredMessage: "Record a default resting state before testing recognition.",
@@ -14,9 +14,9 @@ export function useRecognitionRuntime(presetId: string | undefined) {
   );
 
   useEffect(() => {
-    void service.start(presetId);
+    void service.start(patientId, presetId);
     return service.dispose;
-  }, [presetId, service]);
+  }, [patientId, presetId, service]);
 
   return snapshot;
 }

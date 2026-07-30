@@ -21,12 +21,12 @@ class PresetMappingCollectionService implements PresetMappingsService {
     return () => this.listeners.delete(listener);
   };
 
-  start = async (presetId: string | undefined) => {
+  start = async (patientId: string | undefined, presetId: string | undefined) => {
     const token = ++this.operationToken;
     this.presetId = presetId ?? null;
     this.snapshot = { ...emptySnapshot(), isLoading: true };
 
-    if (!presetId) {
+    if (!patientId || !presetId) {
       this.publish({ error: "Preset not found.", isLoading: false });
       return;
     }
@@ -34,7 +34,7 @@ class PresetMappingCollectionService implements PresetMappingsService {
     this.notify();
     try {
       const [preset, mappings] = await Promise.all([
-        getPreset(presetId),
+        getPreset(presetId, patientId),
         getMovementMappings(presetId),
       ]);
       if (token !== this.operationToken) return;

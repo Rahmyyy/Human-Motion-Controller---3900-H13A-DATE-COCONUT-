@@ -11,6 +11,7 @@ interface PresetPageHeaderProps {
   onClearCreateError: () => void;
   onCreatePreset: (name: string) => Promise<Preset | null>;
   patientName: string;
+  patientId?: string;
 }
 
 export default function PresetPageHeader({
@@ -19,6 +20,7 @@ export default function PresetPageHeader({
   onClearCreateError,
   onCreatePreset,
   patientName,
+  patientId,
 }: PresetPageHeaderProps) {
   return (
     <header>
@@ -37,6 +39,7 @@ export default function PresetPageHeader({
             isCreating={isCreating}
             onClearError={onClearCreateError}
             onCreate={onCreatePreset}
+            patientId={patientId}
           />
           <BackButton to="/patients" />
           <CameraModeToggle />

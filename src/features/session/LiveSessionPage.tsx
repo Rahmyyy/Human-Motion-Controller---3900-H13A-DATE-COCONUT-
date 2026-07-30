@@ -11,9 +11,9 @@ import { useSessionLauncher } from "./hooks/useSessionLauncher";
  * awkward or the user has tabbed back here.
  */
 export default function LiveSessionPage() {
-  const { presetId } = useParams<{ presetId: string }>();
+  const { patientId, presetId } = useParams<{ patientId: string; presetId: string }>();
   const navigate = useNavigate();
-  const { endSession, error, status } = useSessionLauncher(presetId);
+  const { endSession, error, status } = useSessionLauncher(patientId, presetId);
 
   useEffect(() => {
     if (status === "ended") navigate("/");

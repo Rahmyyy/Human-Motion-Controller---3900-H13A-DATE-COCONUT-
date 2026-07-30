@@ -18,6 +18,7 @@ interface PresetMappingCollectionProps {
   deletingMappingId: string | null;
   mappings: PresetMappingViewData[];
   onDelete: (id: string) => Promise<boolean>;
+  patientId: string;
   presetId: string;
 }
 
@@ -25,6 +26,7 @@ export default function PresetMappingCollection({
   deletingMappingId,
   mappings,
   onDelete,
+  patientId,
   presetId,
 }: PresetMappingCollectionProps) {
   if (mappings.length === 0) {
@@ -39,7 +41,7 @@ export default function PresetMappingCollection({
     <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {mappings.map((mapping) => (
         <div key={mapping.id} className="relative">
-          <Link to={`/presets/${presetId}/movements/${mapping.id}/edit`}>
+          <Link to={`/patients/${patientId}/presets/${presetId}/movements/${mapping.id}/edit`}>
             <PresetMappingCard mapping={mapping} />
           </Link>
           <Dialog>

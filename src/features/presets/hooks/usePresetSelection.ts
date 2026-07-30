@@ -1,7 +1,7 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { createPresetSelectionService } from "../services/presetSelectionService";
 
-export function usePresetSelection() {
+export function usePresetSelection(patientId: string | undefined) {
   const [service] = useState(createPresetSelectionService);
   const snapshot = useSyncExternalStore(
     service.subscribe,
@@ -10,9 +10,9 @@ export function usePresetSelection() {
   );
 
   useEffect(() => {
-    void service.start();
+    void service.start(patientId);
     return service.dispose;
-  }, [service]);
+  }, [patientId, service]);
 
   return {
     ...snapshot,

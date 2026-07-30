@@ -14,7 +14,7 @@ export interface RecognitionRuntimeSnapshot {
 export interface RecognitionRuntimeService {
   getSnapshot(): RecognitionRuntimeSnapshot;
   subscribe(listener: () => void): () => void;
-  start(presetId: string | undefined): Promise<void>;
+  start(patientId: string | undefined, presetId: string | undefined): Promise<void>;
   dispose(): void;
 }
 

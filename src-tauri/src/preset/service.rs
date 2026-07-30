@@ -5,7 +5,13 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 const MAX_PRESET_NAME_LENGTH: usize = 60;
 
-pub fn create_preset(conn: &Connection, name: &str) -> Result<Preset> {
+pub fn create_preset(conn: &Connection, patient_id: &str, name: &str) -> Result<Preset> {
+    let patient_id = patient_id.trim();
+
+    if patient_id.is_empty() {
+        return Err(anyhow!("Patient ID cannot be empty"));
+    }
+
     let name = name.trim();
 
     if name.is_empty() {
@@ -22,20 +28,33 @@ pub fn create_preset(conn: &Connection, name: &str) -> Result<Preset> {
     let id = format!("preset-{}", now.as_nanos());
     let created_at = now.as_secs().to_string();
 
-    repository::insert_preset(conn, &id, name, &created_at)?;
-    repository::select_preset_by_id(conn, &id)
+    repository::insert_preset(conn, &id, patient_id, name, &created_at)?;
+    repository::select_preset_by_id(conn, &id, patient_id)
 }
 
-pub fn get_presets(conn: &Connection) -> Result<Vec<Preset>> {
-    repository::select_presets(conn)
+pub fn get_presets(conn: &Connection, patient_id: &str) -> Result<Vec<Preset>> {
+    let patient_id = patient_id.trim();
+
+    if patient_id.is_empty() {
+        return Err(anyhow!("Patient ID cannot be empty"));
+    }
+
+    repository::select_presets_by_patient(conn, patient_id)
 }
 
-pub fn get_preset(conn: &Connection, id: &str) -> Result<Preset> {
-    if id.trim().is_empty() {
+pub fn get_preset(conn: &Connection, id: &str, patient_id: &str) -> Result<Preset> {
+    let id = id.trim();
+    let patient_id = patient_id.trim();
+
+    if id.is_empty() {
         return Err(anyhow!("Preset ID cannot be empty"));
     }
 
-    repository::select_preset_by_id(conn, id)
+    if patient_id.is_empty() {
+        return Err(anyhow!("Patient ID cannot be empty"));
+    }
+
+    repository::select_preset_by_id(conn, id, patient_id)
 }
 
 pub fn duplicate_preset(conn: &mut Connection, source_id: &str) -> Result<Preset> {
@@ -43,7 +62,7 @@ pub fn duplicate_preset(conn: &mut Connection, source_id: &str) -> Result<Preset
         return Err(anyhow!("Preset ID cannot be empty"));
     }
 
-    let source = repository::select_preset_by_id(conn, source_id)?;
+    let source = repository::select_preset_by_id_any_patient(conn, source_id)?;
     let suffix = " (Copy)";
     let available_characters = MAX_PRESET_NAME_LENGTH - suffix.chars().count();
     let duplicate_name = format!(
@@ -66,8 +85,9 @@ pub fn duplicate_preset(conn: &mut Connection, source_id: &str) -> Result<Preset
         &duplicate_name,
         &created_at,
         source.default_pose_frames_json.as_deref(),
+        &source.patient_id,
     )?;
-    repository::select_preset_by_id(conn, &duplicate_id)
+    repository::select_preset_by_id(conn, &duplicate_id, &source.patient_id)
 }
 
 pub fn delete_preset(conn: &Connection, id: &str) -> Result<()> {
@@ -86,8 +106,20 @@ pub fn delete_preset(conn: &Connection, id: &str) -> Result<()> {
 pub fn update_default_pose(
     conn: &Connection,
     id: &str,
+    patient_id: &str,
     default_pose_frames_json: &str,
 ) -> Result<Preset> {
+    let id = id.trim();
+    let patient_id = patient_id.trim();
+
+    if id.is_empty() {
+        return Err(anyhow!("Preset ID cannot be empty"));
+    }
+
+    if patient_id.is_empty() {
+        return Err(anyhow!("Patient ID cannot be empty"));
+    }
+
     let parsed_frames: serde_json::Value = serde_json::from_str(default_pose_frames_json)
         .map_err(|_| anyhow!("Default pose frames must be valid JSON"))?;
     let frame_count = parsed_frames
@@ -104,7 +136,7 @@ pub fn update_default_pose(
         return Err(anyhow!("Preset not found"));
     }
 
-    repository::select_preset_by_id(conn, id)
+    repository::select_preset_by_id(conn, id, patient_id)
 }
 
 #[cfg(test)]

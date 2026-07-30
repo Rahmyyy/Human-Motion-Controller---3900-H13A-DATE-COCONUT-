@@ -9,7 +9,7 @@ export interface SessionLauncherSnapshot {
 export interface SessionLauncherService {
   getSnapshot(): SessionLauncherSnapshot;
   subscribe(listener: () => void): () => void;
-  start(presetId: string | undefined): Promise<void>;
+  start(patientId: string | undefined, presetId: string | undefined): Promise<void>;
   end(): Promise<void>;
   dispose(): void;
 }

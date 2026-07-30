@@ -3,6 +3,7 @@ mod input;
 mod mediapipe;
 mod movement_mapping;
 mod overlay;
+mod patient;
 mod preset;
 mod streams;
 
@@ -159,6 +160,9 @@ pub fn run() {
             preset::commands::duplicate_preset,
             preset::commands::delete_preset,
             preset::commands::update_default_pose,
+            patient::commands::create_patient,
+            patient::commands::get_patients,
+            patient::commands::get_patient,
             overlay::open_overlay,
             overlay::close_overlay,
         ])

@@ -21,6 +21,7 @@ class PresetDefaultPoseCalibrationService implements DefaultPoseCalibrationServi
   private recordingService: RecordingService | null = null;
   private unsubscribeRecording: (() => void) | null = null;
   private operationToken = 0;
+  private patientId: string | null = null;
 
   getSnapshot = () => this.snapshot;
 
@@ -29,19 +30,20 @@ class PresetDefaultPoseCalibrationService implements DefaultPoseCalibrationServi
     return () => this.listeners.delete(listener);
   };
 
-  start = async (presetId: string | undefined) => {
+  start = async (patientId: string | undefined, presetId: string | undefined) => {
     const token = ++this.operationToken;
     this.stopRecordingService();
     this.snapshot = { ...emptySnapshot(), presetId: presetId ?? null, status: "loading" };
     this.notify();
 
-    if (!presetId) {
+    this.patientId = patientId ?? null;
+    if (!patientId || !presetId) {
       this.publish({ error: "Preset not found.", status: "error" });
       return;
     }
 
     try {
-      const preset = await getPreset(presetId);
+      const preset = await getPreset(presetId, patientId);
       if (token !== this.operationToken) return;
       const initialFrames = parsePoseFrames(preset.defaultPoseFramesJson);
       this.initialiseRecording(initialFrames);
@@ -71,11 +73,15 @@ class PresetDefaultPoseCalibrationService implements DefaultPoseCalibrationServi
   trimRecording = (range: RecordingTrimRange) => this.recordingService?.trimRecording(range);
 
   save = async () => {
-    if (this.snapshot.status !== "ready" || !this.snapshot.presetId) return;
+    if (this.snapshot.status !== "ready" || !this.snapshot.presetId || !this.patientId) return;
 
     this.publish({ error: null, status: "saving" });
     try {
-      await updateDefaultPose(this.snapshot.presetId, JSON.stringify(this.snapshot.recordedFrames));
+      await updateDefaultPose(
+        this.snapshot.presetId,
+        this.patientId,
+        JSON.stringify(this.snapshot.recordedFrames),
+      );
       this.publish({ status: "saved" });
     } catch (error) {
       console.error("Failed to save default pose", error);
