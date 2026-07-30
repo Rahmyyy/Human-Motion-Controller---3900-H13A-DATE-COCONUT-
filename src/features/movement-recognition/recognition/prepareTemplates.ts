@@ -1,4 +1,8 @@
 import { parsePoseFrames } from "@/features/camera/parsePoseFrames";
+import {
+  framesAtMovementThreshold,
+  movementThresholdSettings,
+} from "@/features/movement-mapping/threshold/movementThreshold";
 import type { PresetMappingCardData } from "@/features/preset-mapping/types";
 import { normalizePoseFrames } from "./normalizePose";
 import { resolveActiveLandmarks, type PreparedMovementTemplate } from "./types";
@@ -9,7 +13,15 @@ export function prepareMovementTemplates(
   mappings: PresetMappingCardData[],
 ): PreparedMovementTemplate[] {
   return mappings.flatMap((mapping) => {
-    const frames = parsePoseFrames(mapping.poseFramesJson);
+    const baselineFrames = parsePoseFrames(mapping.poseFramesJson);
+    const threshold = movementThresholdSettings(
+      baselineFrames,
+      mapping.selectedLandmarks,
+      mapping.thresholdPercentage ?? 100,
+    );
+    const frames = threshold
+      ? framesAtMovementThreshold(baselineFrames, threshold.effectivePercentage)
+      : baselineFrames;
     if (frames.length < 2) {
       return [];
     }
