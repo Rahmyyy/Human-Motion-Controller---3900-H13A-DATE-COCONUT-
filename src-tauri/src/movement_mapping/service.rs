@@ -138,6 +138,26 @@ pub fn delete_movement_mapping(conn: &Connection, id: &str, preset_id: &str) -> 
     Ok(())
 }
 
+pub fn update_movement_mapping_threshold(
+    conn: &Connection,
+    id: &str,
+    preset_id: &str,
+    threshold_percentage: u32,
+) -> Result<()> {
+    if !(1..=100).contains(&threshold_percentage) {
+        return Err(anyhow!("Movement threshold must be between 1 and 100"));
+    }
+
+    let rows_affected =
+        repository::update_movement_mapping_threshold(conn, id, preset_id, threshold_percentage)?;
+
+    if rows_affected == 0 {
+        return Err(anyhow!("Movement mapping not found"));
+    }
+
+    Ok(())
+}
+
 #[cfg(test)]
 #[path = "service_tests.rs"]
 mod tests;
