@@ -102,7 +102,7 @@ class MovementRecognitionService implements RecognitionService {
   private fireTrigger(match: RecognitionMatch) {
     void pressMatchedKey(match)
       .then(() => {
-        sessionService.recordSuccessfulTrigger();
+        sessionService.recordSuccessfulTrigger(match.id);
         this.snapshot = { ...this.snapshot, error: null };
         this.notifyImmediately();
       })

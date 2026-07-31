@@ -1,3 +1,4 @@
+import { listen } from "@tauri-apps/api/event";
 import { getCameraMode } from "@/features/camera/cameraMode";
 import {
   createRecognitionRuntimeService,
@@ -7,6 +8,7 @@ import {
 import { type RecognitionStatus } from "@/features/movement-recognition/services/recognitionService";
 import { sessionService } from "./sessionService";
 import { sessionWindowService } from "./sessionWindowService";
+import type { SessionSummary } from "./sessionSummary.types";
 import type { LiveSessionService, LiveSessionSnapshot } from "./liveSessionService.types";
 
 type Listener = () => void;
@@ -26,6 +28,7 @@ class OverlayLiveSessionService implements LiveSessionService {
   private unsubscribeSession: (() => void) | null = null;
   private ownsRunningSession = false;
   private operationToken = 0;
+  private unlistenEndRequested: (() => void) | null = null;
 
   getSnapshot = () => this.snapshot;
 
@@ -37,6 +40,14 @@ class OverlayLiveSessionService implements LiveSessionService {
   start = async (patientId: string | undefined, presetId: string | undefined) => {
     const token = ++this.operationToken;
     this.stopRuntime();
+
+    this.unlistenEndRequested?.();
+    // The main window's own "End Session" button can't reach this window's
+    // in-memory session data directly (separate webview, separate JS
+    // runtime), so it asks the overlay to end itself via this event instead
+    // of closing the overlay window directly.
+    this.unlistenEndRequested = await listen("end-session-requested", () => void this.end());
+    if (token !== this.operationToken) return;
 
     this.snapshot = {
       cameraMode: getCameraMode(),
@@ -89,10 +100,10 @@ class OverlayLiveSessionService implements LiveSessionService {
 
   end = async () => {
     ++this.operationToken;
-    this.finishRuntime();
+    const summary = this.finishRuntime();
 
     try {
-      await sessionWindowService.closeOverlay();
+      await sessionWindowService.closeOverlay(summary);
     } catch (error) {
       this.publishError(errorMessage(error));
     }
@@ -101,6 +112,8 @@ class OverlayLiveSessionService implements LiveSessionService {
   dispose = () => {
     ++this.operationToken;
     this.stopRuntime();
+    this.unlistenEndRequested?.();
+    this.unlistenEndRequested = null;
   };
 
   private publishRecognitionRuntime = () => {
@@ -125,7 +138,7 @@ class OverlayLiveSessionService implements LiveSessionService {
     this.notify();
   };
 
-  private finishRuntime() {
+  private finishRuntime(): SessionSummary {
     this.recognitionRuntime?.dispose();
     this.recognitionRuntime = null;
     this.unsubscribeRecognitionRuntime?.();
@@ -137,13 +150,21 @@ class OverlayLiveSessionService implements LiveSessionService {
     this.unsubscribeSession?.();
     this.unsubscribeSession = null;
 
+    const summary: SessionSummary = {
+      elapsedMs: session?.elapsedMs ?? this.snapshot.elapsedMs,
+      triggerCount: session?.triggerCount ?? this.snapshot.triggerCount,
+      triggerCountsByMapping: session?.triggerCountsByMapping ?? {},
+    };
+
     this.snapshot = {
       ...this.snapshot,
-      elapsedMs: session?.elapsedMs ?? this.snapshot.elapsedMs,
+      elapsedMs: summary.elapsedMs,
       phase: "ended",
-      triggerCount: session?.triggerCount ?? this.snapshot.triggerCount,
+      triggerCount: summary.triggerCount,
     };
     this.notify();
+
+    return summary;
   }
 
   private stopRuntime() {
