@@ -8,9 +8,10 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint . --max-warnings=0",
+    "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "build": "npm run typecheck && vite build",
-    "check:frontend": "npm run format:check && npm run lint && npm run build",
+    "check:frontend": "npm run format:check && npm run lint && npm run test && npm run build",
     "preview": "vite preview",
     "tauri": "tauri"
   },
@@ -45,6 +46,7 @@
     "prettier": "3.8.4",
     "typescript": "~5.8.3",
     "typescript-eslint": "^8.61.1",
-    "vite": "^7.0.4"
+    "vite": "^7.0.4",
+    "vitest": "^4.1.10"
   }
 }

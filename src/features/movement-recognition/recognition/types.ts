@@ -60,6 +60,7 @@ export type PreparedMovementTemplate = {
   activeLandmarks: TrackedLandmark[];
   isDynamic: boolean;
   durationMs: number;
+  keypressTriggerThreshold: number;
 };
 
 export type RecognitionMatch = {
@@ -67,6 +68,7 @@ export type RecognitionMatch = {
   name: string;
   keybind: string;
   confidence: number;
+  keypressTriggerThreshold: number;
 };
 
 export type RecognitionMappingStatus = RecognitionMatch & {

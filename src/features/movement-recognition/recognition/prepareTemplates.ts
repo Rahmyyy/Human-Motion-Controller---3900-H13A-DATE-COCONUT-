@@ -5,6 +5,7 @@ import {
 } from "@/features/movement-mapping/threshold/movementThreshold";
 import type { PresetMappingCardData } from "@/features/preset-mapping/types";
 import { normalizePoseFrames } from "./normalizePose";
+import { keypressTriggerThresholdFromPercentage } from "./recognitionConfig";
 import { resolveActiveLandmarks, type PreparedMovementTemplate } from "./types";
 import { createMovementProfile } from "./template/createMovementProfile";
 import { trimLeadingIdleFrames } from "./template/trimLeadingIdleFrames";
@@ -43,6 +44,9 @@ export function prepareMovementTemplates(
       activeLandmarks,
       isDynamic: movementProfile.isDynamic,
       durationMs: movementDurationMs(normalizedFrames),
+      keypressTriggerThreshold: keypressTriggerThresholdFromPercentage(
+        mapping.keypressTriggerThresholdPercentage,
+      ),
     };
   });
 }
