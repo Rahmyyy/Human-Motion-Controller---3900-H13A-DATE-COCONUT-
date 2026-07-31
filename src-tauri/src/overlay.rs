@@ -98,7 +98,8 @@ pub async fn close_overlay(app: AppHandle, summary: SessionSummary) -> Result<()
     }
 
     if let Some(main) = app.get_webview_window(MAIN_LABEL) {
-        main.emit("session-ended", &summary).map_err(|e| e.to_string())?;
+        main.emit("session-ended", &summary)
+            .map_err(|e| e.to_string())?;
         main.set_focus().map_err(|e| e.to_string())?;
     }
 
