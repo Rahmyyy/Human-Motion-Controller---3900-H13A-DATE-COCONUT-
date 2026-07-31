@@ -38,8 +38,10 @@ export default function PresetMappingsPage() {
             deletingMappingId={mappings.deletingMappingId}
             mappings={mappings.mappings}
             onDelete={mappings.deleteMapping}
+            onThresholdChange={mappings.updateThreshold}
             patientId={patientId ?? ""}
             presetId={presetId}
+            thresholdSaveStates={mappings.thresholdSaveStates}
           />
         )}
       </div>

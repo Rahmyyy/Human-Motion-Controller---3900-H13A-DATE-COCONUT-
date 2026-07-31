@@ -14,5 +14,9 @@ export function usePresetMappings(patientId: string | undefined, presetId: strin
     return service.dispose;
   }, [patientId, presetId, service]);
 
-  return { ...snapshot, deleteMapping: service.deleteMapping };
+  return {
+    ...snapshot,
+    deleteMapping: service.deleteMapping,
+    updateThreshold: service.updateThreshold,
+  };
 }

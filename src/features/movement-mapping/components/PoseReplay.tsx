@@ -6,9 +6,10 @@ import type { PoseFrame } from "@/features/camera/poseFrame";
 // No video is stored; the skeleton is redrawn on canvas from saved landmarks.
 interface PoseReplayProps {
   frames: PoseFrame[];
+  previewFrame?: PoseFrame | null;
 }
 
-export default function PoseReplay({ frames }: PoseReplayProps) {
+export default function PoseReplay({ frames, previewFrame = null }: PoseReplayProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationRef = useRef<number | null>(null);
   const startedAtRef = useRef(0);
@@ -16,6 +17,11 @@ export default function PoseReplay({ frames }: PoseReplayProps) {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas || frames.length === 0) {
+      return;
+    }
+
+    if (previewFrame) {
+      drawPoseFrame(canvas, previewFrame);
       return;
     }
 
@@ -49,7 +55,7 @@ export default function PoseReplay({ frames }: PoseReplayProps) {
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [frames]);
+  }, [frames, previewFrame]);
 
   return (
     <canvas
