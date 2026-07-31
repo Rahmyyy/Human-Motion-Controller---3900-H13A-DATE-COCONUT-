@@ -5,6 +5,8 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 // The body landmarks recognition can track. Kept in sync with TRACKED_LANDMARKS on the frontend.
 const TRACKED_LANDMARKS: [u32; 12] = [11, 12, 13, 14, 15, 16, 23, 24, 25, 26, 27, 28];
+const MIN_KEYPRESS_TRIGGER_THRESHOLD_PERCENTAGE: u32 = 30;
+const MAX_KEYPRESS_TRIGGER_THRESHOLD_PERCENTAGE: u32 = 100;
 
 /// Validate a landmark selection and encode it for storage. An empty selection is allowed and
 /// stored as `[]` — downstream (and the frontend) treat that as "all tracked landmarks".
@@ -26,6 +28,7 @@ pub fn create_movement_mapping(
     keybind: &str,
     pose_frames_json: &str,
     selected_landmarks: &[u32],
+    keypress_trigger_threshold_percentage: u32,
 ) -> Result<()> {
     let name = name.trim();
     let keybind = keybind.trim();
@@ -43,6 +46,7 @@ pub fn create_movement_mapping(
     }
 
     let selected_landmarks_json = serialize_selected_landmarks(selected_landmarks)?;
+    validate_keypress_trigger_threshold(keypress_trigger_threshold_percentage)?;
 
     if !repository::preset_has_default_pose(conn, preset_id)? {
         return Err(anyhow!(
@@ -63,6 +67,7 @@ pub fn create_movement_mapping(
             keybind,
             pose_frames_json,
             selected_landmarks_json: &selected_landmarks_json,
+            keypress_trigger_threshold_percentage,
             created_at: &created_at,
         },
     )?;
@@ -85,17 +90,22 @@ pub fn get_movement_mapping(
     repository::select_movement_mapping_by_id(conn, id, preset_id)
 }
 
+pub struct MovementMappingUpdate<'a> {
+    pub id: &'a str,
+    pub preset_id: &'a str,
+    pub name: &'a str,
+    pub keybind: &'a str,
+    pub pose_frames_json: &'a str,
+    pub selected_landmarks: &'a [u32],
+    pub keypress_trigger_threshold_percentage: u32,
+}
+
 pub fn update_movement_mapping(
     conn: &Connection,
-    id: &str,
-    preset_id: &str,
-    name: &str,
-    keybind: &str,
-    pose_frames_json: &str,
-    selected_landmarks: &[u32],
+    update: &MovementMappingUpdate<'_>,
 ) -> Result<()> {
-    let name = name.trim();
-    let keybind = keybind.trim();
+    let name = update.name.trim();
+    let keybind = update.keybind.trim();
 
     if name.is_empty() {
         return Err(anyhow!("Movement mapping name cannot be empty"));
@@ -105,24 +115,40 @@ pub fn update_movement_mapping(
         return Err(anyhow!("Movement mapping keybind cannot be empty"));
     }
 
-    if pose_frames_json.trim().is_empty() {
+    if update.pose_frames_json.trim().is_empty() {
         return Err(anyhow!("Movement mapping pose frames cannot be empty"));
     }
 
-    let selected_landmarks_json = serialize_selected_landmarks(selected_landmarks)?;
+    let selected_landmarks_json = serialize_selected_landmarks(update.selected_landmarks)?;
+    validate_keypress_trigger_threshold(update.keypress_trigger_threshold_percentage)?;
 
     let rows_affected = repository::update_movement_mapping(
         conn,
-        id,
-        preset_id,
-        name,
-        keybind,
-        pose_frames_json,
-        &selected_landmarks_json,
+        &repository::MovementMappingUpdate {
+            id: update.id,
+            preset_id: update.preset_id,
+            name,
+            keybind,
+            pose_frames_json: update.pose_frames_json,
+            selected_landmarks_json: &selected_landmarks_json,
+            keypress_trigger_threshold_percentage: update.keypress_trigger_threshold_percentage,
+        },
     )?;
 
     if rows_affected == 0 {
         return Err(anyhow!("Movement mapping not found"));
+    }
+
+    Ok(())
+}
+
+fn validate_keypress_trigger_threshold(threshold_percentage: u32) -> Result<()> {
+    if !(MIN_KEYPRESS_TRIGGER_THRESHOLD_PERCENTAGE..=MAX_KEYPRESS_TRIGGER_THRESHOLD_PERCENTAGE)
+        .contains(&threshold_percentage)
+    {
+        return Err(anyhow!(
+            "Keypress trigger threshold must be between 30 and 100"
+        ));
     }
 
     Ok(())

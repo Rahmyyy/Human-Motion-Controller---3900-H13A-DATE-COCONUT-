@@ -22,6 +22,7 @@ export interface MappingEditorSnapshot {
   countdownSeconds: number | null;
   error: string | null;
   keybind: Keybind | null;
+  keypressTriggerThresholdPercentage: number;
   movementName: string;
   recordedFrames: PoseFrame[];
   recordingQuality: RecordingQuality | null;
@@ -45,6 +46,7 @@ export interface MappingEditorService {
   dispose(): void;
   setMovementName(name: string): void;
   setKeybind(keybind: Keybind): void;
+  setKeypressTriggerThreshold(percentage: number): void;
   setSelectedLandmarks(landmarks: number[]): void;
   startRecording(): void;
   cancelCountdown(): void;
