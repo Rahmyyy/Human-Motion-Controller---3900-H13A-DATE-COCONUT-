@@ -9,6 +9,7 @@ pub struct MovementMappingSummary {
     pub keybind: String,
     pub pose_frames_json: String,
     pub selected_landmarks: Vec<u32>,
+    pub threshold_percentage: u32,
 }
 
 #[derive(serde::Serialize)]
@@ -19,6 +20,7 @@ pub struct MovementMappingDetails {
     pub keybind: String,
     pub pose_frames_json: String,
     pub selected_landmarks: Vec<u32>,
+    pub threshold_percentage: u32,
 }
 
 /// Decode the stored `selected_landmarks_json` column. An empty selection (stored as `[]`) is
@@ -88,7 +90,7 @@ pub fn select_movement_mappings_by_preset(
 ) -> Result<Vec<MovementMappingSummary>> {
     let mut statement = conn.prepare(
         "
-      SELECT id, name, keybind, pose_frames_json, selected_landmarks_json
+      SELECT id, name, keybind, pose_frames_json, selected_landmarks_json, threshold_percentage
       FROM movement_mappings
       WHERE preset_id = ?1
       ORDER BY created_at DESC
@@ -103,6 +105,7 @@ pub fn select_movement_mappings_by_preset(
                 keybind: row.get(2)?,
                 pose_frames_json: row.get(3)?,
                 selected_landmarks: parse_selected_landmarks(row.get(4)?),
+                threshold_percentage: row.get(5)?,
             })
         })?
         .collect::<Result<Vec<_>, _>>()?;
@@ -150,6 +153,22 @@ pub fn delete_movement_mapping(conn: &Connection, id: &str, preset_id: &str) -> 
     Ok(rows_affected)
 }
 
+pub fn update_movement_mapping_threshold(
+    conn: &Connection,
+    id: &str,
+    preset_id: &str,
+    threshold_percentage: u32,
+) -> Result<usize> {
+    Ok(conn.execute(
+        "
+        UPDATE movement_mappings
+        SET threshold_percentage = ?1
+        WHERE id = ?2 AND preset_id = ?3
+        ",
+        params![threshold_percentage, id, preset_id],
+    )?)
+}
+
 pub fn select_movement_mapping_by_id(
     conn: &Connection,
     id: &str,
@@ -157,7 +176,8 @@ pub fn select_movement_mapping_by_id(
 ) -> Result<MovementMappingDetails> {
     let mut statement = conn.prepare(
         "
-        SELECT id, preset_id, name, keybind, pose_frames_json, selected_landmarks_json
+        SELECT id, preset_id, name, keybind, pose_frames_json, selected_landmarks_json,
+               threshold_percentage
         FROM movement_mappings
         WHERE id = ?1 AND preset_id = ?2
         ",
@@ -171,6 +191,7 @@ pub fn select_movement_mapping_by_id(
             keybind: row.get(3)?,
             pose_frames_json: row.get(4)?,
             selected_landmarks: parse_selected_landmarks(row.get(5)?),
+            threshold_percentage: row.get(6)?,
         })
     })?;
 

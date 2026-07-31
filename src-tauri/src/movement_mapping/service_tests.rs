@@ -10,6 +10,7 @@ fn update_then_delete_round_trip() {
     let mappings = get_movement_mappings(&conn, "preset-1").unwrap();
     assert_eq!(mappings.len(), 1);
     assert_eq!(mappings[0].selected_landmarks, vec![11, 12]);
+    assert_eq!(mappings[0].threshold_percentage, 100);
     let id = mappings[0].id.clone();
 
     update_movement_mapping(
@@ -105,4 +106,27 @@ fn update_rejects_empty_fields() {
 
     let result = update_movement_mapping(&conn, &id, "preset-1", "  ", "K", "[]", &[11]);
     assert!(result.is_err());
+}
+
+#[test]
+fn threshold_update_round_trip() {
+    let conn = setup_test_conn();
+    create_movement_mapping(&conn, "preset-1", "Squat", "S", "[]", &[11]).unwrap();
+    let mapping = &get_movement_mappings(&conn, "preset-1").unwrap()[0];
+
+    update_movement_mapping_threshold(&conn, &mapping.id, "preset-1", 65).unwrap();
+
+    let updated = get_movement_mapping(&conn, &mapping.id, "preset-1").unwrap();
+    assert_eq!(updated.threshold_percentage, 65);
+}
+
+#[test]
+fn threshold_update_validates_range_and_mapping() {
+    let conn = setup_test_conn();
+    create_movement_mapping(&conn, "preset-1", "Squat", "S", "[]", &[11]).unwrap();
+    let mapping = &get_movement_mappings(&conn, "preset-1").unwrap()[0];
+
+    assert!(update_movement_mapping_threshold(&conn, &mapping.id, "preset-1", 0).is_err());
+    assert!(update_movement_mapping_threshold(&conn, &mapping.id, "preset-1", 101).is_err());
+    assert!(update_movement_mapping_threshold(&conn, "missing", "preset-1", 50).is_err());
 }

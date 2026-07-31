@@ -8,4 +8,6 @@ export interface PresetMappingCardData {
    * "all tracked landmarks" — recognition then behaves exactly as it did before landmark selection.
    */
   selectedLandmarks: number[];
+  /** Percentage of the baseline movement required for recognition. */
+  thresholdPercentage: number;
 }
