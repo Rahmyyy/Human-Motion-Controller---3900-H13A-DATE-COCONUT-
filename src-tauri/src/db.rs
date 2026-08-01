@@ -66,68 +66,7 @@ pub fn init_db(app: &AppHandle) -> Result<DbState> {
         [],
     )?;
 
-    ensure_keypress_trigger_threshold_column(&conn)?;
-
     Ok(DbState {
         conn: Mutex::new(conn),
     })
-}
-
-fn ensure_keypress_trigger_threshold_column(conn: &Connection) -> Result<()> {
-    let mut statement = conn.prepare("PRAGMA table_info(movement_mappings)")?;
-    let columns = statement
-        .query_map([], |row| row.get::<_, String>(1))?
-        .collect::<Result<Vec<_>, _>>()?;
-
-    if !columns
-        .iter()
-        .any(|column| column == "keypress_trigger_threshold_percentage")
-    {
-        conn.execute(
-            "
-            ALTER TABLE movement_mappings
-            ADD COLUMN keypress_trigger_threshold_percentage INTEGER NOT NULL DEFAULT 60
-                CHECK (keypress_trigger_threshold_percentage BETWEEN 30 AND 100)
-            ",
-            [],
-        )?;
-    }
-
-    Ok(())
-}
-
-#[cfg(test)]
-mod tests {
-    use super::ensure_keypress_trigger_threshold_column;
-    use rusqlite::{params, Connection};
-
-    #[test]
-    fn migration_backfills_existing_mappings_with_current_keypress_threshold() {
-        let conn = Connection::open_in_memory().unwrap();
-        conn.execute_batch(
-            "
-            CREATE TABLE movement_mappings (
-                id TEXT PRIMARY KEY,
-                threshold_percentage INTEGER NOT NULL DEFAULT 100
-            );
-            INSERT INTO movement_mappings (id) VALUES ('mapping-1');
-            ",
-        )
-        .unwrap();
-
-        ensure_keypress_trigger_threshold_column(&conn).unwrap();
-
-        let threshold: u32 = conn
-            .query_row(
-                "
-                SELECT keypress_trigger_threshold_percentage
-                FROM movement_mappings
-                WHERE id = ?1
-                ",
-                params!["mapping-1"],
-                |row| row.get(0),
-            )
-            .unwrap();
-        assert_eq!(threshold, 60);
-    }
 }
