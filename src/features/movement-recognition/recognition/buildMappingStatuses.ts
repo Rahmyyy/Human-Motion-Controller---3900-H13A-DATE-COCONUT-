@@ -1,4 +1,5 @@
 import type { PresetMappingCardData } from "@/features/preset-mapping/types";
+import { keypressTriggerThresholdFromPercentage } from "./recognitionConfig";
 import { selectAcceptedMatch } from "./selectAcceptedMatch";
 import type { RecognitionMappingStatus, RecognitionMatch } from "./types";
 
@@ -22,6 +23,9 @@ export function buildMappingStatuses(
       name: mapping.name,
       keybind: mapping.keybind,
       confidence,
+      keypressTriggerThreshold:
+        match?.keypressTriggerThreshold ??
+        keypressTriggerThresholdFromPercentage(mapping.keypressTriggerThresholdPercentage),
       isActive: mapping.id === acceptedMatchId,
     };
   });

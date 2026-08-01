@@ -33,6 +33,8 @@ pub fn setup_test_conn() -> Connection {
             pose_frames_json TEXT NOT NULL,
             selected_landmarks_json TEXT NOT NULL,
             threshold_percentage INTEGER NOT NULL DEFAULT 100,
+            keypress_trigger_threshold_percentage INTEGER NOT NULL DEFAULT 60
+                CHECK (keypress_trigger_threshold_percentage BETWEEN 30 AND 100),
             created_at TEXT NOT NULL,
             FOREIGN KEY (preset_id)
                 REFERENCES presets(id)

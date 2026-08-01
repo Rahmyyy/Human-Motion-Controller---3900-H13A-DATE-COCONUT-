@@ -5,22 +5,26 @@ use rusqlite::params;
 #[test]
 fn update_then_delete_round_trip() {
     let conn = setup_test_conn();
-    create_movement_mapping(&conn, "preset-1", "Squat", "S", "[]", &[11, 12]).unwrap();
+    create_movement_mapping(&conn, "preset-1", "Squat", "S", "[]", &[11, 12], 60).unwrap();
 
     let mappings = get_movement_mappings(&conn, "preset-1").unwrap();
     assert_eq!(mappings.len(), 1);
     assert_eq!(mappings[0].selected_landmarks, vec![11, 12]);
     assert_eq!(mappings[0].threshold_percentage, 100);
+    assert_eq!(mappings[0].keypress_trigger_threshold_percentage, 60);
     let id = mappings[0].id.clone();
 
     update_movement_mapping(
         &conn,
-        &id,
-        "preset-1",
-        "Squat Deep",
-        "D",
-        "[[1,2,3]]",
-        &[13, 14],
+        &MovementMappingUpdate {
+            id: &id,
+            preset_id: "preset-1",
+            name: "Squat Deep",
+            keybind: "D",
+            pose_frames_json: "[[1,2,3]]",
+            selected_landmarks: &[13, 14],
+            keypress_trigger_threshold_percentage: 75,
+        },
     )
     .unwrap();
 
@@ -29,6 +33,7 @@ fn update_then_delete_round_trip() {
     assert_eq!(updated.keybind, "D");
     assert_eq!(updated.pose_frames_json, "[[1,2,3]]");
     assert_eq!(updated.selected_landmarks, vec![13, 14]);
+    assert_eq!(updated.keypress_trigger_threshold_percentage, 75);
 
     delete_movement_mapping(&conn, &id, "preset-1").unwrap();
 
@@ -39,14 +44,14 @@ fn update_then_delete_round_trip() {
 #[test]
 fn create_rejects_invalid_landmark() {
     let conn = setup_test_conn();
-    let result = create_movement_mapping(&conn, "preset-1", "Squat", "S", "[]", &[999]);
+    let result = create_movement_mapping(&conn, "preset-1", "Squat", "S", "[]", &[999], 60);
     assert!(result.is_err());
 }
 
 #[test]
 fn create_rejects_missing_preset() {
     let conn = setup_test_conn();
-    let result = create_movement_mapping(&conn, "missing-preset", "Squat", "S", "[]", &[11]);
+    let result = create_movement_mapping(&conn, "missing-preset", "Squat", "S", "[]", &[11], 60);
 
     assert!(result.is_err());
 }
@@ -67,7 +72,7 @@ fn create_requires_default_pose_calibration() {
     )
     .unwrap();
 
-    let result = create_movement_mapping(&conn, "uncalibrated", "Squat", "S", "[]", &[11]);
+    let result = create_movement_mapping(&conn, "uncalibrated", "Squat", "S", "[]", &[11], 60);
 
     assert_eq!(
         result.unwrap_err().to_string(),
@@ -80,12 +85,15 @@ fn update_missing_mapping_errors() {
     let conn = setup_test_conn();
     let result = update_movement_mapping(
         &conn,
-        "does-not-exist",
-        "preset-1",
-        "Name",
-        "K",
-        "[]",
-        &[11],
+        &MovementMappingUpdate {
+            id: "does-not-exist",
+            preset_id: "preset-1",
+            name: "Name",
+            keybind: "K",
+            pose_frames_json: "[]",
+            selected_landmarks: &[11],
+            keypress_trigger_threshold_percentage: 60,
+        },
     );
     assert!(result.is_err());
 }
@@ -100,18 +108,29 @@ fn delete_missing_mapping_errors() {
 #[test]
 fn update_rejects_empty_fields() {
     let conn = setup_test_conn();
-    create_movement_mapping(&conn, "preset-1", "Squat", "S", "[]", &[11]).unwrap();
+    create_movement_mapping(&conn, "preset-1", "Squat", "S", "[]", &[11], 60).unwrap();
     let mappings = get_movement_mappings(&conn, "preset-1").unwrap();
     let id = mappings[0].id.clone();
 
-    let result = update_movement_mapping(&conn, &id, "preset-1", "  ", "K", "[]", &[11]);
+    let result = update_movement_mapping(
+        &conn,
+        &MovementMappingUpdate {
+            id: &id,
+            preset_id: "preset-1",
+            name: "  ",
+            keybind: "K",
+            pose_frames_json: "[]",
+            selected_landmarks: &[11],
+            keypress_trigger_threshold_percentage: 60,
+        },
+    );
     assert!(result.is_err());
 }
 
 #[test]
 fn threshold_update_round_trip() {
     let conn = setup_test_conn();
-    create_movement_mapping(&conn, "preset-1", "Squat", "S", "[]", &[11]).unwrap();
+    create_movement_mapping(&conn, "preset-1", "Squat", "S", "[]", &[11], 60).unwrap();
     let mapping = &get_movement_mappings(&conn, "preset-1").unwrap()[0];
 
     update_movement_mapping_threshold(&conn, &mapping.id, "preset-1", 65).unwrap();
@@ -123,10 +142,60 @@ fn threshold_update_round_trip() {
 #[test]
 fn threshold_update_validates_range_and_mapping() {
     let conn = setup_test_conn();
-    create_movement_mapping(&conn, "preset-1", "Squat", "S", "[]", &[11]).unwrap();
+    create_movement_mapping(&conn, "preset-1", "Squat", "S", "[]", &[11], 60).unwrap();
     let mapping = &get_movement_mappings(&conn, "preset-1").unwrap()[0];
 
     assert!(update_movement_mapping_threshold(&conn, &mapping.id, "preset-1", 0).is_err());
     assert!(update_movement_mapping_threshold(&conn, &mapping.id, "preset-1", 101).is_err());
     assert!(update_movement_mapping_threshold(&conn, "missing", "preset-1", 50).is_err());
+}
+
+#[test]
+fn keypress_trigger_threshold_accepts_range_boundaries() {
+    let conn = setup_test_conn();
+    create_movement_mapping(&conn, "preset-1", "Squat", "S", "[]", &[11], 30).unwrap();
+    let mapping = &get_movement_mappings(&conn, "preset-1").unwrap()[0];
+
+    update_movement_mapping(
+        &conn,
+        &MovementMappingUpdate {
+            id: &mapping.id,
+            preset_id: "preset-1",
+            name: "Squat",
+            keybind: "S",
+            pose_frames_json: "[]",
+            selected_landmarks: &[11],
+            keypress_trigger_threshold_percentage: 100,
+        },
+    )
+    .unwrap();
+
+    let updated = get_movement_mapping(&conn, &mapping.id, "preset-1").unwrap();
+    assert_eq!(updated.keypress_trigger_threshold_percentage, 100);
+}
+
+#[test]
+fn keypress_trigger_threshold_rejects_values_outside_range() {
+    let conn = setup_test_conn();
+
+    assert!(create_movement_mapping(&conn, "preset-1", "Squat", "S", "[]", &[11], 29).is_err());
+    assert!(create_movement_mapping(&conn, "preset-1", "Squat", "S", "[]", &[11], 101).is_err());
+
+    create_movement_mapping(&conn, "preset-1", "Squat", "S", "[]", &[11], 60).unwrap();
+    let mapping = &get_movement_mappings(&conn, "preset-1").unwrap()[0];
+    for percentage in [29, 101] {
+        let result = update_movement_mapping(
+            &conn,
+            &MovementMappingUpdate {
+                id: &mapping.id,
+                preset_id: "preset-1",
+                name: "Squat",
+                keybind: "S",
+                pose_frames_json: "[]",
+                selected_landmarks: &[11],
+                keypress_trigger_threshold_percentage: percentage,
+            },
+        );
+        assert!(result.is_err());
+    }
 }
