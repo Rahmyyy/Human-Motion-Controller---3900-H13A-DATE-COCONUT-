@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-npm run check:frontend
+npm run check:frontend:static
 
 cargo fmt \
   --manifest-path src-tauri/Cargo.toml \
@@ -18,3 +18,5 @@ cargo clippy \
 
 cargo test \
   --manifest-path src-tauri/Cargo.toml
+
+npm run test
