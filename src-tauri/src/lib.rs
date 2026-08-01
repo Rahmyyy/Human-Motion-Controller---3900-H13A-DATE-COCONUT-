@@ -153,6 +153,7 @@ pub fn run() {
             input::press_key,
             movement_mapping::commands::get_movement_mapping,
             movement_mapping::commands::update_movement_mapping,
+            movement_mapping::commands::update_movement_mapping_threshold,
             movement_mapping::commands::delete_movement_mapping,
             preset::commands::create_preset,
             preset::commands::get_presets,

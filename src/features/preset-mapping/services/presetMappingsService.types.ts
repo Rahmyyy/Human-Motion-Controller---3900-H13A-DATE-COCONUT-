@@ -12,7 +12,10 @@ export interface PresetMappingsSnapshot {
   isLoading: boolean;
   mappings: PresetMappingViewData[];
   preset: Preset | null;
+  thresholdSaveStates: Record<string, ThresholdSaveState>;
 }
+
+export type ThresholdSaveState = "idle" | "saving" | "saved" | "error";
 
 /** Owns one preset's mapping collection, calibration state, and deletion workflow. */
 export interface PresetMappingsService {
@@ -21,4 +24,5 @@ export interface PresetMappingsService {
   start(patientId: string | undefined, presetId: string | undefined): Promise<void>;
   dispose(): void;
   deleteMapping(mappingId: string): Promise<boolean>;
+  updateThreshold(mappingId: string, thresholdPercentage: number): Promise<boolean>;
 }

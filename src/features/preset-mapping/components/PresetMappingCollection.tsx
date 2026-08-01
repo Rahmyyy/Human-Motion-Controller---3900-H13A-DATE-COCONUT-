@@ -1,5 +1,4 @@
 import { Trash2 } from "lucide-react";
-import { Link } from "react-router";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -13,21 +12,26 @@ import {
 } from "@/components/ui/dialog";
 import PresetMappingCard from "./PresetMappingCard";
 import type { PresetMappingViewData } from "../services/presetMappingsService.types";
+import type { ThresholdSaveState } from "../services/presetMappingsService.types";
 
 interface PresetMappingCollectionProps {
   deletingMappingId: string | null;
   mappings: PresetMappingViewData[];
   onDelete: (id: string) => Promise<boolean>;
+  onThresholdChange: (id: string, percentage: number) => Promise<boolean>;
   patientId: string;
   presetId: string;
+  thresholdSaveStates: Record<string, ThresholdSaveState>;
 }
 
 export default function PresetMappingCollection({
   deletingMappingId,
   mappings,
   onDelete,
+  onThresholdChange,
   patientId,
   presetId,
+  thresholdSaveStates,
 }: PresetMappingCollectionProps) {
   if (mappings.length === 0) {
     return (
@@ -41,9 +45,14 @@ export default function PresetMappingCollection({
     <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {mappings.map((mapping) => (
         <div key={mapping.id} className="relative">
-          <Link to={`/patients/${patientId}/presets/${presetId}/movements/${mapping.id}/edit`}>
-            <PresetMappingCard mapping={mapping} />
-          </Link>
+          <PresetMappingCard
+            editTo={`/patients/${patientId}/presets/${presetId}/movements/${mapping.id}/edit`}
+            mapping={mapping}
+            onThresholdChange={(percentage) => {
+              void onThresholdChange(mapping.id, percentage);
+            }}
+            thresholdSaveState={thresholdSaveStates[mapping.id] ?? "idle"}
+          />
           <Dialog>
             <DialogTrigger asChild>
               <Button

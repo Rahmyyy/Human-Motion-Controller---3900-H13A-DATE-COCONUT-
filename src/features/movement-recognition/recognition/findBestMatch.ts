@@ -39,6 +39,7 @@ export function findTemplateMatches(
       name: template.name,
       keybind: template.keybind,
       confidence,
+      keypressTriggerThreshold: template.keypressTriggerThreshold,
     };
 
     matches.push(match);

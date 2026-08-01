@@ -1,5 +1,6 @@
 import type { PoseFrame } from "@/features/camera/poseFrame";
 import LandmarkSelectionPanel from "./LandmarkSelectionPanel";
+import KeypressTriggerThresholdPanel from "./KeypressTriggerThresholdPanel";
 import MappingDetailsPanel from "./MappingDetailsPanel";
 import MovementCameraPanel from "./MovementCameraPanel";
 import MovementMappingHeader from "./MovementMappingHeader";
@@ -18,9 +19,11 @@ interface MovementMappingWorkspaceProps {
   countdownSeconds: number | null;
   error: string | null;
   keybind: Keybind | null;
+  keypressTriggerThresholdPercentage: number;
   movementName: string;
   onCancelCountdown: () => void;
   onKeybindChange: (keybind: Keybind) => void;
+  onKeypressTriggerThresholdChange: (percentage: number) => void;
   onMovementNameChange: (name: string) => void;
   onResetRecording: () => void;
   onSave: () => void;
@@ -43,9 +46,11 @@ export default function MovementMappingWorkspace({
   description,
   error,
   keybind,
+  keypressTriggerThresholdPercentage,
   movementName,
   onCancelCountdown,
   onKeybindChange,
+  onKeypressTriggerThresholdChange,
   onMovementNameChange,
   onResetRecording,
   onSave,
@@ -87,6 +92,10 @@ export default function MovementMappingWorkspace({
             value={selectedLandmarks}
             onChange={onSelectedLandmarksChange}
             disabled={recordingState === "countdown" || recordingState === "recording"}
+          />
+          <KeypressTriggerThresholdPanel
+            value={keypressTriggerThresholdPercentage}
+            onChange={onKeypressTriggerThresholdChange}
           />
           {error && (
             <p className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">

@@ -7,6 +7,7 @@ interface CreateMovementMappingInput extends Record<string, unknown> {
   poseFramesJson: string;
   presetId: string;
   selectedLandmarks: number[];
+  keypressTriggerThresholdPercentage: number;
 }
 
 export interface MovementMappingDetailsResponse {
@@ -17,6 +18,8 @@ export interface MovementMappingDetailsResponse {
   pose_frames_json: string;
   // Details is serialized snake_case on the Rust side (unlike the camelCase list summary).
   selected_landmarks: number[];
+  threshold_percentage: number;
+  keypress_trigger_threshold_percentage: number;
 }
 
 export function createMovementMapping(input: CreateMovementMappingInput) {
@@ -42,8 +45,21 @@ interface UpdateMovementMappingInput extends Record<string, unknown> {
   keybind: string;
   poseFramesJson: string;
   selectedLandmarks: number[];
+  keypressTriggerThresholdPercentage: number;
 }
 
 export function updateMovementMapping(input: UpdateMovementMappingInput) {
   return invoke<void>("update_movement_mapping", input);
+}
+
+export function updateMovementMappingThreshold(
+  id: string,
+  presetId: string,
+  thresholdPercentage: number,
+) {
+  return invoke<void>("update_movement_mapping_threshold", {
+    id,
+    presetId,
+    thresholdPercentage,
+  });
 }

@@ -2,7 +2,9 @@ import { parsePoseFrames } from "@/features/camera/parsePoseFrames";
 import {
   deleteMovementMapping,
   getMovementMappings,
+  updateMovementMappingThreshold,
 } from "@/features/movement-mapping/api/movementMappingsApi";
+import { movementThresholdSettings } from "@/features/movement-mapping/threshold/movementThreshold";
 import { getPreset } from "@/features/presets/api/presetsApi";
 import type { PresetMappingsService, PresetMappingsSnapshot } from "./presetMappingsService.types";
 
@@ -13,6 +15,7 @@ class PresetMappingCollectionService implements PresetMappingsService {
   private readonly listeners = new Set<Listener>();
   private presetId: string | null = null;
   private operationToken = 0;
+  private readonly thresholdOperationTokens = new Map<string, number>();
 
   getSnapshot = () => this.snapshot;
 
@@ -55,6 +58,7 @@ class PresetMappingCollectionService implements PresetMappingsService {
 
   dispose = () => {
     ++this.operationToken;
+    this.thresholdOperationTokens.clear();
   };
 
   deleteMapping = async (mappingId: string) => {
@@ -79,6 +83,72 @@ class PresetMappingCollectionService implements PresetMappingsService {
     }
   };
 
+  updateThreshold = async (mappingId: string, thresholdPercentage: number) => {
+    if (!this.presetId) return false;
+    const mapping = this.snapshot.mappings.find((candidate) => candidate.id === mappingId);
+    if (!mapping || mapping.thresholdPercentage === thresholdPercentage) return true;
+    const threshold = movementThresholdSettings(
+      mapping.poseFrames,
+      mapping.selectedLandmarks,
+      thresholdPercentage,
+    );
+    if (
+      !threshold ||
+      thresholdPercentage < threshold.minimumPercentage ||
+      thresholdPercentage > 100
+    ) {
+      this.publishThresholdState(mappingId, "error");
+      return false;
+    }
+
+    const token = (this.thresholdOperationTokens.get(mappingId) ?? 0) + 1;
+    this.thresholdOperationTokens.set(mappingId, token);
+    const previousPercentage = mapping.thresholdPercentage;
+    this.publish({
+      mappings: this.snapshot.mappings.map((candidate) =>
+        candidate.id === mappingId ? { ...candidate, thresholdPercentage } : candidate,
+      ),
+      thresholdSaveStates: {
+        ...this.snapshot.thresholdSaveStates,
+        [mappingId]: "saving",
+      },
+    });
+
+    try {
+      await updateMovementMappingThreshold(mappingId, this.presetId, thresholdPercentage);
+      if (this.thresholdOperationTokens.get(mappingId) !== token) return true;
+      this.publishThresholdState(mappingId, "saved");
+      return true;
+    } catch (error) {
+      if (this.thresholdOperationTokens.get(mappingId) !== token) return false;
+      console.error("Failed to update movement threshold", error);
+      this.publish({
+        mappings: this.snapshot.mappings.map((candidate) =>
+          candidate.id === mappingId
+            ? { ...candidate, thresholdPercentage: previousPercentage }
+            : candidate,
+        ),
+        thresholdSaveStates: {
+          ...this.snapshot.thresholdSaveStates,
+          [mappingId]: "error",
+        },
+      });
+      return false;
+    }
+  };
+
+  private publishThresholdState(
+    mappingId: string,
+    state: PresetMappingsSnapshot["thresholdSaveStates"][string],
+  ) {
+    this.publish({
+      thresholdSaveStates: {
+        ...this.snapshot.thresholdSaveStates,
+        [mappingId]: state,
+      },
+    });
+  }
+
   private publish(update: Partial<PresetMappingsSnapshot>) {
     this.snapshot = { ...this.snapshot, ...update };
     this.notify();
@@ -96,6 +166,7 @@ function emptySnapshot(): PresetMappingsSnapshot {
     isLoading: false,
     mappings: [],
     preset: null,
+    thresholdSaveStates: {},
   };
 }
 

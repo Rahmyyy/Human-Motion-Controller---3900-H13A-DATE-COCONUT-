@@ -3,6 +3,11 @@ import type { PoseFrame } from "@/features/camera/poseFrame";
 import { getPreset } from "@/features/presets/api/presetsApi";
 import { TRACKED_LANDMARKS } from "@/features/movement-recognition/recognition/types";
 import {
+  DEFAULT_KEYPRESS_TRIGGER_THRESHOLD_PERCENTAGE,
+  MAX_KEYPRESS_TRIGGER_THRESHOLD_PERCENTAGE,
+  MIN_KEYPRESS_TRIGGER_THRESHOLD_PERCENTAGE,
+} from "@/features/movement-recognition/recognition/recognitionConfig";
+import {
   createMovementMapping,
   getMovementMapping,
   updateMovementMapping,
@@ -56,6 +61,7 @@ class MovementMappingEditorService implements MappingEditorService {
         this.snapshot = {
           ...this.snapshot,
           keybind: keybindFromLabel(details.keybind),
+          keypressTriggerThresholdPercentage: details.keypress_trigger_threshold_percentage,
           movementName: details.name,
           selectedLandmarks: initialSelection(details.selected_landmarks),
           status: "ready",
@@ -101,6 +107,16 @@ class MovementMappingEditorService implements MappingEditorService {
     this.publish({ keybind });
   };
 
+  setKeypressTriggerThreshold = (percentage: number) => {
+    this.publish({
+      keypressTriggerThresholdPercentage: clamp(
+        Math.round(percentage),
+        MIN_KEYPRESS_TRIGGER_THRESHOLD_PERCENTAGE,
+        MAX_KEYPRESS_TRIGGER_THRESHOLD_PERCENTAGE,
+      ),
+    });
+  };
+
   setSelectedLandmarks = (selectedLandmarks: number[]) => {
     this.snapshot = { ...this.snapshot, selectedLandmarks: [...selectedLandmarks] };
     this.recalculateQuality();
@@ -127,6 +143,7 @@ class MovementMappingEditorService implements MappingEditorService {
     try {
       const input = {
         keybind: this.snapshot.keybind?.label ?? "",
+        keypressTriggerThresholdPercentage: this.snapshot.keypressTriggerThresholdPercentage,
         name: this.snapshot.movementName,
         poseFramesJson: JSON.stringify(this.snapshot.recordedFrames),
         presetId: this.presetId,
@@ -212,6 +229,7 @@ function emptySnapshot(): MappingEditorSnapshot {
     countdownSeconds: null,
     error: null,
     keybind: null,
+    keypressTriggerThresholdPercentage: DEFAULT_KEYPRESS_TRIGGER_THRESHOLD_PERCENTAGE,
     movementName: "",
     recordedFrames: [],
     recordingQuality: null,
@@ -228,6 +246,10 @@ function initialSelection(selected: number[] | undefined): number[] {
 
 function keybindFromLabel(label: string): Keybind {
   return { code: label, label };
+}
+
+function clamp(value: number, minimum: number, maximum: number) {
+  return Math.min(Math.max(value, minimum), maximum);
 }
 
 export function createMappingEditorService(): MappingEditorService {

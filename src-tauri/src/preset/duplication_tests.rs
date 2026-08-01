@@ -23,13 +23,33 @@ fn duplicate_preset_copies_mappings_and_preserves_source() {
     )
     .unwrap();
 
+    conn.execute(
+        "
+        UPDATE movement_mappings
+        SET threshold_percentage = 60, keypress_trigger_threshold_percentage = 75
+        WHERE id = ?1
+        ",
+        params!["mapping-1"],
+    )
+    .unwrap();
     let duplicate = duplicate_preset(&mut conn, "preset-1").unwrap();
-    let copied_mapping: (String, String, String, String) = conn
+
+    let copied_mapping: (String, String, String, String, u32, u32) = conn
         .query_row(
-            "SELECT name, keybind, pose_frames_json, selected_landmarks_json
+            "SELECT name, keybind, pose_frames_json, selected_landmarks_json, threshold_percentage,
+                    keypress_trigger_threshold_percentage
              FROM movement_mappings WHERE preset_id = ?1",
             params![&duplicate.id],
-            |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?)),
+            |row| {
+                Ok((
+                    row.get(0)?,
+                    row.get(1)?,
+                    row.get(2)?,
+                    row.get(3)?,
+                    row.get(4)?,
+                    row.get(5)?,
+                ))
+            },
         )
         .unwrap();
 
@@ -41,7 +61,9 @@ fn duplicate_preset_copies_mappings_and_preserves_source() {
             "Squat".into(),
             "S".into(),
             "[[1,2,3]]".into(),
-            "[11,12]".into()
+            "[11,12]".into(),
+            60,
+            75
         )
     );
     assert_eq!(

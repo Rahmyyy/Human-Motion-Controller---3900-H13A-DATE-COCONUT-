@@ -14,6 +14,7 @@ pub fn create_movement_mapping(
     keybind: String,
     pose_frames_json: String,
     selected_landmarks: Vec<u32>,
+    keypress_trigger_threshold_percentage: u32,
 ) -> Result<(), String> {
     let conn = state
         .conn
@@ -27,6 +28,7 @@ pub fn create_movement_mapping(
         &keybind,
         &pose_frames_json,
         &selected_landmarks,
+        keypress_trigger_threshold_percentage,
     )
     .map_err(|error| error.to_string())
 }
@@ -59,6 +61,7 @@ pub fn get_movement_mapping(
 }
 
 #[tauri::command]
+#[allow(clippy::too_many_arguments)]
 pub fn update_movement_mapping(
     state: State<'_, DbState>,
     id: String,
@@ -67,6 +70,7 @@ pub fn update_movement_mapping(
     keybind: String,
     pose_frames_json: String,
     selected_landmarks: Vec<u32>,
+    keypress_trigger_threshold_percentage: u32,
 ) -> Result<(), String> {
     let conn = state
         .conn
@@ -75,12 +79,15 @@ pub fn update_movement_mapping(
 
     service::update_movement_mapping(
         &conn,
-        &id,
-        &preset_id,
-        &name,
-        &keybind,
-        &pose_frames_json,
-        &selected_landmarks,
+        &service::MovementMappingUpdate {
+            id: &id,
+            preset_id: &preset_id,
+            name: &name,
+            keybind: &keybind,
+            pose_frames_json: &pose_frames_json,
+            selected_landmarks: &selected_landmarks,
+            keypress_trigger_threshold_percentage,
+        },
     )
     .map_err(|error| error.to_string())
 }
@@ -97,4 +104,20 @@ pub fn delete_movement_mapping(
         .map_err(|_| "failed to lock database connection".to_string())?;
 
     service::delete_movement_mapping(&conn, &id, &preset_id).map_err(|error| error.to_string())
+}
+
+#[tauri::command]
+pub fn update_movement_mapping_threshold(
+    state: State<'_, DbState>,
+    id: String,
+    preset_id: String,
+    threshold_percentage: u32,
+) -> Result<(), String> {
+    let conn = state
+        .conn
+        .lock()
+        .map_err(|_| "failed to lock database connection".to_string())?;
+
+    service::update_movement_mapping_threshold(&conn, &id, &preset_id, threshold_percentage)
+        .map_err(|error| error.to_string())
 }
