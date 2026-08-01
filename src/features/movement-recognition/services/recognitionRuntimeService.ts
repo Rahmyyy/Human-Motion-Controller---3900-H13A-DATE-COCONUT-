@@ -1,4 +1,3 @@
-import { getCameraMode } from "@/features/camera/cameraMode";
 import { parsePoseFrames } from "@/features/camera/parsePoseFrames";
 import { getMovementMappings } from "@/features/movement-mapping/api/movementMappingsApi";
 import { getPreset } from "@/features/presets/api/presetsApi";
@@ -16,7 +15,6 @@ const DEFAULT_POSE_REQUIRED_MESSAGE = "Record a default resting state before sta
 
 class PresetRecognitionRuntimeService implements RecognitionRuntimeService {
   private snapshot: RecognitionRuntimeSnapshot = {
-    cameraMode: getCameraMode(),
     error: null,
     phase: "idle",
     presetName: null,
@@ -40,7 +38,6 @@ class PresetRecognitionRuntimeService implements RecognitionRuntimeService {
     const token = ++this.operationToken;
     this.stopRecognition();
     this.snapshot = {
-      cameraMode: getCameraMode(),
       error: null,
       phase: "loading",
       presetName: null,

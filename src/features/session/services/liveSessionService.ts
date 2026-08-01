@@ -1,5 +1,4 @@
 import { listen } from "@tauri-apps/api/event";
-import { getCameraMode } from "@/features/camera/cameraMode";
 import {
   createRecognitionRuntimeService,
   type RecognitionRuntimeService,
@@ -15,7 +14,6 @@ type Listener = () => void;
 
 class OverlayLiveSessionService implements LiveSessionService {
   private snapshot: LiveSessionSnapshot = {
-    cameraMode: getCameraMode(),
     elapsedMs: 0,
     phase: "idle",
     presetName: "Session",
@@ -50,7 +48,6 @@ class OverlayLiveSessionService implements LiveSessionService {
     if (token !== this.operationToken) return;
 
     this.snapshot = {
-      cameraMode: getCameraMode(),
       elapsedMs: 0,
       phase: "loading",
       presetName: "Session",
@@ -85,7 +82,6 @@ class OverlayLiveSessionService implements LiveSessionService {
       this.unsubscribeSession = sessionService.subscribe(this.publishSessionSnapshot);
       this.snapshot = {
         ...this.snapshot,
-        cameraMode: runtime.cameraMode,
         phase: "running",
         presetName: runtime.presetName ?? "Session",
         recognitionStatus: runtime.recognitionStatus,
@@ -121,7 +117,6 @@ class OverlayLiveSessionService implements LiveSessionService {
     const runtime = this.recognitionRuntime.getSnapshot();
     this.snapshot = {
       ...this.snapshot,
-      cameraMode: runtime.cameraMode,
       presetName: runtime.presetName ?? this.snapshot.presetName,
       recognitionStatus: recognitionStatusWithRuntimeError(runtime),
     };

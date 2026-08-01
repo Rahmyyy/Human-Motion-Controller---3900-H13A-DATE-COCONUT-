@@ -1,5 +1,4 @@
 import { useParams } from "react-router";
-import AnnotatedPreview from "@/features/camera/AnnotatedPreview";
 import MediaPipePosePreview from "@/features/camera/MediaPipePosePreview";
 import SessionOverlay from "./components/SessionOverlay";
 import { useLiveSession } from "./hooks/useLiveSession";
@@ -17,8 +16,10 @@ import { useTransparentWindow } from "./hooks/useTransparentWindow";
  */
 export default function SessionOverlayWindow() {
   const { patientId, presetId } = useParams<{ patientId: string; presetId: string }>();
-  const { cameraMode, elapsedMs, endSession, presetName, recognitionStatus, triggerCount } =
-    useLiveSession(patientId, presetId);
+  const { elapsedMs, endSession, presetName, recognitionStatus, triggerCount } = useLiveSession(
+    patientId,
+    presetId,
+  );
 
   useTransparentWindow();
 
@@ -31,7 +32,7 @@ export default function SessionOverlayWindow() {
       onStop={endSession}
     >
       <div className="aspect-video w-full overflow-hidden rounded-lg border border-white/10">
-        {cameraMode === "backend" ? <AnnotatedPreview /> : <MediaPipePosePreview />}
+        <MediaPipePosePreview />
       </div>
     </SessionOverlay>
   );

@@ -1,7 +1,6 @@
 import BackButton from "@/components/BackButton";
 import { Button } from "@/components/ui/button";
 import { Info, UserRound } from "lucide-react";
-import CameraModeToggle from "./CameraModeToggle";
 import CreatePresetDialog from "./CreatePresetDialog";
 import type { Preset } from "../api/presetsApi";
 
@@ -42,7 +41,6 @@ export default function PresetPageHeader({
             patientId={patientId}
           />
           <BackButton to="/patients" />
-          <CameraModeToggle />
         </div>
       </div>
 

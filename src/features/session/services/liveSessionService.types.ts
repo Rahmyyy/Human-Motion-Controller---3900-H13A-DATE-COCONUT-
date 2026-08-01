@@ -1,10 +1,8 @@
-import type { CameraMode } from "@/features/camera/cameraMode";
 import type { RecognitionStatus } from "@/features/movement-recognition/services/recognitionService.types";
 
 export type LiveSessionPhase = "idle" | "loading" | "running" | "ended" | "error";
 
 export interface LiveSessionSnapshot {
-  cameraMode: CameraMode;
   elapsedMs: number;
   phase: LiveSessionPhase;
   presetName: string;
