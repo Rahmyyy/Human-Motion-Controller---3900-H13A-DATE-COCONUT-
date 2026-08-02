@@ -40,11 +40,7 @@ impl Action {
             ));
         }
 
-        if let Ok(key) = serde_json::from_str::<Key>(&format!("\"{}\"", key_str)) {
-            return Ok(Action::Keyboard(key, press_type));
-        };
-
-        let keyboard_match = match key_str {
+        if let Some(key) = match key_str {
             "Enter" | "Return" => Some(Key::Return),
             "Space" | "Spacebar" => Some(Key::Space),
             "Escape" | "Esc" => Some(Key::Escape),
@@ -54,37 +50,17 @@ impl Action {
             "ArrowDown" | "Arrow Down" => Some(Key::DownArrow),
             "ArrowLeft" | "Arrow Left" => Some(Key::LeftArrow),
             "ArrowRight" | "Arrow Right" => Some(Key::RightArrow),
-            "F1" => Some(Key::F1),
-            "F2" => Some(Key::F2),
-            "F3" => Some(Key::F3),
-            "F4" => Some(Key::F4),
-            "F5" => Some(Key::F5),
-            "F6" => Some(Key::F6),
-            "F7" => Some(Key::F7),
-            "F8" => Some(Key::F8),
-            "F9" => Some(Key::F9),
-            "F10" => Some(Key::F10),
-            "F11" => Some(Key::F11),
-            "F12" => Some(Key::F12),
-            _ => None,
-        };
-
-        if let Some(key) = keyboard_match {
+            _ => serde_json::from_str::<Key>(&format!("\"{}\"", key_str)).ok(),
+        } {
             return Ok(Action::Keyboard(key, press_type));
         }
 
-        if let Ok(button) = serde_json::from_str::<Button>(&format!("\"{}\"", key_str)) {
-            return Ok(Action::MouseButton(button, press_type));
-        };
-
-        let mouse_match = match key_str {
+        if let Some(key) = match key_str {
             "MouseLeft" | "Mouse Left" => Some(Button::Left),
             "MouseRight" | "Mouse Right" => Some(Button::Right),
             "MouseMiddle" | "Mouse Middle" => Some(Button::Middle),
-            _ => None,
-        };
-
-        if let Some(key) = mouse_match {
+            _ => serde_json::from_str::<Button>(&format!("\"{}\"", key_str)).ok(),
+        } {
             return Ok(Action::MouseButton(key, press_type));
         }
 
