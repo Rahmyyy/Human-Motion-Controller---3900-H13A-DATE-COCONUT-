@@ -17,3 +17,7 @@ export function createPatient(displayName: string, clinicalNotes?: string) {
     clinicalNotes: clinicalNotes || null,
   });
 }
+
+export function getPatient(id: string) {
+  return invoke<Patient>("get_patient", { id });
+}

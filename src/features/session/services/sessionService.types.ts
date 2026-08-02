@@ -6,6 +6,7 @@ export interface SessionSnapshot {
   endedAt: number | null;
   elapsedMs: number;
   triggerCount: number;
+  triggerCountsByMapping: Record<string, number>;
 }
 
 /** Owns the lifecycle, elapsed time, and successful-trigger count for one frontend session. */
@@ -14,5 +15,5 @@ export interface SessionService {
   subscribe(listener: () => void): () => void;
   start(): void;
   end(): void;
-  recordSuccessfulTrigger(): void;
+  recordSuccessfulTrigger(mappingId: string): void;
 }

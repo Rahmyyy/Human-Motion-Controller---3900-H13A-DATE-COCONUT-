@@ -1,4 +1,5 @@
 import { sessionWindowService } from "./sessionWindowService";
+import type { SessionSummary } from "./sessionSummary.types";
 import type {
   SessionLauncherService,
   SessionLauncherSnapshot,
@@ -7,7 +8,7 @@ import type {
 type Listener = () => void;
 
 class MainWindowSessionLauncherService implements SessionLauncherService {
-  private snapshot: SessionLauncherSnapshot = { error: null, status: "idle" };
+  private snapshot: SessionLauncherSnapshot = { error: null, status: "idle", summary: null };
   private readonly listeners = new Set<Listener>();
   private unlistenSessionEnded: (() => void) | null = null;
   private openPromise: Promise<void> | null = null;
@@ -25,11 +26,11 @@ class MainWindowSessionLauncherService implements SessionLauncherService {
     this.clearSessionEndedListener();
 
     if (!patientId || !presetId) {
-      this.publish({ error: "Preset not found.", status: "error" });
+      this.publish({ error: "Preset not found.", status: "error", summary: null });
       return;
     }
 
-    this.publish({ error: null, status: "opening" });
+    this.publish({ error: null, status: "opening", summary: null });
 
     try {
       const unlisten = await sessionWindowService.onSessionEnded(this.handleSessionEnded);
@@ -45,28 +46,30 @@ class MainWindowSessionLauncherService implements SessionLauncherService {
       if (token !== this.operationToken || this.snapshot.status === "ended") return;
 
       this.openPromise = null;
-      this.publish({ error: null, status: "running" });
+      this.publish({ error: null, status: "running", summary: null });
     } catch (error) {
       if (token !== this.operationToken) return;
       this.openPromise = null;
       this.clearSessionEndedListener();
-      this.publish({ error: errorMessage(error), status: "error" });
+      this.publish({ error: errorMessage(error), status: "error", summary: null });
     }
   };
 
   end = async () => {
     const token = ++this.operationToken;
     const pendingOpen = this.openPromise;
-    this.publish({ error: null, status: "ending" });
+    this.publish({ error: null, status: "ending", summary: null });
 
     try {
       await pendingOpen;
-      await sessionWindowService.closeOverlay();
-      if (token !== this.operationToken) return;
-      this.handleSessionEnded();
+      // The overlay owns the live session stats, so it must be the one to
+      // report them and close itself — asking it to end rather than closing
+      // it here directly. handleSessionEnded fires once it reports back via
+      // the "session-ended" event, carrying the real summary.
+      await sessionWindowService.requestOverlayEnd();
     } catch (error) {
       if (token !== this.operationToken) return;
-      this.publish({ error: errorMessage(error), status: "error" });
+      this.publish({ error: errorMessage(error), status: "error", summary: null });
     }
   };
 
@@ -76,10 +79,10 @@ class MainWindowSessionLauncherService implements SessionLauncherService {
     this.clearSessionEndedListener();
   };
 
-  private handleSessionEnded = () => {
+  private handleSessionEnded = (summary: SessionSummary) => {
     this.openPromise = null;
     this.clearSessionEndedListener();
-    this.publish({ error: null, status: "ended" });
+    this.publish({ error: null, status: "ended", summary });
   };
 
   private clearSessionEndedListener() {

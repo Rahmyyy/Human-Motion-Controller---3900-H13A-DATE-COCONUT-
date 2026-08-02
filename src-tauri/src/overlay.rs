@@ -1,6 +1,18 @@
+use std::collections::HashMap;
 use std::sync::Mutex;
 
+use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Emitter, LogicalPosition, Manager, WebviewUrl, WebviewWindowBuilder};
+
+/// Final stats for one completed session, reported by the overlay (the only
+/// window that owns live session state) when it asks to be closed.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SessionSummary {
+    elapsed_ms: u64,
+    trigger_count: u32,
+    trigger_counts_by_mapping: HashMap<String, u32>,
+}
 
 /// Serialises overlay creation. These commands are `async`, so two invokes
 /// arriving together (React strict mode remounts the session page) would
@@ -73,16 +85,21 @@ pub async fn open_overlay(
 /// can leave the session screen. Both End Session buttons route through here so
 /// the two windows can never disagree about whether a session is running.
 ///
+/// The overlay is the only window that owns live session state (see
+/// `SessionOverlayWindow`'s doc comment), so it is always the caller here,
+/// carrying the final stats to hand to the main window.
+///
 /// `async` for the same reason as [`open_overlay`]: window lifecycle work does
 /// not belong on the main thread.
 #[tauri::command]
-pub async fn close_overlay(app: AppHandle) -> Result<(), String> {
+pub async fn close_overlay(app: AppHandle, summary: SessionSummary) -> Result<(), String> {
     if let Some(overlay) = app.get_webview_window(OVERLAY_LABEL) {
         overlay.close().map_err(|e| e.to_string())?;
     }
 
     if let Some(main) = app.get_webview_window(MAIN_LABEL) {
-        main.emit("session-ended", ()).map_err(|e| e.to_string())?;
+        main.emit("session-ended", &summary)
+            .map_err(|e| e.to_string())?;
         main.set_focus().map_err(|e| e.to_string())?;
     }
 

@@ -11,6 +11,7 @@ class FrontendSessionService implements SessionService {
     endedAt: null,
     elapsedMs: 0,
     triggerCount: 0,
+    triggerCountsByMapping: {},
   };
   private readonly listeners = new Set<Listener>();
   private elapsedTimer: number | null = null;
@@ -30,6 +31,7 @@ class FrontendSessionService implements SessionService {
       endedAt: null,
       elapsedMs: 0,
       triggerCount: 0,
+      triggerCountsByMapping: {},
     };
     this.notify();
     this.elapsedTimer = window.setInterval(this.updateElapsedTime, ELAPSED_TIME_UPDATE_MS);
@@ -49,12 +51,16 @@ class FrontendSessionService implements SessionService {
     this.notify();
   };
 
-  recordSuccessfulTrigger = () => {
+  recordSuccessfulTrigger = (mappingId: string) => {
     if (this.snapshot.status !== "running") return;
 
     this.snapshot = {
       ...this.snapshot,
       triggerCount: this.snapshot.triggerCount + 1,
+      triggerCountsByMapping: {
+        ...this.snapshot.triggerCountsByMapping,
+        [mappingId]: (this.snapshot.triggerCountsByMapping[mappingId] ?? 0) + 1,
+      },
     };
     this.notify();
   };

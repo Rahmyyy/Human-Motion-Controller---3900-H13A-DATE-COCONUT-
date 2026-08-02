@@ -1,7 +1,7 @@
-import { useEffect } from "react";
 import { Square } from "lucide-react";
 import { useNavigate, useParams } from "react-router";
 import { Button } from "@/components/ui/button";
+import SessionSummaryView from "./components/SessionSummaryView";
 import { useSessionLauncher } from "./hooks/useSessionLauncher";
 
 /**
@@ -13,11 +13,18 @@ import { useSessionLauncher } from "./hooks/useSessionLauncher";
 export default function LiveSessionPage() {
   const { patientId, presetId } = useParams<{ patientId: string; presetId: string }>();
   const navigate = useNavigate();
-  const { endSession, error, status } = useSessionLauncher(patientId, presetId);
+  const { endSession, error, status, summary } = useSessionLauncher(patientId, presetId);
 
-  useEffect(() => {
-    if (status === "ended") navigate("/");
-  }, [navigate, status]);
+  if (status === "ended" && summary && patientId && presetId) {
+    return (
+      <SessionSummaryView
+        summary={summary}
+        patientId={patientId}
+        presetId={presetId}
+        onDone={() => navigate("/")}
+      />
+    );
+  }
 
   return (
     <main className="grid h-screen place-items-center bg-slate-950 p-8">
