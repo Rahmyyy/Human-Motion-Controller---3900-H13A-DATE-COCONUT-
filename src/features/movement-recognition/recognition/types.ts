@@ -1,5 +1,3 @@
-import type { PoseFrame } from "@/features/camera/poseFrame";
-
 export const TRACKED_LANDMARKS = [
   11, // left shoulder
   12, // right shoulder
@@ -45,10 +43,10 @@ export type NormalizedPoseFrame = {
 };
 
 export enum PressType {
-  Toggle,
-  Press,
-  Release,
-  Click,
+  Toggle = "Toggle",
+  Press = "Press",
+  Release = "Release",
+  Click = "Click",
 }
 
 export type PreparedMovementTemplate = {

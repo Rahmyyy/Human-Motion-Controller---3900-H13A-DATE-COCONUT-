@@ -7,6 +7,7 @@ pub struct MovementMappingSummary {
     pub id: String,
     pub name: String,
     pub keybind: String,
+    pub keypress_type: String,
     pub pose_frames_json: String,
     pub selected_landmarks: Vec<u32>,
     pub threshold_percentage: u32,
@@ -19,6 +20,7 @@ pub struct MovementMappingDetails {
     pub preset_id: String,
     pub name: String,
     pub keybind: String,
+    pub keypress_type: String,
     pub pose_frames_json: String,
     pub selected_landmarks: Vec<u32>,
     pub threshold_percentage: u32,
@@ -38,6 +40,7 @@ pub struct NewMovementMapping<'a> {
     pub preset_id: &'a str,
     pub name: &'a str,
     pub keybind: &'a str,
+    pub keypress_type: &'a str,
     pub pose_frames_json: &'a str,
     pub selected_landmarks_json: &'a str,
     pub keypress_trigger_threshold_percentage: u32,
@@ -49,6 +52,7 @@ pub struct MovementMappingUpdate<'a> {
     pub preset_id: &'a str,
     pub name: &'a str,
     pub keybind: &'a str,
+    pub keypress_type: &'a str,
     pub pose_frames_json: &'a str,
     pub selected_landmarks_json: &'a str,
     pub keypress_trigger_threshold_percentage: u32,
@@ -62,17 +66,19 @@ pub fn insert_movement_mapping(conn: &Connection, mapping: &NewMovementMapping) 
             preset_id,
             name,
             keybind,
+            keypress_type,
             pose_frames_json,
             selected_landmarks_json,
             keypress_trigger_threshold_percentage,
             created_at
-        ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)
+        ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)
         ",
         params![
             mapping.id,
             mapping.preset_id,
             mapping.name,
             mapping.keybind,
+            mapping.keypress_type,
             mapping.pose_frames_json,
             mapping.selected_landmarks_json,
             mapping.keypress_trigger_threshold_percentage,
@@ -105,8 +111,8 @@ pub fn select_movement_mappings_by_preset(
 ) -> Result<Vec<MovementMappingSummary>> {
     let mut statement = conn.prepare(
         "
-      SELECT id, name, keybind, pose_frames_json, selected_landmarks_json, threshold_percentage,
-             keypress_trigger_threshold_percentage
+      SELECT id, name, keybind, keypress_type, pose_frames_json, selected_landmarks_json,
+             threshold_percentage, keypress_trigger_threshold_percentage
       FROM movement_mappings
       WHERE preset_id = ?1
       ORDER BY created_at DESC
@@ -119,10 +125,11 @@ pub fn select_movement_mappings_by_preset(
                 id: row.get(0)?,
                 name: row.get(1)?,
                 keybind: row.get(2)?,
-                pose_frames_json: row.get(3)?,
-                selected_landmarks: parse_selected_landmarks(row.get(4)?),
-                threshold_percentage: row.get(5)?,
-                keypress_trigger_threshold_percentage: row.get(6)?,
+                keypress_type: row.get(3)?,
+                pose_frames_json: row.get(4)?,
+                selected_landmarks: parse_selected_landmarks(row.get(5)?),
+                threshold_percentage: row.get(6)?,
+                keypress_trigger_threshold_percentage: row.get(7)?,
             })
         })?
         .collect::<Result<Vec<_>, _>>()?;
@@ -139,14 +146,16 @@ pub fn update_movement_mapping(
         UPDATE movement_mappings
         SET name = ?1,
             keybind = ?2,
-            pose_frames_json = ?3,
-            selected_landmarks_json = ?4,
-            keypress_trigger_threshold_percentage = ?5
-        WHERE id = ?6 AND preset_id = ?7
+            keypress_type = ?3,
+            pose_frames_json = ?4,
+            selected_landmarks_json = ?5,
+            keypress_trigger_threshold_percentage = ?6
+        WHERE id = ?7 AND preset_id = ?8
         ",
         params![
             mapping.name,
             mapping.keybind,
+            mapping.keypress_type,
             mapping.pose_frames_json,
             mapping.selected_landmarks_json,
             mapping.keypress_trigger_threshold_percentage,
@@ -194,7 +203,7 @@ pub fn select_movement_mapping_by_id(
     let mut statement = conn.prepare(
         "
         SELECT id, preset_id, name, keybind, pose_frames_json, selected_landmarks_json,
-               threshold_percentage, keypress_trigger_threshold_percentage
+               threshold_percentage, keypress_trigger_threshold_percentage, keypress_type
         FROM movement_mappings
         WHERE id = ?1 AND preset_id = ?2
         ",
@@ -206,6 +215,7 @@ pub fn select_movement_mapping_by_id(
             preset_id: row.get(1)?,
             name: row.get(2)?,
             keybind: row.get(3)?,
+            keypress_type: row.get(8)?,
             pose_frames_json: row.get(4)?,
             selected_landmarks: parse_selected_landmarks(row.get(5)?),
             threshold_percentage: row.get(6)?,

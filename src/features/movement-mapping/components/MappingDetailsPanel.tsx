@@ -1,28 +1,23 @@
 import { Input } from "@/components/ui/input";
-import { Pencil, SlidersHorizontal } from "lucide-react";
-import { useState, type KeyboardEvent } from "react";
-import type { Keybind } from "../services/mappingEditorService.types";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PressType } from "@/features/movement-recognition/recognition/types";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+import { Pencil, SlidersHorizontal } from "lucide-react";
+import type { KeyboardEvent } from "react";
+import type { Keybind } from "../services/mappingEditorService.types";
 
-const KeyPressSelectItems = [
+const KEYPRESS_TYPE_OPTIONS = [
   { label: "Click", value: PressType.Click },
   { label: "Toggle", value: PressType.Toggle },
   { label: "Press", value: PressType.Press },
   { label: "Release", value: PressType.Release },
-]
+];
 
 interface MappingDetailsPanelProps {
   keybind: Keybind | null;
+  keypressType: PressType;
   movementName: string;
   onKeybindChange: (keybind: Keybind) => void;
+  onKeypressTypeChange: (keypressType: PressType) => void;
   onMovementNameChange: (movementName: string) => void;
 }
 
@@ -47,8 +42,10 @@ function formatKeybind(event: KeyboardEvent<HTMLInputElement>) {
 
 export default function MappingDetailsPanel({
   keybind,
+  keypressType,
   movementName,
   onKeybindChange,
+  onKeypressTypeChange,
   onMovementNameChange,
 }: MappingDetailsPanelProps) {
   const captureKeybind = (event: KeyboardEvent<HTMLInputElement>) => {
@@ -120,14 +117,17 @@ export default function MappingDetailsPanel({
           Key Action Type
         </label>
         <div className="relative">
-          <Select defaultValue={String(KeyPressSelectItems[0].value)}>
-            <SelectTrigger className="w-full max-w-48">
+          <Select
+            value={keypressType}
+            onValueChange={(value) => onKeypressTypeChange(value as PressType)}
+          >
+            <SelectTrigger id="target-key-action-type" className="w-full">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
-                {KeyPressSelectItems.map((item) => (
-                  <SelectItem key={item.value} value={String(item.value)}>
+                {KEYPRESS_TYPE_OPTIONS.map((item) => (
+                  <SelectItem key={item.value} value={item.value}>
                     {item.label}
                   </SelectItem>
                 ))}

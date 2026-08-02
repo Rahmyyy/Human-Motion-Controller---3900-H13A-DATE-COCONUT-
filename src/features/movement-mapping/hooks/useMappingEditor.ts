@@ -24,6 +24,7 @@ export function useMappingEditor(
     resetRecording: service.resetRecording,
     save: service.save,
     setKeybind: service.setKeybind,
+    setKeypressType: service.setKeypressType,
     setKeypressTriggerThreshold: service.setKeypressTriggerThreshold,
     setMovementName: service.setMovementName,
     setSelectedLandmarks: service.setSelectedLandmarks,

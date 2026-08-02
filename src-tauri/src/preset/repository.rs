@@ -61,14 +61,16 @@ pub fn duplicate_preset_data(
     transaction.execute(
         "
         INSERT INTO movement_mappings (
-            id, preset_id, name, keybind, pose_frames_json, selected_landmarks_json,
-            threshold_percentage, keypress_trigger_threshold_percentage, created_at
+            id, preset_id, name, keybind, keypress_type, pose_frames_json,
+            selected_landmarks_json, threshold_percentage,
+            keypress_trigger_threshold_percentage, created_at
         )
         SELECT
             ?1 || '-mapping-' || id,
             ?1,
             name,
             keybind,
+            keypress_type,
             pose_frames_json,
             selected_landmarks_json,
             threshold_percentage,

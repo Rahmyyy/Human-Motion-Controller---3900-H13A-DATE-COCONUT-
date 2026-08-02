@@ -8,14 +8,16 @@ fn duplicate_preset_copies_mappings_and_preserves_source() {
     conn.execute(
         "
         INSERT INTO movement_mappings (
-            id, preset_id, name, keybind, pose_frames_json, selected_landmarks_json, created_at
-        ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
+            id, preset_id, name, keybind, keypress_type, pose_frames_json,
+            selected_landmarks_json, created_at
+        ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)
         ",
         params![
             "mapping-1",
             "preset-1",
             "Squat",
             "S",
+            "Click",
             "[[1,2,3]]",
             "[11,12]",
             "1"
@@ -34,11 +36,13 @@ fn duplicate_preset_copies_mappings_and_preserves_source() {
     .unwrap();
     let duplicate = duplicate_preset(&mut conn, "preset-1").unwrap();
 
-    let copied_mapping: (String, String, String, String, u32, u32) = conn
+    let copied_mapping: (String, String, String, String, String, u32, u32) = conn
         .query_row(
-            "SELECT name, keybind, pose_frames_json, selected_landmarks_json, threshold_percentage,
-                    keypress_trigger_threshold_percentage
-             FROM movement_mappings WHERE preset_id = ?1",
+            "
+            SELECT name, keybind, keypress_type, pose_frames_json, selected_landmarks_json,
+                  threshold_percentage, keypress_trigger_threshold_percentage
+            FROM movement_mappings WHERE preset_id = ?1
+            ",
             params![&duplicate.id],
             |row| {
                 Ok((
@@ -48,6 +52,7 @@ fn duplicate_preset_copies_mappings_and_preserves_source() {
                     row.get(3)?,
                     row.get(4)?,
                     row.get(5)?,
+                    row.get(6)?,
                 ))
             },
         )
@@ -60,6 +65,7 @@ fn duplicate_preset_copies_mappings_and_preserves_source() {
         (
             "Squat".into(),
             "S".into(),
+            "Click".into(),
             "[[1,2,3]]".into(),
             "[11,12]".into(),
             60,

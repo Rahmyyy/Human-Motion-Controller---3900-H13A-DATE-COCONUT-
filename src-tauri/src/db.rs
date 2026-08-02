@@ -52,6 +52,7 @@ pub fn init_db(app: &AppHandle) -> Result<DbState> {
             preset_id TEXT NOT NULL,
             name TEXT NOT NULL,
             keybind TEXT NOT NULL,
+            keypress_type TEXT NOT NULL,
             pose_frames_json TEXT NOT NULL,
             selected_landmarks_json TEXT NOT NULL,
             threshold_percentage INTEGER NOT NULL DEFAULT 100,

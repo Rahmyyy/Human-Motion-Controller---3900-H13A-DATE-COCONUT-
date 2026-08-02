@@ -1,7 +1,7 @@
 import { parsePoseFrames } from "@/features/camera/parsePoseFrames";
 import type { PoseFrame } from "@/features/camera/poseFrame";
 import { getPreset } from "@/features/presets/api/presetsApi";
-import { TRACKED_LANDMARKS } from "@/features/movement-recognition/recognition/types";
+import { PressType, TRACKED_LANDMARKS } from "@/features/movement-recognition/recognition/types";
 import {
   DEFAULT_KEYPRESS_TRIGGER_THRESHOLD_PERCENTAGE,
   MAX_KEYPRESS_TRIGGER_THRESHOLD_PERCENTAGE,
@@ -61,6 +61,7 @@ class MovementMappingEditorService implements MappingEditorService {
         this.snapshot = {
           ...this.snapshot,
           keybind: keybindFromLabel(details.keybind),
+          keypressType: details.keypress_type,
           keypressTriggerThresholdPercentage: details.keypress_trigger_threshold_percentage,
           movementName: details.name,
           selectedLandmarks: initialSelection(details.selected_landmarks),
@@ -81,6 +82,7 @@ class MovementMappingEditorService implements MappingEditorService {
       this.initialiseRecording([], "idle");
       this.snapshot = {
         ...this.snapshot,
+        keypressType: PressType.Click,
         selectedLandmarks: [...TRACKED_LANDMARKS],
         status: "ready",
       };
@@ -105,6 +107,10 @@ class MovementMappingEditorService implements MappingEditorService {
 
   setKeybind = (keybind: Keybind) => {
     this.publish({ keybind });
+  };
+
+  setKeypressType = (keypressType: PressType) => {
+    this.publish({ keypressType });
   };
 
   setKeypressTriggerThreshold = (percentage: number) => {
@@ -143,6 +149,7 @@ class MovementMappingEditorService implements MappingEditorService {
     try {
       const input = {
         keybind: this.snapshot.keybind?.label ?? "",
+        keypressType: this.snapshot.keypressType,
         keypressTriggerThresholdPercentage: this.snapshot.keypressTriggerThresholdPercentage,
         name: this.snapshot.movementName,
         poseFramesJson: JSON.stringify(this.snapshot.recordedFrames),
@@ -229,6 +236,7 @@ function emptySnapshot(): MappingEditorSnapshot {
     countdownSeconds: null,
     error: null,
     keybind: null,
+    keypressType: PressType.Click,
     keypressTriggerThresholdPercentage: DEFAULT_KEYPRESS_TRIGGER_THRESHOLD_PERCENTAGE,
     movementName: "",
     recordedFrames: [],
