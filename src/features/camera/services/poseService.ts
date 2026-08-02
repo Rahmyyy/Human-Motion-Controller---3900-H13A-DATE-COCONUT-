@@ -1,4 +1,3 @@
-import { invoke } from "@tauri-apps/api/core";
 import type { PoseLandmarker } from "@mediapipe/tasks-vision";
 import { toPoseFrame, type PoseFrame } from "../poseFrame";
 import { loadPoseModel } from "./loadPoseModel";
@@ -43,7 +42,6 @@ class MediaPipePoseService implements PoseService {
     this.publishStatus("loading", null);
 
     try {
-      await invoke("stop_backend_camera").catch(() => undefined);
       await this.getModel();
       if (token !== this.startToken) return;
 

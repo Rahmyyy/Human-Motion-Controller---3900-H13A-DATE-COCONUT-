@@ -2,17 +2,13 @@ import { LayoutDashboard } from "lucide-react";
 import { Link, useParams } from "react-router";
 import BackButton from "@/components/BackButton";
 import { Button } from "@/components/ui/button";
-import AnnotatedPreview from "@/features/camera/AnnotatedPreview";
 import MediaPipePosePreview from "@/features/camera/MediaPipePosePreview";
 import RecognitionStatusPanel from "./components/RecognitionStatusPanel";
 import { useRecognitionRuntime } from "./hooks/useRecognitionRuntime";
 
 export default function MovementRecognitionPage() {
   const { patientId, presetId } = useParams<{ patientId: string; presetId: string }>();
-  const { cameraMode, error, phase, recognitionStatus } = useRecognitionRuntime(
-    patientId,
-    presetId,
-  );
+  const { error, phase, recognitionStatus } = useRecognitionRuntime(patientId, presetId);
 
   return (
     <main className="grid h-screen w-full grid-rows-[auto_minmax(0,1fr)] gap-4 overflow-hidden bg-slate-50 p-8">
@@ -36,7 +32,7 @@ export default function MovementRecognitionPage() {
 
       <div className="grid min-h-0 gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <section className="grid min-h-0 min-w-0" aria-label="Live camera recognition">
-          {cameraMode === "backend" ? <AnnotatedPreview /> : <MediaPipePosePreview />}
+          <MediaPipePosePreview />
         </section>
         <RecognitionStatusPanel
           isLoading={phase === "loading"}
