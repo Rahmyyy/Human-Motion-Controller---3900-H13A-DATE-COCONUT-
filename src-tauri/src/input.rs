@@ -1,8 +1,7 @@
-use enigo::{Button, Direction, Enigo, Key, Keyboard, Mouse, Settings};
+use enigo::{Button, Direction, Enigo, Key, Keyboard, Mouse};
 use log::{error, info};
 use serde::Deserialize;
-use std::sync::OnceLock;
-use tokio::sync::{Mutex, MutexGuard};
+use std::sync::{Mutex, MutexGuard, OnceLock};
 
 static ENIGO_HANDLER: OnceLock<Mutex<Enigo>> = OnceLock::new();
 
@@ -35,8 +34,15 @@ impl Action {
         // Implementation for parsing key
         let mut chars = key_str.chars();
         if let (Some(c), None) = (chars.next(), chars.next()) {
-            return Ok(Action::Keyboard(Key::Unicode(c), press_type));
+            return Ok(Action::Keyboard(
+                Key::Unicode(c.to_ascii_lowercase()),
+                press_type,
+            ));
         }
+
+        if let Ok(key) = serde_json::from_str::<Key>(&format!("\"{}\"", key_str)) {
+            return Ok(Action::Keyboard(key, press_type));
+        };
 
         let keyboard_match = match key_str {
             "Enter" | "Return" => Some(Key::Return),
@@ -67,10 +73,14 @@ impl Action {
             return Ok(Action::Keyboard(key, press_type));
         }
 
+        if let Ok(button) = serde_json::from_str::<Button>(&format!("\"{}\"", key_str)) {
+            return Ok(Action::MouseButton(button, press_type));
+        };
+
         let mouse_match = match key_str {
-            "MouseLeft" | "Mouse Left" => Some(enigo::Button::Left),
-            "MouseRight" | "Mouse Right" => Some(enigo::Button::Right),
-            "MouseMiddle" | "Mouse Middle" => Some(enigo::Button::Middle),
+            "MouseLeft" | "Mouse Left" => Some(Button::Left),
+            "MouseRight" | "Mouse Right" => Some(Button::Right),
+            "MouseMiddle" | "Mouse Middle" => Some(Button::Middle),
             _ => None,
         };
 
@@ -114,9 +124,9 @@ impl Action {
     }
 }
 
-async fn request_enigo() -> Result<MutexGuard<'static, Enigo>, String> {
+fn request_enigo() -> Result<MutexGuard<'static, Enigo>, String> {
     match ENIGO_HANDLER.get() {
-        Some(mutex) => Ok(mutex.lock().await),
+        Some(mutex) => Ok(mutex.lock().map_err(|e| e.to_string())?),
         None => {
             error!("Enigo backend uninitialised");
             Err("Enigo backend uninitialised".to_string())
@@ -125,8 +135,8 @@ async fn request_enigo() -> Result<MutexGuard<'static, Enigo>, String> {
 }
 
 #[tauri::command]
-pub async fn press_key(key: String) -> Result<(), String> {
-    let mut enigo = request_enigo().await?;
+pub fn press_key(key: String) -> Result<(), String> {
+    let mut enigo = request_enigo()?;
 
     Action::from_raw_str(&key, PressType::Click)?.execute(&mut enigo);
 
@@ -134,8 +144,8 @@ pub async fn press_key(key: String) -> Result<(), String> {
 }
 
 #[tauri::command]
-pub async fn execute_action(action: Action) -> Result<(), String> {
-    let mut enigo = request_enigo().await?;
+pub fn execute_action(action: Action) -> Result<(), String> {
+    let mut enigo = request_enigo()?;
 
     action.execute(&mut enigo);
 
@@ -143,18 +153,29 @@ pub async fn execute_action(action: Action) -> Result<(), String> {
 }
 
 pub fn init_action_backend() {
-    let enigo = match Enigo::new(&Settings::default()) {
-        Ok(x) => x,
-        Err(e) => {
-            error!("Failed to initialize enigo: {}", e);
-            return;
+    let mut settings = enigo::Settings::default();
+
+    let enigo = loop {
+        info!("Attempting to initialize enigo backend...");
+        match Enigo::new(&settings) {
+            Ok(x) => break x,
+            Err(e) => {
+                error!("Failed to initialize enigo: {}", e);
+            }
         }
+
+        settings = enigo::Settings {
+            // So on mac it doesn't spam the permssion prompt
+            open_prompt_to_get_permissions: false,
+            ..enigo::Settings::default()
+        };
+        std::thread::sleep(std::time::Duration::from_secs(1));
     };
 
     match ENIGO_HANDLER.get() {
         Some(mutex) => {
             info!("Re-initialised enigo backend");
-            *mutex.blocking_lock() = enigo;
+            *mutex.lock().unwrap() = enigo;
         }
         None => {
             info!("Initialised enigo backend");
