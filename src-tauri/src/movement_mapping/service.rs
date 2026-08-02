@@ -21,6 +21,7 @@ fn serialize_selected_landmarks(selected: &[u32]) -> Result<String> {
     Ok(serde_json::to_string(selected)?)
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn create_movement_mapping(
     conn: &Connection,
     preset_id: &str,

@@ -1,8 +1,15 @@
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { PressType } from "@/features/movement-recognition/recognition/types";
 import { Pencil, SlidersHorizontal } from "lucide-react";
-import type { KeyboardEvent } from "react";
+import { type KeyboardEvent } from "react";
 import type { Keybind } from "../services/mappingEditorService.types";
 
 const KEYPRESS_TYPE_OPTIONS = [
@@ -113,7 +120,10 @@ export default function MappingDetailsPanel({
         </div>
       </div>
       <div className="grid gap-1.5">
-        <label className="text-xs font-medium text-muted-foreground" htmlFor="target-key-action-type">
+        <label
+          className="text-xs font-medium text-muted-foreground"
+          htmlFor="target-key-action-type"
+        >
           Key Action Type
         </label>
         <div className="relative">
@@ -121,7 +131,7 @@ export default function MappingDetailsPanel({
             value={keypressType}
             onValueChange={(value) => onKeypressTypeChange(value as PressType)}
           >
-            <SelectTrigger id="target-key-action-type" className="w-full">
+            <SelectTrigger className="w-full">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

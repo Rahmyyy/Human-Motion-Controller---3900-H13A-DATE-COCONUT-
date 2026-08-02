@@ -6,6 +6,7 @@ use super::{
 };
 use crate::db::DbState;
 
+#[allow(clippy::too_many_arguments)]
 #[tauri::command]
 pub fn create_movement_mapping(
     state: State<'_, DbState>,
@@ -62,8 +63,8 @@ pub fn get_movement_mapping(
     service::get_movement_mapping(&conn, &id, &preset_id).map_err(|error| error.to_string())
 }
 
-#[tauri::command]
 #[allow(clippy::too_many_arguments)]
+#[tauri::command]
 pub fn update_movement_mapping(
     state: State<'_, DbState>,
     id: String,
