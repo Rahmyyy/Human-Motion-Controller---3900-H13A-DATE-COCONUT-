@@ -144,10 +144,10 @@ pub fn press_key(key: String) -> Result<(), String> {
 }
 
 #[tauri::command]
-pub fn execute_action(action: Action) -> Result<(), String> {
+pub fn execute_action(key: String, press_type: PressType) -> Result<(), String> {
     let mut enigo = request_enigo()?;
 
-    action.execute(&mut enigo);
+    Action::from_raw_str(&key, press_type)?.execute(&mut enigo);
 
     Ok(())
 }

@@ -44,17 +44,18 @@ export type NormalizedPoseFrame = {
   visibleCount: number;
 };
 
-export type MovementTemplate = {
-  id: string;
-  name: string;
-  keybind: string;
-  frames: PoseFrame[];
-};
+export enum PressType {
+  Toggle,
+  Press,
+  Release,
+  Click,
+}
 
 export type PreparedMovementTemplate = {
   id: string;
   name: string;
   keybind: string;
+  keypressType: PressType;
   frames: NormalizedPoseFrame[];
   landmarkWeights: Record<TrackedLandmark, number>;
   activeLandmarks: TrackedLandmark[];
@@ -69,6 +70,7 @@ export type RecognitionMatch = {
   keybind: string;
   confidence: number;
   keypressTriggerThreshold: number;
+  keypressType: PressType;
 };
 
 export type RecognitionMappingStatus = RecognitionMatch & {

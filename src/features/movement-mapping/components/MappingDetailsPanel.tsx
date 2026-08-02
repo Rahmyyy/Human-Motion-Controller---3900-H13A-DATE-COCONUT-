@@ -1,7 +1,23 @@
 import { Input } from "@/components/ui/input";
 import { Pencil, SlidersHorizontal } from "lucide-react";
-import type { KeyboardEvent } from "react";
+import { useState, type KeyboardEvent } from "react";
 import type { Keybind } from "../services/mappingEditorService.types";
+import { PressType } from "@/features/movement-recognition/recognition/types";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+
+const KeyPressSelectItems = [
+  { label: "Click", value: PressType.Click },
+  { label: "Toggle", value: PressType.Toggle },
+  { label: "Press", value: PressType.Press },
+  { label: "Release", value: PressType.Release },
+]
 
 interface MappingDetailsPanelProps {
   keybind: Keybind | null;
@@ -97,6 +113,27 @@ export default function MappingDetailsPanel({
             className="pointer-events-none absolute top-1/2 right-2.5 size-3.5 -translate-y-1/2 text-muted-foreground"
             aria-hidden="true"
           />
+        </div>
+      </div>
+      <div className="grid gap-1.5">
+        <label className="text-xs font-medium text-muted-foreground" htmlFor="target-key-action-type">
+          Key Action Type
+        </label>
+        <div className="relative">
+          <Select defaultValue={String(KeyPressSelectItems[0].value)}>
+            <SelectTrigger className="w-full max-w-48">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                {KeyPressSelectItems.map((item) => (
+                  <SelectItem key={item.value} value={String(item.value)}>
+                    {item.label}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
         </div>
       </div>
     </section>
