@@ -39,6 +39,7 @@ export function prepareMovementTemplates(
       id: mapping.id,
       name: mapping.name,
       keybind: mapping.keybind,
+      keypressType: mapping.keypressType,
       frames: normalizedFrames,
       landmarkWeights: movementProfile.landmarkWeights,
       activeLandmarks,

@@ -22,6 +22,7 @@ export function buildMappingStatuses(
       id: mapping.id,
       name: mapping.name,
       keybind: mapping.keybind,
+      keypressType: mapping.keypressType,
       confidence,
       keypressTriggerThreshold:
         match?.keypressTriggerThreshold ??

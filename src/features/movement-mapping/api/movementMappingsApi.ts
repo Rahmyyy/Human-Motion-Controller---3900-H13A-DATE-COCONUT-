@@ -1,8 +1,10 @@
 import { invoke } from "@tauri-apps/api/core";
+import type { PressType } from "@/features/movement-recognition/recognition/types";
 import type { PresetMappingCardData } from "@/features/preset-mapping/types";
 
 interface CreateMovementMappingInput extends Record<string, unknown> {
   keybind: string;
+  keypressType: PressType;
   name: string;
   poseFramesJson: string;
   presetId: string;
@@ -15,6 +17,7 @@ export interface MovementMappingDetailsResponse {
   preset_id: string;
   name: string;
   keybind: string;
+  keypress_type: PressType;
   pose_frames_json: string;
   // Details is serialized snake_case on the Rust side (unlike the camelCase list summary).
   selected_landmarks: number[];
@@ -43,6 +46,7 @@ interface UpdateMovementMappingInput extends Record<string, unknown> {
   presetId: string;
   name: string;
   keybind: string;
+  keypressType: PressType;
   poseFramesJson: string;
   selectedLandmarks: number[];
   keypressTriggerThresholdPercentage: number;

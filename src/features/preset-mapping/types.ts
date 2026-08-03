@@ -1,7 +1,10 @@
+import type { PressType } from "../movement-recognition/recognition/types";
+
 export interface PresetMappingCardData {
   id: string;
   name: string;
   keybind: string;
+  keypressType: PressType;
   poseFramesJson: string;
   /**
    * Tracked-landmark indices the user chose as relevant for this movement. An empty array means

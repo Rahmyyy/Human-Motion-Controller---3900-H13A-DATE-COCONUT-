@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { keypressTriggerThresholdFromPercentage } from "./recognitionConfig";
 import { selectAcceptedMatch } from "./selectAcceptedMatch";
+import { PressType } from "./types";
 import type { RecognitionMatch } from "./types";
 
 describe("selectAcceptedMatch", () => {
@@ -60,5 +61,6 @@ function recognitionMatch(
     keybind: "Spacebar",
     confidence,
     keypressTriggerThreshold,
+    keypressType: PressType.Click,
   };
 }

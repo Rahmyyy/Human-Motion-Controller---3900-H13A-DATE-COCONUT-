@@ -1,12 +1,30 @@
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { PressType } from "@/features/movement-recognition/recognition/types";
 import { Pencil, SlidersHorizontal } from "lucide-react";
-import type { KeyboardEvent } from "react";
+import { type KeyboardEvent } from "react";
 import type { Keybind } from "../services/mappingEditorService.types";
+
+const KEYPRESS_TYPE_OPTIONS = [
+  { label: "Click", value: PressType.Click },
+  { label: "Toggle", value: PressType.Toggle },
+  { label: "Press", value: PressType.Press },
+  { label: "Release", value: PressType.Release },
+];
 
 interface MappingDetailsPanelProps {
   keybind: Keybind | null;
+  keypressType: PressType;
   movementName: string;
   onKeybindChange: (keybind: Keybind) => void;
+  onKeypressTypeChange: (keypressType: PressType) => void;
   onMovementNameChange: (movementName: string) => void;
 }
 
@@ -31,8 +49,10 @@ function formatKeybind(event: KeyboardEvent<HTMLInputElement>) {
 
 export default function MappingDetailsPanel({
   keybind,
+  keypressType,
   movementName,
   onKeybindChange,
+  onKeypressTypeChange,
   onMovementNameChange,
 }: MappingDetailsPanelProps) {
   const captureKeybind = (event: KeyboardEvent<HTMLInputElement>) => {
@@ -97,6 +117,33 @@ export default function MappingDetailsPanel({
             className="pointer-events-none absolute top-1/2 right-2.5 size-3.5 -translate-y-1/2 text-muted-foreground"
             aria-hidden="true"
           />
+        </div>
+      </div>
+      <div className="grid gap-1.5">
+        <label
+          className="text-xs font-medium text-muted-foreground"
+          htmlFor="target-key-action-type"
+        >
+          Key Action Type
+        </label>
+        <div className="relative">
+          <Select
+            value={keypressType}
+            onValueChange={(value) => onKeypressTypeChange(value as PressType)}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                {KEYPRESS_TYPE_OPTIONS.map((item) => (
+                  <SelectItem key={item.value} value={item.value}>
+                    {item.label}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
         </div>
       </div>
     </section>

@@ -43,10 +43,12 @@ export default function EditMovementMappingPage() {
       countdownSeconds={editor.countdownSeconds}
       error={editor.error}
       keybind={editor.keybind}
+      keypressType={editor.keypressType}
       keypressTriggerThresholdPercentage={editor.keypressTriggerThresholdPercentage}
       movementName={editor.movementName}
       onCancelCountdown={editor.cancelCountdown}
       onKeybindChange={editor.setKeybind}
+      onKeypressTypeChange={editor.setKeypressType}
       onKeypressTriggerThresholdChange={editor.setKeypressTriggerThreshold}
       onMovementNameChange={editor.setMovementName}
       onResetRecording={editor.resetRecording}

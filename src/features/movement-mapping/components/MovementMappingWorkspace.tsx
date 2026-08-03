@@ -11,6 +11,7 @@ import type { RecordingQuality } from "../recording/analyseRecordingQuality";
 import type { RecordingTrimRange } from "../recording/trimRecording";
 import type { Keybind } from "../services/mappingEditorService.types";
 import type { RecordingState } from "../services/recordingService.types";
+import type { PressType } from "@/features/movement-recognition/recognition/types";
 
 interface MovementMappingWorkspaceProps {
   backTo: string;
@@ -19,10 +20,12 @@ interface MovementMappingWorkspaceProps {
   countdownSeconds: number | null;
   error: string | null;
   keybind: Keybind | null;
+  keypressType: PressType;
   keypressTriggerThresholdPercentage: number;
   movementName: string;
   onCancelCountdown: () => void;
   onKeybindChange: (keybind: Keybind) => void;
+  onKeypressTypeChange: (keypressType: PressType) => void;
   onKeypressTriggerThresholdChange: (percentage: number) => void;
   onMovementNameChange: (name: string) => void;
   onResetRecording: () => void;
@@ -46,10 +49,12 @@ export default function MovementMappingWorkspace({
   description,
   error,
   keybind,
+  keypressType,
   keypressTriggerThresholdPercentage,
   movementName,
   onCancelCountdown,
   onKeybindChange,
+  onKeypressTypeChange,
   onKeypressTriggerThresholdChange,
   onMovementNameChange,
   onResetRecording,
@@ -77,8 +82,10 @@ export default function MovementMappingWorkspace({
         <div className="grid min-h-0 content-start gap-4 overflow-y-auto pr-1">
           <MappingDetailsPanel
             keybind={keybind}
+            keypressType={keypressType}
             movementName={movementName}
             onKeybindChange={onKeybindChange}
+            onKeypressTypeChange={onKeypressTypeChange}
             onMovementNameChange={onMovementNameChange}
           />
           {recordingState === "recorded" && recordingTrim && (

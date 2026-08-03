@@ -1,5 +1,3 @@
-import type { PoseFrame } from "@/features/camera/poseFrame";
-
 export const TRACKED_LANDMARKS = [
   11, // left shoulder
   12, // right shoulder
@@ -44,17 +42,18 @@ export type NormalizedPoseFrame = {
   visibleCount: number;
 };
 
-export type MovementTemplate = {
-  id: string;
-  name: string;
-  keybind: string;
-  frames: PoseFrame[];
-};
+export enum PressType {
+  Toggle = "Toggle",
+  Press = "Press",
+  Release = "Release",
+  Click = "Click",
+}
 
 export type PreparedMovementTemplate = {
   id: string;
   name: string;
   keybind: string;
+  keypressType: PressType;
   frames: NormalizedPoseFrame[];
   landmarkWeights: Record<TrackedLandmark, number>;
   activeLandmarks: TrackedLandmark[];
@@ -69,6 +68,7 @@ export type RecognitionMatch = {
   keybind: string;
   confidence: number;
   keypressTriggerThreshold: number;
+  keypressType: PressType;
 };
 
 export type RecognitionMappingStatus = RecognitionMatch & {

@@ -40,6 +40,7 @@ export function findTemplateMatches(
       keybind: template.keybind,
       confidence,
       keypressTriggerThreshold: template.keypressTriggerThreshold,
+      keypressType: template.keypressType,
     };
 
     matches.push(match);

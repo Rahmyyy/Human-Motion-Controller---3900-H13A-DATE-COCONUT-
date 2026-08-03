@@ -21,17 +21,20 @@ fn serialize_selected_landmarks(selected: &[u32]) -> Result<String> {
     Ok(serde_json::to_string(selected)?)
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn create_movement_mapping(
     conn: &Connection,
     preset_id: &str,
     name: &str,
     keybind: &str,
+    keypress_type: &str,
     pose_frames_json: &str,
     selected_landmarks: &[u32],
     keypress_trigger_threshold_percentage: u32,
 ) -> Result<()> {
     let name = name.trim();
     let keybind = keybind.trim();
+    let keypress_type = keypress_type.trim();
 
     if name.is_empty() {
         return Err(anyhow!("Movement mapping name cannot be empty"));
@@ -40,6 +43,12 @@ pub fn create_movement_mapping(
     if keybind.is_empty() {
         return Err(anyhow!("Movement mapping keybind cannot be empty"));
     }
+
+    if keypress_type.is_empty() {
+        return Err(anyhow!("Movement mapping keypress type cannot be empty"));
+    }
+
+    validate_keypress_type(keypress_type)?;
 
     if pose_frames_json.trim().is_empty() {
         return Err(anyhow!("Movement mapping pose frames cannot be empty"));
@@ -65,6 +74,7 @@ pub fn create_movement_mapping(
             preset_id,
             name,
             keybind,
+            keypress_type,
             pose_frames_json,
             selected_landmarks_json: &selected_landmarks_json,
             keypress_trigger_threshold_percentage,
@@ -95,6 +105,7 @@ pub struct MovementMappingUpdate<'a> {
     pub preset_id: &'a str,
     pub name: &'a str,
     pub keybind: &'a str,
+    pub keypress_type: &'a str,
     pub pose_frames_json: &'a str,
     pub selected_landmarks: &'a [u32],
     pub keypress_trigger_threshold_percentage: u32,
@@ -115,6 +126,8 @@ pub fn update_movement_mapping(
         return Err(anyhow!("Movement mapping keybind cannot be empty"));
     }
 
+    validate_keypress_type(update.keypress_type)?;
+
     if update.pose_frames_json.trim().is_empty() {
         return Err(anyhow!("Movement mapping pose frames cannot be empty"));
     }
@@ -129,6 +142,7 @@ pub fn update_movement_mapping(
             preset_id: update.preset_id,
             name,
             keybind,
+            keypress_type: update.keypress_type,
             pose_frames_json: update.pose_frames_json,
             selected_landmarks_json: &selected_landmarks_json,
             keypress_trigger_threshold_percentage: update.keypress_trigger_threshold_percentage,
@@ -152,6 +166,15 @@ fn validate_keypress_trigger_threshold(threshold_percentage: u32) -> Result<()> 
     }
 
     Ok(())
+}
+
+fn validate_keypress_type(keypress_type: &str) -> Result<()> {
+    match keypress_type.trim() {
+        "Toggle" | "Press" | "Release" | "Click" => Ok(()),
+        _ => Err(anyhow!(
+            "Keypress type must be one of Toggle, Press, Release, or Click"
+        )),
+    }
 }
 
 pub fn delete_movement_mapping(conn: &Connection, id: &str, preset_id: &str) -> Result<()> {
