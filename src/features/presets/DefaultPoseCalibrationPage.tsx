@@ -25,19 +25,7 @@ export default function DefaultPoseCalibrationPage() {
   return (
     <DefaultPoseCalibrationWorkspace
       backTo={`/patients/${patientId}/presets/${presetId}/edit`}
-      canSave={calibration.canSave}
-      countdownSeconds={calibration.countdownSeconds}
-      error={calibration.error}
-      onCancelCountdown={calibration.cancelCountdown}
-      onResetRecording={calibration.resetRecording}
-      onSave={calibration.save}
-      onStartRecording={calibration.startRecording}
-      onStopRecording={calibration.stopRecording}
-      onTrimRecording={calibration.trimRecording}
-      recordedFrames={calibration.recordedFrames}
-      recordingQuality={calibration.recordingQuality}
-      recordingState={calibration.recordingState}
-      recordingTrim={calibration.recordingTrim}
+      calibration={calibration}
     />
   );
 }

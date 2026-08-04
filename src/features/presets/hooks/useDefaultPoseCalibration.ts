@@ -1,11 +1,15 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
-import { createDefaultPoseCalibrationService } from "../services/defaultPoseCalibrationService";
+import { poseService } from "@/features/camera/services/poseService";
+import {
+  createDefaultPoseCalibration,
+  type DefaultPoseCalibrationViewModel,
+} from "@/modules/patient-presets";
 
 export function useDefaultPoseCalibration(
   patientId: string | undefined,
   presetId: string | undefined,
-) {
-  const [service] = useState(createDefaultPoseCalibrationService);
+): DefaultPoseCalibrationViewModel {
+  const [service] = useState(() => createDefaultPoseCalibration(poseService));
   const snapshot = useSyncExternalStore(
     service.subscribe,
     service.getSnapshot,

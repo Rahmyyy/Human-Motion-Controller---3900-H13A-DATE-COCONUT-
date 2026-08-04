@@ -11,12 +11,11 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import PresetMappingCard from "./PresetMappingCard";
-import type { PresetMappingViewData } from "../services/presetMappingsService.types";
-import type { ThresholdSaveState } from "../services/presetMappingsService.types";
+import type { MappingViewData, ThresholdSaveState } from "@/modules/movement-mapping";
 
 interface PresetMappingCollectionProps {
   deletingMappingId: string | null;
-  mappings: PresetMappingViewData[];
+  mappings: MappingViewData[];
   onDelete: (id: string) => Promise<boolean>;
   onThresholdChange: (id: string, percentage: number) => Promise<boolean>;
   patientId: string;

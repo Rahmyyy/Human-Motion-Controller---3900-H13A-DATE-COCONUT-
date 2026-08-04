@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { Trash2 } from "lucide-react";
 import { useState } from "react";
-import type { Preset } from "../api/presetsApi";
+import type { Preset } from "@/modules/patient-presets";
 
 type DeletePresetDialogProps = {
   error: string | null;

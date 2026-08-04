@@ -2,7 +2,7 @@ import BackButton from "@/components/BackButton";
 import { Button } from "@/components/ui/button";
 import { Info, UserRound } from "lucide-react";
 import CreatePresetDialog from "./CreatePresetDialog";
-import type { Preset } from "../api/presetsApi";
+import type { Preset } from "@/modules/patient-presets";
 
 interface PresetPageHeaderProps {
   createError: string | null;

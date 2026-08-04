@@ -1,6 +1,5 @@
 import PresetCard from "./PresetCard";
-import type { Preset } from "../api/presetsApi";
-import type { PresetMutationError } from "../services/presetSelectionService.types";
+import type { Preset, PresetMutationError } from "@/modules/patient-presets";
 
 type PresetCollectionProps = {
   deleteError: PresetMutationError | null;

@@ -1,5 +1,5 @@
 import { Slider } from "radix-ui";
-import type { ThresholdSaveState } from "../services/presetMappingsService.types";
+import type { ThresholdSaveState } from "@/modules/movement-mapping";
 
 interface MovementThresholdControlProps {
   minimum: number;

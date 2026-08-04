@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useSyncExternalStore } from "react";
+import type { PoseFrame } from "@/modules/pose-capture";
 import { poseService } from "../services/poseService";
-import type { PoseFrame } from "../poseFrame";
 
 export function usePoseService(video: HTMLVideoElement | null) {
   const snapshot = useSyncExternalStore(

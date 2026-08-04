@@ -1,8 +1,8 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
-import { createPresetMappingsService } from "../services/presetMappingsService";
+import { createMappingCollection, tauriMovementMappings } from "@/modules/movement-mapping";
 
 export function usePresetMappings(patientId: string | undefined, presetId: string | undefined) {
-  const [service] = useState(createPresetMappingsService);
+  const [service] = useState(() => createMappingCollection(tauriMovementMappings));
   const snapshot = useSyncExternalStore(
     service.subscribe,
     service.getSnapshot,
