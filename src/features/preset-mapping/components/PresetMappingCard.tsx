@@ -5,15 +5,15 @@ import {
   frameAtMovementThreshold,
   framesAtMovementThreshold,
   movementThresholdSettings,
-} from "@/features/movement-mapping/threshold/movementThreshold";
-import type { PresetMappingViewData } from "../services/presetMappingsService.types";
-import type { ThresholdSaveState } from "../services/presetMappingsService.types";
+  type MappingViewData,
+  type ThresholdSaveState,
+} from "@/modules/movement-mapping";
 import MappingPosePreview from "./MappingPosePreview";
 import MovementThresholdControl from "./MovementThresholdControl";
 
 interface PresetMappingCardProps {
   editTo: string;
-  mapping: PresetMappingViewData;
+  mapping: MappingViewData;
   onThresholdChange: (percentage: number) => void;
   thresholdSaveState: ThresholdSaveState;
 }

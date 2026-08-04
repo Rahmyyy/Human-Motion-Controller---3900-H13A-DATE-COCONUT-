@@ -1,7 +1,7 @@
 import { ChevronDown, PersonStanding } from "lucide-react";
 import type { KeyboardEvent } from "react";
 import { cn } from "@/lib/utils";
-import { TRACKED_LANDMARKS } from "@/features/movement-recognition/recognition/types";
+import { TRACKED_LANDMARKS } from "@/modules/pose-capture";
 import {
   LANDMARK_DIAGRAM_CONNECTIONS,
   LANDMARK_DIAGRAM_HEIGHT,

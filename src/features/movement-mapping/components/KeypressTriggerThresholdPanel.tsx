@@ -3,7 +3,7 @@ import { Slider } from "radix-ui";
 import {
   MAX_KEYPRESS_TRIGGER_THRESHOLD_PERCENTAGE,
   MIN_KEYPRESS_TRIGGER_THRESHOLD_PERCENTAGE,
-} from "@/features/movement-recognition/recognition/recognitionConfig";
+} from "@/modules/movement-mapping";
 
 interface KeypressTriggerThresholdPanelProps {
   onChange: (percentage: number) => void;

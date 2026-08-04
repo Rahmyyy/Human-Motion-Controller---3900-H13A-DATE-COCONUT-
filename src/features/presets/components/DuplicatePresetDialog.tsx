@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { Copy } from "lucide-react";
 import { useState } from "react";
-import type { Preset } from "../api/presetsApi";
+import type { Preset } from "@/modules/patient-presets";
 import { getDuplicatePresetName } from "../presetDisplay";
 
 type DuplicatePresetDialogProps = {

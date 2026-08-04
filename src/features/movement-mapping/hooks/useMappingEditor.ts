@@ -1,12 +1,17 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
-import { createMappingEditorService } from "../services/mappingEditorService";
+import { poseService } from "@/features/camera/services/poseService";
+import {
+  createMappingEditor,
+  tauriMovementMappings,
+  type MappingEditorViewModel,
+} from "@/modules/movement-mapping";
 
 export function useMappingEditor(
   patientId: string | undefined,
   presetId: string | undefined,
   mappingId?: string,
-) {
-  const [service] = useState(createMappingEditorService);
+): MappingEditorViewModel {
+  const [service] = useState(() => createMappingEditor(poseService, tauriMovementMappings));
   const snapshot = useSyncExternalStore(
     service.subscribe,
     service.getSnapshot,

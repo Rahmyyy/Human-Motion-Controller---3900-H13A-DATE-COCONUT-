@@ -1,5 +1,5 @@
-import type { PoseFrame } from "@/features/camera/poseFrame";
-import PoseReplay from "@/features/movement-mapping/components/PoseReplay";
+import type { PoseFrame } from "@/modules/pose-capture";
+import PoseReplay from "@/components/pose-recording/PoseReplay";
 
 interface MappingPosePreviewProps {
   frames: PoseFrame[];
