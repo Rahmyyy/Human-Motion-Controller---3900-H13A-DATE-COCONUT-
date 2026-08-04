@@ -40,7 +40,7 @@ export default function PresetPageHeader({
             onCreate={onCreatePreset}
             patientId={patientId}
           />
-          <BackButton to="/patients" />
+          <BackButton to="/" />
         </div>
       </div>
 
