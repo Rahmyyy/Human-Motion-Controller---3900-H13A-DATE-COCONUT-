@@ -1,16 +1,16 @@
 import { useSyncExternalStore } from "react";
-import { sessionService } from "../services/sessionService";
+import { sessionTracker } from "@/modules/live-session";
 
 export function useSession() {
   const snapshot = useSyncExternalStore(
-    sessionService.subscribe,
-    sessionService.getSnapshot,
-    sessionService.getSnapshot,
+    sessionTracker.subscribe,
+    sessionTracker.getSnapshot,
+    sessionTracker.getSnapshot,
   );
 
   return {
     ...snapshot,
-    endSession: sessionService.end,
-    startSession: sessionService.start,
+    endSession: sessionTracker.end,
+    startSession: sessionTracker.start,
   };
 }

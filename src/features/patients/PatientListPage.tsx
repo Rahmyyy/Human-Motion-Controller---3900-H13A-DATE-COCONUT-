@@ -15,8 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { UserPlus } from "lucide-react";
-
-import { createPatient, getPatients, type Patient } from "./api/patientsApi";
+import { createPatient, getPatients, type Patient } from "@/modules/patient-presets";
 
 export default function PatientListPage() {
   const [patients, setPatients] = useState<Patient[]>([]);

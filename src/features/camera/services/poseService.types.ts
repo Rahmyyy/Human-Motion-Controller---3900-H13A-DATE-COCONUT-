@@ -1,4 +1,4 @@
-import type { PoseFrame } from "../poseFrame";
+import type { PoseFrame } from "@/modules/pose-capture";
 
 export type PoseServiceStatus = "idle" | "loading" | "running" | "error";
 

@@ -1,7 +1,7 @@
-import type { PresetMappingCardData } from "@/features/preset-mapping/types";
+import type { MovementMapping } from "@/modules/movement-mapping";
 
 interface ActiveMappingsPanelProps {
-  mappings: PresetMappingCardData[];
+  mappings: MovementMapping[];
   isLoading: boolean;
   loadError: string | null;
 }

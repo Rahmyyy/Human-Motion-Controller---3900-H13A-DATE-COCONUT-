@@ -1,5 +1,5 @@
-import type { PoseLandmarker } from "@mediapipe/tasks-vision";
-import { toPoseFrame, type PoseFrame } from "../poseFrame";
+import type { NormalizedLandmark, PoseLandmarker } from "@mediapipe/tasks-vision";
+import type { PoseFrame } from "@/modules/pose-capture";
 import { loadPoseModel } from "./loadPoseModel";
 import type { PoseService, PoseServiceSnapshot, PoseServiceStatus } from "./poseService.types";
 
@@ -147,6 +147,20 @@ function errorMessage(error: unknown) {
   }
   if (error instanceof Error) return error.message;
   return "Unable to start pose detection.";
+}
+
+/** MediaPipe transport conversion stays in this real external adapter. */
+function toPoseFrame(timestampMs: number, landmarks: NormalizedLandmark[]): PoseFrame {
+  return {
+    timestampMs,
+    landmarks: landmarks.map((landmark, index) => ({
+      index,
+      x: landmark.x,
+      y: landmark.y,
+      z: landmark.z,
+      visibility: landmark.visibility,
+    })),
+  };
 }
 
 export const poseService: PoseService = new MediaPipePoseService();

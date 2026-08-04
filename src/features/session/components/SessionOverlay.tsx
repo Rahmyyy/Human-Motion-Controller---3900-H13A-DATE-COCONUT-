@@ -1,6 +1,6 @@
 import { GripHorizontal, Square } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import type { RecognitionStatus } from "@/features/movement-recognition/services/recognitionService";
+import type { RecognitionStatus } from "@/modules/recognition";
 import { cn } from "@/lib/utils";
 
 interface SessionOverlayProps {

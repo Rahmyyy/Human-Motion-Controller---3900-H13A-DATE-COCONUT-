@@ -7,10 +7,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { PressType } from "@/features/movement-recognition/recognition/types";
+import { PressType, type Keybind } from "@/modules/movement-mapping";
 import { Pencil, SlidersHorizontal } from "lucide-react";
 import { type KeyboardEvent } from "react";
-import type { Keybind } from "../services/mappingEditorService.types";
 
 const KEYPRESS_TYPE_OPTIONS = [
   { label: "Click", value: PressType.Click },

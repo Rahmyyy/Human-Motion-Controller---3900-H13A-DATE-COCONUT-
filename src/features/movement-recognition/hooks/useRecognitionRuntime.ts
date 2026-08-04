@@ -1,11 +1,14 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
-import { createRecognitionRuntimeService } from "../services/recognitionRuntimeService";
+import { poseService } from "@/features/camera/services/poseService";
+import { createPresetRecognitionRuntime, sessionTracker } from "@/modules/live-session";
 
 export function useRecognitionRuntime(patientId: string | undefined, presetId: string | undefined) {
   const [service] = useState(() =>
-    createRecognitionRuntimeService({
-      defaultPoseRequiredMessage: "Record a default resting state before testing recognition.",
-    }),
+    createPresetRecognitionRuntime(
+      poseService,
+      sessionTracker,
+      "Record a default resting state before testing recognition.",
+    ),
   );
   const snapshot = useSyncExternalStore(
     service.subscribe,

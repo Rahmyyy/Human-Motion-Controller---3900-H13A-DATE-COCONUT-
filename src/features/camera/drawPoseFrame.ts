@@ -1,5 +1,5 @@
 import { PoseLandmarker } from "@mediapipe/tasks-vision";
-import type { PoseFrame, PoseLandmark } from "./poseFrame";
+import type { PoseFrame, PoseLandmark } from "@/modules/pose-capture";
 
 const MIN_VISIBILITY = 0.5;
 

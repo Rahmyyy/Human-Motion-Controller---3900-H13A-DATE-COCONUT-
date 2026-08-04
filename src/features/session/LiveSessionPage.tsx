@@ -6,7 +6,7 @@ import { useSessionLauncher } from "./hooks/useSessionLauncher";
 
 /**
  * Main-window view for a running session. The overlay window does the real
- * work — camera, recognition, key presses — so this page only launches it and
+ * work - camera, recognition, key presses - so this page only launches it and
  * offers a second way to stop, for when the overlay has been dragged somewhere
  * awkward or the user has tabbed back here.
  */

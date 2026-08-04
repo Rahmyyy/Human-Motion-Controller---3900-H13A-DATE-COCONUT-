@@ -14,7 +14,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router";
 import PresetNameSection from "./PresetNameSection";
 import PresetStartModeSelector, { type PresetStartMode } from "./PresetStartModeSelector";
-import type { Preset } from "../api/presetsApi";
+import type { Preset } from "@/modules/patient-presets";
 
 interface CreatePresetDialogProps {
   error: string | null;

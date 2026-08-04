@@ -20,4 +20,57 @@ export default defineConfig([
       globals: globals.browser,
     },
   },
+  {
+    files: ["src/modules/**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["@/features/**"],
+              message: "Frontend modules must not depend on React feature slices.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: ["src/modules/**/*.{ts,tsx}"],
+    ignores: ["src/modules/**/adapters/**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["@/features/**"],
+              message: "Frontend modules must not depend on React feature slices.",
+            },
+            {
+              group: ["react", "react/**", "@tauri-apps/**", "@mediapipe/**"],
+              message: "Module cores must remain framework and external-adapter independent.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: ["src/app/**/*.{ts,tsx}", "src/features/**/*.{ts,tsx}", "src/components/**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["@/modules/*/internal/**", "**/modules/*/internal/**"],
+              message: "External callers must use a module's public index.",
+            },
+          ],
+        },
+      ],
+    },
+  },
 ]);

@@ -1,5 +1,5 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
-import { createPresetSelectionService } from "../services/presetSelectionService";
+import { createPresetSelectionService } from "@/modules/patient-presets";
 
 export function usePresetSelection(patientId: string | undefined) {
   const [service] = useState(createPresetSelectionService);

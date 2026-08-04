@@ -1,4 +1,4 @@
-import { useParams } from "react-router";
+import { useParams, useSearchParams } from "react-router";
 import MediaPipePosePreview from "@/features/camera/MediaPipePosePreview";
 import SessionOverlay from "./components/SessionOverlay";
 import { useLiveSession } from "./hooks/useLiveSession";
@@ -16,9 +16,12 @@ import { useTransparentWindow } from "./hooks/useTransparentWindow";
  */
 export default function SessionOverlayWindow() {
   const { patientId, presetId } = useParams<{ patientId: string; presetId: string }>();
+  const [searchParams] = useSearchParams();
+  const sessionId = searchParams.get("sessionId") ?? undefined;
   const { elapsedMs, endSession, presetName, recognitionStatus, triggerCount } = useLiveSession(
     patientId,
     presetId,
+    sessionId,
   );
 
   useTransparentWindow();
