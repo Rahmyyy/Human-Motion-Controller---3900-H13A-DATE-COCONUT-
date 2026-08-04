@@ -20,7 +20,7 @@ const realDependencies: SessionLauncherDependencies = {
   requestOverlayEnd,
 };
 
-  class MainWindowSessionLauncher implements SessionLauncher {
+class MainWindowSessionLauncher implements SessionLauncher {
   private snapshot: SessionLauncherSnapshot = { error: null, status: "idle", summary: null };
   private readonly listeners = new Set<() => void>();
   private unlistenSessionEnded: (() => void) | null = null;
