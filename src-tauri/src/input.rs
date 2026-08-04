@@ -1,11 +1,11 @@
 use enigo::{Button, Direction, Enigo, Key, Keyboard, Mouse};
 use log::{error, info};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::sync::{Mutex, MutexGuard, OnceLock};
 
 static ENIGO_HANDLER: OnceLock<Mutex<Enigo>> = OnceLock::new();
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord, Deserialize, Serialize)]
 pub enum PressType {
     Toggle,
     Press,
