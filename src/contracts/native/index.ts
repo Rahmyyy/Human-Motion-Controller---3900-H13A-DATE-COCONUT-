@@ -6,6 +6,7 @@ export type {
 } from "./commands";
 export type {
   CreateMovementMappingArgs,
+  DashboardOverviewDto,
   MovementMappingDetailsDto,
   MovementMappingSummaryDto,
   NativeErrorDto,
@@ -13,6 +14,7 @@ export type {
   PresetDto,
   PressTypeDto,
   SessionSummaryDto,
+  ScheduledSessionDto,
   UpdateMovementMappingArgs,
 } from "./dtos";
 export { PRESS_TYPES } from "./dtos";

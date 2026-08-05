@@ -9,6 +9,19 @@ export interface PatientDto {
   createdAt: string;
 }
 
+export interface ScheduledSessionDto {
+  id: string;
+  patientId: string;
+  patientDisplayName: string;
+  scheduledAtMs: number;
+}
+
+export interface DashboardOverviewDto {
+  activePatientCount: number;
+  sessionsTodayCount: number;
+  todaysSchedule: ScheduledSessionDto[];
+}
+
 export interface PresetDto {
   id: string;
   patientId: string;

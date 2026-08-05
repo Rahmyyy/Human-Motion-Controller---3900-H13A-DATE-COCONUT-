@@ -1,11 +1,13 @@
 import type {
   CreateMovementMappingArgs,
+  DashboardOverviewDto,
   MovementMappingDetailsDto,
   MovementMappingSummaryDto,
   PatientDto,
   PresetDto,
   PressTypeDto,
   SessionSummaryDto,
+  ScheduledSessionDto,
   UpdateMovementMappingArgs,
 } from "./dtos";
 
@@ -19,6 +21,12 @@ export interface NativeCommandMap {
   get_patients: Command<undefined, PatientDto[]>;
   create_patient: Command<{ displayName: string; clinicalNotes: string | null }, PatientDto>;
   get_patient: Command<{ id: string }, PatientDto>;
+
+  create_scheduled_session: Command<
+    { patientId: string; scheduledAtMs: number },
+    ScheduledSessionDto
+  >;
+  get_dashboard_overview: Command<{ dayStartMs: number; dayEndMs: number }, DashboardOverviewDto>;
 
   create_preset: Command<{ patientId: string; name: string }, PresetDto>;
   get_preset: Command<{ id: string; patientId: string }, PresetDto>;
