@@ -1,5 +1,6 @@
 use anyhow::Result;
 use rusqlite::{params, Connection};
+use std::collections::HashMap;
 
 /// A completed session as stored in `sessions`.
 pub struct Session {
@@ -21,6 +22,17 @@ pub struct SessionMappingStat {
     pub threshold_percentage: u32,
     pub keypress_trigger_threshold_percentage: u32,
     pub trigger_count: i64,
+}
+
+/// A completed session with the mapping settings it ran with, as the history page reads it.
+pub struct PatientSession {
+    pub id: String,
+    pub preset_id: String,
+    pub preset_name: String,
+    pub started_at_ms: i64,
+    pub duration_ms: i64,
+    pub trigger_count: i64,
+    pub mappings: Vec<SessionMappingStat>,
 }
 
 /// The mapping settings a session ran with, read from the live tables at the moment the
@@ -133,4 +145,97 @@ pub fn select_mapping_snapshots(
         .collect::<Result<Vec<_>, _>>()?;
 
     Ok(snapshots)
+}
+
+/// Every completed session for a patient, newest first, each carrying the mapping rows it was
+/// recorded with.
+///
+/// Two flat reads rather than one join: joining would repeat all six session columns once per
+/// mapping row, and detecting where one session's rows end would land in this layer anyway.
+pub fn select_patient_sessions(conn: &Connection, patient_id: &str) -> Result<Vec<PatientSession>> {
+    let mut stats_by_session = select_mapping_stats_by_session(conn, patient_id)?;
+
+    // Served by idx_sessions_patient_started_at.
+    let mut statement = conn.prepare(
+        "
+        SELECT id, preset_id, preset_name, started_at_ms, duration_ms, trigger_count
+        FROM sessions
+        WHERE patient_id = ?1
+        ORDER BY started_at_ms DESC
+        ",
+    )?;
+
+    let rows = statement
+        .query_map(params![patient_id], |row| {
+            Ok((
+                row.get::<_, String>(0)?,
+                row.get::<_, String>(1)?,
+                row.get::<_, String>(2)?,
+                row.get::<_, i64>(3)?,
+                row.get::<_, i64>(4)?,
+                row.get::<_, i64>(5)?,
+            ))
+        })?
+        .collect::<Result<Vec<_>, _>>()?;
+
+    Ok(rows
+        .into_iter()
+        .map(
+            |(id, preset_id, preset_name, started_at_ms, duration_ms, trigger_count)| {
+                // `remove` rather than `get`: each session owns its rows, so there is nothing to clone.
+                let mappings = stats_by_session.remove(&id).unwrap_or_default();
+                PatientSession {
+                    id,
+                    preset_id,
+                    preset_name,
+                    started_at_ms,
+                    duration_ms,
+                    trigger_count,
+                    mappings,
+                }
+            },
+        )
+        .collect())
+}
+
+/// Every mapping row belonging to the patient's sessions, keyed by session. One pass, so reading
+/// a patient's history never costs a query per session.
+fn select_mapping_stats_by_session(
+    conn: &Connection,
+    patient_id: &str,
+) -> Result<HashMap<String, Vec<SessionMappingStat>>> {
+    let mut statement = conn.prepare(
+        "
+        SELECT stats.session_id, stats.mapping_id, stats.mapping_name, stats.keybind,
+            stats.threshold_percentage, stats.keypress_trigger_threshold_percentage,
+            stats.trigger_count
+        FROM session_mapping_stats AS stats
+        JOIN sessions ON sessions.id = stats.session_id
+        WHERE sessions.patient_id = ?1
+        ORDER BY stats.mapping_name ASC
+        ",
+    )?;
+
+    let rows = statement
+        .query_map(params![patient_id], |row| {
+            Ok((
+                row.get::<_, String>(0)?,
+                SessionMappingStat {
+                    mapping_id: row.get(1)?,
+                    mapping_name: row.get(2)?,
+                    keybind: row.get(3)?,
+                    threshold_percentage: row.get(4)?,
+                    keypress_trigger_threshold_percentage: row.get(5)?,
+                    trigger_count: row.get(6)?,
+                },
+            ))
+        })?
+        .collect::<Result<Vec<_>, _>>()?;
+
+    let mut stats_by_session: HashMap<String, Vec<SessionMappingStat>> = HashMap::new();
+    for (session_id, stat) in rows {
+        stats_by_session.entry(session_id).or_default().push(stat);
+    }
+
+    Ok(stats_by_session)
 }

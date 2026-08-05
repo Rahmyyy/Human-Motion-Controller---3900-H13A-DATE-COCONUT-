@@ -2,8 +2,8 @@ use anyhow::{anyhow, Result};
 use rusqlite::Connection;
 use std::collections::HashMap;
 
-use super::repository::{self, Session, SessionMappingStat};
-use crate::preset;
+use super::repository::{self, PatientSession, Session, SessionMappingStat};
+use crate::{patient, preset};
 
 /// Everything the frontend knows about a session that just ended. The preset name and the
 /// mapping settings are not part of this: they are read from the database here so a caller
@@ -69,6 +69,22 @@ pub fn record_completed_session(conn: &mut Connection, session: &CompletedSessio
     };
 
     repository::insert_session(conn, &record, &stats)
+}
+
+/// Every completed session for a patient, newest first.
+pub fn list_patient_sessions(conn: &Connection, patient_id: &str) -> Result<Vec<PatientSession>> {
+    let patient_id = patient_id.trim();
+
+    if patient_id.is_empty() {
+        return Err(anyhow!("Patient ID cannot be empty"));
+    }
+
+    // An unknown patient is a caller bug. Without this it would read as a patient who simply has
+    // no history yet, which is a very different thing to show a clinician.
+    patient::repository::select_patient_by_id(conn, patient_id)
+        .map_err(|_| anyhow!("Patient not found"))?;
+
+    repository::select_patient_sessions(conn, patient_id)
 }
 
 /// One row per mapping in the preset, including mappings that never fired: the history page

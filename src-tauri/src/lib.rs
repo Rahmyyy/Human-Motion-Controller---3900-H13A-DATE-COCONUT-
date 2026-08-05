@@ -73,6 +73,7 @@ pub fn run() {
             patient::commands::get_patients,
             patient::commands::get_patient,
             session::commands::record_completed_session,
+            session::commands::get_patient_sessions,
             overlay::open_overlay,
             overlay::close_overlay,
         ])
