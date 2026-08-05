@@ -47,6 +47,7 @@ class NativePatientHistory implements PatientHistory {
 
   start = async (patientId: string | undefined) => {
     const token = ++this.operationToken;
+    const patientChanged = this.patientId !== (patientId ?? null);
     this.patientId = patientId ?? null;
 
     if (!patientId) {
@@ -54,7 +55,10 @@ class NativePatientHistory implements PatientHistory {
       return;
     }
 
-    this.publish({ ...emptySnapshot(), filter: this.snapshot.filter, isLoading: true });
+    const filter = patientChanged
+      ? { ...this.snapshot.filter, presetId: ALL_PRESETS }
+      : this.snapshot.filter;
+    this.publish({ ...emptySnapshot(), filter, isLoading: true });
 
     // Settled rather than all: the charts are readable without the patient's name, so a failed
     // name lookup must not blank them.
