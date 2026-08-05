@@ -37,16 +37,16 @@ pub fn select_patients(conn: &Connection) -> Result<Vec<Patient>> {
     let mut statement = conn.prepare(
         "
         SELECT 
-            id, 
-            display_name, 
-            clinical_notes, 
-            created_at, 
+            patients.id, 
+            patients.display_name,
+            patients.clinical_notes,
+            patients.created_at,
             COUNT(presets.id)
         FROM patients
-        LEFT JOIN presets ON presets.patient.id = patients.id
+        LEFT JOIN presets ON presets.patient_id = patients.id
         GROUP BY
             patients.id,
-            patiients.display_name,
+            patients.display_name,
             patients.clinical_notes,
             patients.created_at
         ORDER BY patients.created_at DESC
@@ -65,7 +65,7 @@ pub fn select_patients(conn: &Connection) -> Result<Vec<Patient>> {
         })?
         .collect::<Result<Vec<_>, _>>()?;
 
-    Ok(patients)    
+    Ok(patients)
 }
 
 pub fn select_patient_by_id(conn: &Connection, id: &str) -> Result<Patient> {
@@ -118,10 +118,7 @@ pub fn update_patient(
 }
 
 pub fn delete_patient(conn: &Connection, id: &str) -> Result<usize> {
-    let rows_affected = conn.execute(
-        "DELETE FROM patients WHERE id = ?1",
-        params![id],
-    )?;
+    let rows_affected = conn.execute("DELETE FROM patients WHERE id = ?1", params![id])?;
 
     Ok(rows_affected)
 }
