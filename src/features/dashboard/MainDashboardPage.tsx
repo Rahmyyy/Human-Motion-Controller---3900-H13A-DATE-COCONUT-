@@ -115,14 +115,14 @@ export default function MainDashboardPage() {
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <ImportPatientButton
-              patients={patients}
-              onImported={async () => {
+            <AddPatientDialog
+              onPatientCreated={async () => {
                 await Promise.all([loadPatients(), loadOverview()]);
               }}
             />
-            <AddPatientDialog
-              onPatientCreated={async () => {
+            <ImportPatientButton
+              patients={patients}
+              onImported={async () => {
                 await Promise.all([loadPatients(), loadOverview()]);
               }}
             />
