@@ -11,6 +11,8 @@ pub struct PatientDto {
     pub clinical_notes: Option<String>,
     pub created_at: String,
     pub preset_count: i64,
+    pub status: String,
+    pub last_activity_at_ms: i64,
 }
 
 impl From<patient::repository::Patient> for PatientDto {
@@ -21,6 +23,8 @@ impl From<patient::repository::Patient> for PatientDto {
             clinical_notes: patient.clinical_notes,
             created_at: patient.created_at,
             preset_count: patient.preset_count,
+            status: patient.status,
+            last_activity_at_ms: patient.last_activity_at_ms,
         }
     }
 }

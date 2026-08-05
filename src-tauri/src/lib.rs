@@ -79,6 +79,7 @@ pub fn run() {
             patient::commands::get_patient,
             patient::commands::update_patient,
             patient::commands::delete_patient,
+            patient::commands::touch_patient_activity,
             scheduled_session::commands::create_scheduled_session,
             scheduled_session::commands::get_dashboard_overview,
             overlay::open_overlay,

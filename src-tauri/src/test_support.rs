@@ -11,7 +11,10 @@ pub fn setup_test_conn() -> Connection {
             id TEXT PRIMARY KEY,
             display_name TEXT NOT NULL,
             clinical_notes TEXT,
-            created_at TEXT NOT NULL
+            created_at TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'active'
+                CHECK (status IN ('active', 'needsReview')),
+            last_activity_at_ms INTEGER NOT NULL DEFAULT 0
         );
 
         CREATE TABLE presets (
@@ -59,12 +62,16 @@ pub fn setup_test_conn() -> Connection {
             id,
             display_name,
             clinical_notes,
-            created_at
+            created_at,
+            status,
+            last_activity_at_ms
         ) VALUES (
             'patient-1',
             'Test Patient',
             NULL,
-            '0'
+            '0',
+            'active',
+            0
         );
 
         INSERT INTO presets (

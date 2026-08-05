@@ -23,7 +23,10 @@ pub fn init_db(app: &AppHandle) -> Result<DbState> {
             id TEXT PRIMARY KEY,
             display_name TEXT NOT NULL,
             clinical_notes TEXT,
-            created_at TEXT NOT NULL
+            created_at TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'active'
+                CHECK (status IN ('active', 'needsReview')),
+            last_activity_at_ms INTEGER NOT NULL DEFAULT 0
         )
         ",
         [],
