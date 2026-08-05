@@ -54,9 +54,7 @@ export default function RecentPatientsTable({
                     {getInitials(patient.displayName)}
                   </span>
 
-                  <span className="truncate font-medium">
-                    {patient.displayName}
-                  </span>
+                  <span className="truncate font-medium">{patient.displayName}</span>
                 </div>
               </td>
 
@@ -67,10 +65,7 @@ export default function RecentPatientsTable({
               <td className="px-4 py-3">{patient.presetCount}</td>
 
               <td className="px-4 py-3">
-              <PatientActionsMenu
-                patient={patient}
-                onModify={onModify}
-              />
+                <PatientActionsMenu patient={patient} onModify={onModify} />
               </td>
             </tr>
           ))}

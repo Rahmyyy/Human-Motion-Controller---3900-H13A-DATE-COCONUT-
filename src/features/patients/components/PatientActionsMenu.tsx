@@ -9,10 +9,7 @@ type PatientActionsMenuProps = {
   patient: Patient;
 };
 
-export default function PatientActionsMenu({
-  onModify,
-  patient,
-}: PatientActionsMenuProps) {
+export default function PatientActionsMenu({ onModify, patient }: PatientActionsMenuProps) {
   return (
     <DropdownMenuPrimitive.Root>
       <DropdownMenuPrimitive.Trigger asChild>
