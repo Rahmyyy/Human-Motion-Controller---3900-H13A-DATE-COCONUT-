@@ -46,3 +46,43 @@ pub fn get_patient(state: State<'_, DbState>, id: String) -> Result<PatientDto, 
         .map(PatientDto::from)
         .map_err(|error| NativeError::operation("patient_get_failed", error))
 }
+
+#[tauri::command]
+pub fn update_patient(
+    state: State<'_, DbState>,
+    id: String,
+    display_name: String,
+    clinical_notes: Option<String>,
+) -> Result<PatientDto, NativeError> {
+    let conn = state
+        .conn
+        .lock()
+        .map_err(|_| NativeError::database_lock())?;
+
+    service::update_patient(
+        &conn,
+        &id,
+        &display_name,
+        clinical_notes.as_deref(),
+    )
+    .map(PatientDto::from)
+    .map_err(|error| {
+        NativeError::operation("patient_update_failed", error)
+    })
+}
+
+#[tauri::command]
+pub fn delete_patient(
+    state: State<'_, DbState>,
+    id: String,
+) -> Result<(), NativeError> {
+    let conn = state
+        .conn
+        .lock()
+        .map_err(|_| NativeError::database_lock())?;
+
+    service::delete_patient(&conn, &id)
+        .map_err(|error| {
+            NativeError::operation("patient_delete_failed", error)
+        })
+}
