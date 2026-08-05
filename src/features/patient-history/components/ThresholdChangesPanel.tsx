@@ -32,6 +32,7 @@ export default function ThresholdChangesPanel({
   ) satisfies ChartConfig;
 
   const hasSessions = series.points.length > 0;
+  const axisLabels = new Map(series.points.map((point) => [point.sessionId, point.axisLabel]));
 
   return (
     <HistoryPanel
@@ -56,11 +57,15 @@ export default function ThresholdChangesPanel({
         <LineChart data={series.points} margin={{ top: 8, right: 12, left: 4, bottom: 0 }}>
           <CartesianGrid vertical={false} strokeDasharray="3 3" />
           <XAxis
-            dataKey="axisLabel"
+            // The short date is not unique when a patient completes multiple sessions in one
+            // day. Recharts uses this key to resolve hover payloads, so use the session identity
+            // for interaction and format it back to the short date for display.
+            dataKey="sessionId"
             tickLine={false}
             axisLine={false}
             tickMargin={8}
             minTickGap={24}
+            tickFormatter={(sessionId: string) => axisLabels.get(sessionId) ?? ""}
           />
           <YAxis
             domain={series.yDomain}

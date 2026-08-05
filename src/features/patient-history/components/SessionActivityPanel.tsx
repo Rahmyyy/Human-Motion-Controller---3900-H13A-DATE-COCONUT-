@@ -28,6 +28,8 @@ export default function SessionActivityPanel({
   onRetry,
   onShowAllTime,
 }: SessionActivityPanelProps) {
+  const axisLabels = new Map(activity.points.map((point) => [point.sessionId, point.axisLabel]));
+
   return (
     <HistoryPanel
       title="Session activity"
@@ -51,11 +53,14 @@ export default function SessionActivityPanel({
         <ComposedChart data={activity.points} margin={{ top: 8, right: 8, left: 4, bottom: 0 }}>
           <CartesianGrid vertical={false} strokeDasharray="3 3" />
           <XAxis
-            dataKey="axisLabel"
+            // Keep same-day sessions distinct to Recharts' hover lookup while retaining the
+            // compact date labels shown to the user.
+            dataKey="sessionId"
             tickLine={false}
             axisLine={false}
             tickMargin={8}
             minTickGap={16}
+            tickFormatter={(sessionId: string) => axisLabels.get(sessionId) ?? ""}
           />
           <YAxis
             yAxisId="triggers"
