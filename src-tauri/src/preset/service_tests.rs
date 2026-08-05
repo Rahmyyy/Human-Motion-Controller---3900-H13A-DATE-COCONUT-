@@ -16,6 +16,12 @@ fn create_preset_trims_name_and_returns_saved_preset() {
     assert_eq!(created.default_pose_frames_json, None);
     assert_eq!(saved.id, created.id);
     assert_eq!(saved.name, created.name);
+    assert!(
+        crate::patient::repository::select_patient_by_id(&conn, TEST_PATIENT_ID)
+            .unwrap()
+            .last_activity_at_ms
+            > 0
+    );
 }
 
 #[test]

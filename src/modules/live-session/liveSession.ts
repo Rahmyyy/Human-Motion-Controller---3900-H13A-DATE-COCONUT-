@@ -1,4 +1,5 @@
 import type { PoseFrameSource } from "@/modules/pose-capture";
+import { touchPatientActivity } from "@/modules/patient-presets";
 import { closeOverlay, onEndSessionRequested } from "./adapters/tauriSession";
 import { createPresetRecognitionRuntime, emptyRecognitionStatus } from "./presetRecognition";
 import type {
@@ -15,6 +16,7 @@ interface LiveSessionDependencies {
   createRecognition(): PresetRecognitionRuntime;
   onEndRequested(listener: (event: EndSessionRequestedEvent) => void): Promise<() => void>;
   closeOverlay(sessionId: string, summary: SessionSummary): Promise<void>;
+  recordPatientActivity(patientId: string): Promise<void>;
 }
 
 class OverlayLiveSession implements LiveSession {
@@ -33,6 +35,7 @@ class OverlayLiveSession implements LiveSession {
   private operationToken = 0;
   private unlistenEndRequested: (() => void) | null = null;
   private sessionId: string | null = null;
+  private patientId: string | null = null;
   private endPromise: Promise<void> | null = null;
 
   constructor(
@@ -55,6 +58,7 @@ class OverlayLiveSession implements LiveSession {
     this.stopRuntime();
     this.unlistenEndRequested?.();
     this.sessionId = sessionId ?? null;
+    this.patientId = patientId ?? null;
     this.endPromise = null;
     const unlistenEndRequested = await this.dependencies.onEndRequested((event) => {
       if (event.sessionId === this.sessionId) void this.end();
@@ -99,6 +103,7 @@ class OverlayLiveSession implements LiveSession {
       };
       this.ownsRunningSession = true;
       this.tracker.start();
+      await this.recordActivitySafely(patientId);
     } catch (error) {
       if (token !== this.operationToken) return;
       this.publishError(errorMessage(error));
@@ -108,12 +113,15 @@ class OverlayLiveSession implements LiveSession {
   end = () => {
     if (this.endPromise) return this.endPromise;
     const sessionId = this.sessionId;
+    const patientId = this.patientId;
     ++this.operationToken;
     const summary = this.finishRuntime();
     this.endPromise = sessionId
-      ? this.dependencies.closeOverlay(sessionId, summary).catch((error) => {
-          this.publishError(errorMessage(error));
-        })
+      ? this.recordActivitySafely(patientId)
+          .then(() => this.dependencies.closeOverlay(sessionId, summary))
+          .catch((error) => {
+            this.publishError(errorMessage(error));
+          })
       : Promise.resolve();
     return this.endPromise;
   };
@@ -191,6 +199,15 @@ class OverlayLiveSession implements LiveSession {
     this.notify();
   }
 
+  private async recordActivitySafely(patientId: string | null | undefined) {
+    if (!patientId) return;
+    try {
+      await this.dependencies.recordPatientActivity(patientId);
+    } catch (error) {
+      console.error("Failed to update patient activity", error);
+    }
+  }
+
   private notify() {
     this.listeners.forEach((listener) => listener());
   }
@@ -211,6 +228,7 @@ export function createLiveSession(
     createRecognition: () => createPresetRecognitionRuntime(poseSource, tracker),
     onEndRequested: onEndSessionRequested,
     closeOverlay,
+    recordPatientActivity: touchPatientActivity,
   });
 }
 
