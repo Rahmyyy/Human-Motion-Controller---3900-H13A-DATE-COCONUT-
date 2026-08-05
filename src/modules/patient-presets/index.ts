@@ -22,7 +22,6 @@ export type {
   DefaultPoseCalibrationSnapshot,
   DefaultPoseCalibrationStatus,
   DefaultPoseCalibrationViewModel,
-  ImportedPatientSummary,
   Patient,
   PatientStatus,
   Preset,

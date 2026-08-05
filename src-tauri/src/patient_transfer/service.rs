@@ -4,15 +4,10 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use anyhow::{anyhow, Result};
 use rusqlite::Connection;
 
+use crate::patient::repository::Patient;
+
 use super::format::{self, ExportFile, ExportedMapping, ExportedPatient, ExportedPreset};
 use super::repository::{self, NewMapping, NewPatientTree, NewPreset};
-
-#[derive(Debug, serde::Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct ImportedPatientSummary {
-    pub id: String,
-    pub display_name: String,
-}
 
 pub fn export_patient(conn: &Connection, patient_id: &str, file_path: &str) -> Result<()> {
     let patient_id = patient_id.trim();
@@ -73,7 +68,7 @@ pub fn preview_import(file_path: &str) -> Result<String> {
     Ok(export_file.patient.display_name)
 }
 
-pub fn import_patient(conn: &mut Connection, file_path: &str) -> Result<ImportedPatientSummary> {
+pub fn import_patient(conn: &mut Connection, file_path: &str) -> Result<Patient> {
     let export_file = load_export_file(file_path)?;
 
     let now = SystemTime::now().duration_since(UNIX_EPOCH)?;
@@ -131,10 +126,7 @@ pub fn import_patient(conn: &mut Connection, file_path: &str) -> Result<Imported
         },
     )?;
 
-    Ok(ImportedPatientSummary {
-        id: patient_id,
-        display_name,
-    })
+    crate::patient::repository::select_patient_by_id(conn, &patient_id)
 }
 
 fn load_export_file(file_path: &str) -> Result<ExportFile> {

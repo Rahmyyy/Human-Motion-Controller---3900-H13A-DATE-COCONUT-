@@ -7,7 +7,6 @@ export type {
 export type {
   CreateMovementMappingArgs,
   DashboardOverviewDto,
-  ImportedPatientSummaryDto,
   MovementMappingDetailsDto,
   MovementMappingSummaryDto,
   NativeErrorDto,
