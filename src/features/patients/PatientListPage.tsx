@@ -14,11 +14,14 @@ import {
 import { UserPlus } from "lucide-react";
 import { createPatient, getPatients, type Patient } from "@/modules/patient-presets";
 import PatientFormFields from "./components/PatientFormFields";
+import ModifyPatientDialog from "./components/ModifyPatientDialog";
+import RecentPatientsTable from "./components/RecentPatientsTable";
 
 export default function PatientListPage() {
   const [patients, setPatients] = useState<Patient[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [patientBeingModified, setPatientBeingModified] = useState<Patient | null>(null);
 
   const navigate = useNavigate();
 
@@ -98,28 +101,29 @@ export default function PatientListPage() {
               No patients have been added yet. Add a patient to begin.
             </div>
           ) : (
-            <div className="mt-4 space-y-4">
-              {patients.map((patient) => (
-                <button
-                  key={patient.id}
-                  type="button"
-                  onClick={() => {
-                    navigate(`/patients/${patient.id}/presets`, {
-                      state: { patientName: patient.displayName },
-                    });
-                  }}
-                  className="w-full rounded-lg border bg-card p-5 text-left shadow-sm transition hover:bg-muted/50"
-                >
-                  <h3 className="font-semibold">{patient.displayName}</h3>
-
-                  {patient.clinicalNotes && (
-                    <p className="mt-2 text-sm text-muted-foreground">{patient.clinicalNotes}</p>
-                  )}
-                </button>
-              ))}
-            </div>
+            <RecentPatientsTable
+              patients={patients}
+              onModify={setPatientBeingModified}
+              onSelect={(patient) => {
+                navigate(`/patients/${patient.id}/presets`, {
+                  state: { patientName: patient.displayName },
+                });
+              }}
+            />
           )}
         </section>
+        <ModifyPatientDialog
+          patient={patientBeingModified}
+          onClose={() => setPatientBeingModified(null)}
+          onUpdated={(updatedPatient) => {
+            setPatients((currentPatients) =>
+              currentPatients.map((patient) =>
+                patient.id === updatedPatient.id ? updatedPatient : patient,
+              ),
+            );
+            setPatientBeingModified(null);
+          }}
+        />
       </div>
     </section>
   );
