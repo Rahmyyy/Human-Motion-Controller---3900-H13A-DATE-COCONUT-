@@ -29,6 +29,7 @@ serde_json = "1"
 anyhow = "1.0.102"
 enigo = { version = "0.6.1", features = ["serde"] }
 tauri-plugin-log = "2"
+tauri-plugin-dialog = "2"
 log = "0.4.33"
 rusqlite = { version = "0.40.1", features = ["bundled"] }
 

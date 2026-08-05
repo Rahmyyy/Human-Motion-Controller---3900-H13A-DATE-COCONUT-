@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "patient-transfer",
+  "description": "File save/open dialogs for exporting and importing patient profiles. Main window only — the session overlay never shows file dialogs.",
+  "windows": ["main"],
+  "permissions": ["dialog:allow-open", "dialog:allow-save"]
+}

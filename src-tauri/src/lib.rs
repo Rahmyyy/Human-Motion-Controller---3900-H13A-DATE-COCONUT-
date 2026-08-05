@@ -4,6 +4,7 @@ mod movement_mapping;
 mod native;
 mod overlay;
 mod patient;
+mod patient_transfer;
 mod preset;
 mod scheduled_session;
 
@@ -28,6 +29,7 @@ pub fn run() {
                 .level(tauri_plugin_log::log::LevelFilter::Info)
                 .build(),
         )
+        .plugin(tauri_plugin_dialog::init())
         .setup(move |app| {
             // Starts up SQLite
             app.manage(db::init_db(app.handle())?);
@@ -82,6 +84,8 @@ pub fn run() {
             patient::commands::touch_patient_activity,
             scheduled_session::commands::create_scheduled_session,
             scheduled_session::commands::get_dashboard_overview,
+            patient_transfer::commands::export_patient,
+            patient_transfer::commands::import_patient,
             overlay::open_overlay,
             overlay::close_overlay,
         ])
