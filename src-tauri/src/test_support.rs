@@ -58,6 +58,37 @@ pub fn setup_test_conn() -> Connection {
         CREATE INDEX idx_scheduled_sessions_scheduled_at
         ON scheduled_sessions(scheduled_at_ms);
 
+        CREATE TABLE sessions (
+            id TEXT PRIMARY KEY,
+            patient_id TEXT NOT NULL,
+            preset_id TEXT NOT NULL,
+            preset_name TEXT NOT NULL,
+            started_at_ms INTEGER NOT NULL,
+            ended_at_ms INTEGER NOT NULL,
+            duration_ms INTEGER NOT NULL,
+            trigger_count INTEGER NOT NULL,
+            FOREIGN KEY (patient_id)
+                REFERENCES patients(id)
+                ON DELETE CASCADE
+        );
+
+        CREATE INDEX idx_sessions_patient_started_at
+            ON sessions (patient_id, started_at_ms DESC);
+
+        CREATE TABLE session_mapping_stats (
+            session_id TEXT NOT NULL,
+            mapping_id TEXT NOT NULL,
+            mapping_name TEXT NOT NULL,
+            keybind TEXT NOT NULL,
+            threshold_percentage INTEGER NOT NULL,
+            keypress_trigger_threshold_percentage INTEGER NOT NULL,
+            trigger_count INTEGER NOT NULL,
+            PRIMARY KEY (session_id, mapping_id),
+            FOREIGN KEY (session_id)
+                REFERENCES sessions(id)
+                ON DELETE CASCADE
+        );
+
         INSERT INTO patients (
             id,
             display_name,

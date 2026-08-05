@@ -17,6 +17,7 @@ pub struct PresetRow {
 }
 
 pub struct MappingRow {
+    pub id: String,
     pub name: String,
     pub created_at: String,
     pub keybind: String,
@@ -73,7 +74,7 @@ pub fn select_presets_for_patient(conn: &Connection, patient_id: &str) -> Result
 
 pub fn select_mappings_for_preset(conn: &Connection, preset_id: &str) -> Result<Vec<MappingRow>> {
     let mut statement = conn.prepare(
-        "SELECT name, created_at, keybind, keypress_type, pose_frames_json,
+        "SELECT id, name, created_at, keybind, keypress_type, pose_frames_json,
                 selected_landmarks_json,
                 threshold_percentage, keypress_trigger_threshold_percentage
          FROM movement_mappings
@@ -84,14 +85,15 @@ pub fn select_mappings_for_preset(conn: &Connection, preset_id: &str) -> Result<
     let rows = statement
         .query_map(params![preset_id], |row| {
             Ok(MappingRow {
-                name: row.get(0)?,
-                created_at: row.get(1)?,
-                keybind: row.get(2)?,
-                keypress_type: row.get(3)?,
-                pose_frames_json: row.get(4)?,
-                selected_landmarks_json: row.get(5)?,
-                threshold_percentage: row.get(6)?,
-                keypress_trigger_threshold_percentage: row.get(7)?,
+                id: row.get(0)?,
+                name: row.get(1)?,
+                created_at: row.get(2)?,
+                keybind: row.get(3)?,
+                keypress_type: row.get(4)?,
+                pose_frames_json: row.get(5)?,
+                selected_landmarks_json: row.get(6)?,
+                threshold_percentage: row.get(7)?,
+                keypress_trigger_threshold_percentage: row.get(8)?,
             })
         })?
         .collect::<Result<Vec<_>, _>>()?;
@@ -148,6 +150,26 @@ pub struct NewScheduledSession {
     pub created_at_ms: i64,
 }
 
+pub struct NewSessionMapping {
+    pub mapping_id: String,
+    pub mapping_name: String,
+    pub keybind: String,
+    pub threshold_percentage: u32,
+    pub keypress_trigger_threshold_percentage: u32,
+    pub trigger_count: i64,
+}
+
+pub struct NewCompletedSession {
+    pub id: String,
+    pub preset_id: String,
+    pub preset_name: String,
+    pub started_at_ms: i64,
+    pub ended_at_ms: i64,
+    pub duration_ms: i64,
+    pub trigger_count: i64,
+    pub mappings: Vec<NewSessionMapping>,
+}
+
 pub struct NewPatientTree {
     pub patient_id: String,
     pub display_name: String,
@@ -157,6 +179,7 @@ pub struct NewPatientTree {
     pub last_activity_at_ms: i64,
     pub presets: Vec<NewPreset>,
     pub scheduled_sessions: Vec<NewScheduledSession>,
+    pub completed_sessions: Vec<NewCompletedSession>,
 }
 
 /// Inserts a patient and its full preset/mapping tree in a single transaction — either all of it
@@ -226,6 +249,43 @@ pub fn insert_patient_tree(conn: &mut Connection, tree: &NewPatientTree) -> Resu
                 session.created_at_ms
             ],
         )?;
+    }
+
+    for session in &tree.completed_sessions {
+        transaction.execute(
+            "INSERT INTO sessions (
+                id, patient_id, preset_id, preset_name, started_at_ms, ended_at_ms,
+                duration_ms, trigger_count
+             ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
+            params![
+                session.id,
+                tree.patient_id,
+                session.preset_id,
+                session.preset_name,
+                session.started_at_ms,
+                session.ended_at_ms,
+                session.duration_ms,
+                session.trigger_count,
+            ],
+        )?;
+
+        for mapping in &session.mappings {
+            transaction.execute(
+                "INSERT INTO session_mapping_stats (
+                    session_id, mapping_id, mapping_name, keybind, threshold_percentage,
+                    keypress_trigger_threshold_percentage, trigger_count
+                 ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+                params![
+                    session.id,
+                    mapping.mapping_id,
+                    mapping.mapping_name,
+                    mapping.keybind,
+                    mapping.threshold_percentage,
+                    mapping.keypress_trigger_threshold_percentage,
+                    mapping.trigger_count,
+                ],
+            )?;
+        }
     }
 
     transaction.commit()?;

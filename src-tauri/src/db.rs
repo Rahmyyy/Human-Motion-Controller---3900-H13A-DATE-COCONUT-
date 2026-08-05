@@ -16,7 +16,6 @@ pub fn init_db(app: &AppHandle) -> Result<DbState> {
     let conn = Connection::open(db_path)?;
 
     conn.execute("PRAGMA foreign_keys = ON", [])?;
-
     conn.execute(
         "
         CREATE TABLE IF NOT EXISTS patients (
@@ -89,6 +88,60 @@ pub fn init_db(app: &AppHandle) -> Result<DbState> {
         "
         CREATE INDEX IF NOT EXISTS idx_scheduled_sessions_scheduled_at
         ON scheduled_sessions(scheduled_at_ms)
+        ",
+        [],
+    )?;
+
+    // One row per completed session. `preset_id` is deliberately a snapshot rather than a
+    // foreign key: history has to survive the preset being deleted, and the patient history
+    // page groups sessions by preset, so nulling the id would collapse unrelated presets
+    // into one bucket. `preset_name` is snapshotted for the same reason — a rename must not
+    // rewrite what past sessions were run with.
+    conn.execute(
+        "
+        CREATE TABLE IF NOT EXISTS sessions (
+            id TEXT PRIMARY KEY,
+            patient_id TEXT NOT NULL,
+            preset_id TEXT NOT NULL,
+            preset_name TEXT NOT NULL,
+            started_at_ms INTEGER NOT NULL,
+            ended_at_ms INTEGER NOT NULL,
+            duration_ms INTEGER NOT NULL,
+            trigger_count INTEGER NOT NULL,
+            FOREIGN KEY (patient_id)
+                REFERENCES patients(id)
+                ON DELETE CASCADE
+        )
+        ",
+        [],
+    )?;
+
+    conn.execute(
+        "
+        CREATE INDEX IF NOT EXISTS idx_sessions_patient_started_at
+            ON sessions (patient_id, started_at_ms DESC)
+        ",
+        [],
+    )?;
+
+    // Per-mapping breakdown of a completed session. Every mapping in the preset gets a row,
+    // including ones that never fired, because the threshold chart plots the settings a
+    // session ran with. `mapping_id` is a snapshot for the same reason as `preset_id` above.
+    conn.execute(
+        "
+        CREATE TABLE IF NOT EXISTS session_mapping_stats (
+            session_id TEXT NOT NULL,
+            mapping_id TEXT NOT NULL,
+            mapping_name TEXT NOT NULL,
+            keybind TEXT NOT NULL,
+            threshold_percentage INTEGER NOT NULL,
+            keypress_trigger_threshold_percentage INTEGER NOT NULL,
+            trigger_count INTEGER NOT NULL,
+            PRIMARY KEY (session_id, mapping_id),
+            FOREIGN KEY (session_id)
+                REFERENCES sessions(id)
+                ON DELETE CASCADE
+        )
         ",
         [],
     )?;

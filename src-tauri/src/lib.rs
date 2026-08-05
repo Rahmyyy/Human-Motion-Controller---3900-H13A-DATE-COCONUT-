@@ -7,6 +7,7 @@ mod patient;
 mod patient_transfer;
 mod preset;
 mod scheduled_session;
+mod session;
 
 #[cfg(test)]
 mod test_support;
@@ -87,6 +88,8 @@ pub fn run() {
             patient_transfer::commands::export_patient,
             patient_transfer::commands::preview_import_patient,
             patient_transfer::commands::import_patient,
+            session::commands::record_completed_session,
+            session::commands::get_patient_sessions,
             overlay::open_overlay,
             overlay::close_overlay,
         ])

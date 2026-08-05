@@ -1,8 +1,8 @@
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
+use std::collections::HashSet;
 
-/// Bumped whenever the exported JSON shape changes in a way older app versions can't read.
-pub const SUPPORTED_EXPORT_FORMAT_VERSION: u32 = 1;
+pub const EXPORT_FORMAT_VERSION: u32 = 1;
 
 const MAX_PATIENT_DISPLAY_NAME_LENGTH: usize = 60;
 const MAX_CLINICAL_NOTES_LENGTH: usize = 500;
@@ -34,11 +34,16 @@ pub struct ExportedPatient {
     pub presets: Vec<ExportedPreset>,
     #[serde(default)]
     pub scheduled_sessions: Vec<ExportedScheduledSession>,
+    #[serde(default)]
+    pub completed_sessions: Vec<ExportedCompletedSession>,
 }
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ExportedPreset {
+    /// Identity used only to reconnect imported history to the regenerated preset id.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub source_id: Option<String>,
     pub name: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub created_at: Option<String>,
@@ -50,6 +55,9 @@ pub struct ExportedPreset {
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ExportedMapping {
+    /// Identity used only to reconnect imported history to the regenerated mapping id.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub source_id: Option<String>,
     pub name: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub created_at: Option<String>,
@@ -68,6 +76,28 @@ pub struct ExportedScheduledSession {
     pub created_at_ms: i64,
 }
 
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ExportedCompletedSession {
+    pub preset_id: String,
+    pub preset_name: String,
+    pub started_at_ms: i64,
+    pub duration_ms: i64,
+    pub trigger_count: i64,
+    pub mappings: Vec<ExportedSessionMapping>,
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ExportedSessionMapping {
+    pub mapping_id: String,
+    pub mapping_name: String,
+    pub keybind: String,
+    pub threshold_percentage: u32,
+    pub keypress_trigger_threshold_percentage: u32,
+    pub trigger_count: i64,
+}
+
 fn default_patient_status() -> String {
     "active".to_string()
 }
@@ -80,11 +110,11 @@ pub fn parse_and_validate(raw: &str) -> Result<ExportFile> {
         serde_json::from_str(raw).map_err(|_| anyhow!("This file is not valid JSON"))?;
 
     match value.get("exportFormatVersion").and_then(|v| v.as_u64()) {
-        Some(version) if version == SUPPORTED_EXPORT_FORMAT_VERSION as u64 => {}
+        Some(version) if version == EXPORT_FORMAT_VERSION as u64 => {}
         Some(version) => {
             return Err(anyhow!(
                 "This file was exported with format version {version}, but this version of \
-                 Human Controller only supports version {SUPPORTED_EXPORT_FORMAT_VERSION}"
+                 Human Controller only supports version {EXPORT_FORMAT_VERSION}"
             ));
         }
         None => {
@@ -137,8 +167,26 @@ fn validate_patient(patient: &ExportedPatient) -> Result<()> {
         ));
     }
 
+    let mut preset_source_ids = HashSet::new();
+    let mut mapping_source_ids = HashSet::new();
     for preset in &patient.presets {
         validate_preset(preset)?;
+        if let Some(source_id) = preset.source_id.as_deref() {
+            if !preset_source_ids.insert(source_id) {
+                return Err(anyhow!(
+                    "Patient export contains duplicate preset source IDs"
+                ));
+            }
+        }
+        for mapping in &preset.movement_mappings {
+            if let Some(source_id) = mapping.source_id.as_deref() {
+                if !mapping_source_ids.insert(source_id) {
+                    return Err(anyhow!(
+                        "Patient export contains duplicate movement mapping source IDs"
+                    ));
+                }
+            }
+        }
     }
 
     for session in &patient.scheduled_sessions {
@@ -147,11 +195,17 @@ fn validate_patient(patient: &ExportedPatient) -> Result<()> {
         }
     }
 
+    for session in &patient.completed_sessions {
+        validate_completed_session(session)?;
+    }
+
     Ok(())
 }
 
 fn validate_preset(preset: &ExportedPreset) -> Result<()> {
     let name = preset.name.trim();
+
+    validate_optional_source_id("Preset", preset.source_id.as_deref())?;
 
     if name.is_empty() {
         return Err(anyhow!("Preset name cannot be empty"));
@@ -199,6 +253,8 @@ fn validate_preset(preset: &ExportedPreset) -> Result<()> {
 fn validate_mapping(preset: &ExportedPreset, mapping: &ExportedMapping) -> Result<()> {
     let preset_name = preset.name.trim();
     let name = mapping.name.trim();
+
+    validate_optional_source_id("Movement mapping", mapping.source_id.as_deref())?;
 
     if name.is_empty() {
         return Err(anyhow!(
@@ -256,6 +312,80 @@ fn validate_mapping(preset: &ExportedPreset, mapping: &ExportedMapping) -> Resul
         ));
     }
 
+    Ok(())
+}
+
+fn validate_completed_session(session: &ExportedCompletedSession) -> Result<()> {
+    if session.preset_id.trim().is_empty() {
+        return Err(anyhow!("Completed session preset ID cannot be empty"));
+    }
+    if session.preset_name.trim().is_empty() {
+        return Err(anyhow!("Completed session preset name cannot be empty"));
+    }
+    if session.started_at_ms <= 0 {
+        return Err(anyhow!("Completed session start time must be positive"));
+    }
+    if session.duration_ms < 0 {
+        return Err(anyhow!("Completed session duration cannot be negative"));
+    }
+    if session
+        .started_at_ms
+        .checked_add(session.duration_ms)
+        .is_none()
+    {
+        return Err(anyhow!("Completed session timestamp is too large"));
+    }
+    if session.trigger_count < 0 {
+        return Err(anyhow!(
+            "Completed session trigger count cannot be negative"
+        ));
+    }
+
+    let mut mapping_ids = HashSet::new();
+    for mapping in &session.mappings {
+        if mapping.mapping_id.trim().is_empty() {
+            return Err(anyhow!("Completed session mapping ID cannot be empty"));
+        }
+        if !mapping_ids.insert(mapping.mapping_id.as_str()) {
+            return Err(anyhow!(
+                "Completed session contains duplicate mapping ID '{}'",
+                mapping.mapping_id
+            ));
+        }
+        if mapping.mapping_name.trim().is_empty() {
+            return Err(anyhow!("Completed session mapping name cannot be empty"));
+        }
+        if mapping.keybind.trim().is_empty() {
+            return Err(anyhow!("Completed session mapping keybind cannot be empty"));
+        }
+        if !(1..=100).contains(&mapping.threshold_percentage) {
+            return Err(anyhow!(
+                "Completed session movement threshold must be between 1 and 100"
+            ));
+        }
+        if !(MIN_KEYPRESS_TRIGGER_THRESHOLD_PERCENTAGE..=MAX_KEYPRESS_TRIGGER_THRESHOLD_PERCENTAGE)
+            .contains(&mapping.keypress_trigger_threshold_percentage)
+        {
+            return Err(anyhow!(
+                "Completed session keypress trigger threshold must be between \
+                 {MIN_KEYPRESS_TRIGGER_THRESHOLD_PERCENTAGE} and \
+                 {MAX_KEYPRESS_TRIGGER_THRESHOLD_PERCENTAGE}"
+            ));
+        }
+        if mapping.trigger_count < 0 {
+            return Err(anyhow!(
+                "Completed session mapping trigger count cannot be negative"
+            ));
+        }
+    }
+
+    Ok(())
+}
+
+fn validate_optional_source_id(owner: &str, source_id: Option<&str>) -> Result<()> {
+    if source_id.is_some_and(|id| id.trim().is_empty()) {
+        return Err(anyhow!("{owner} source ID cannot be empty"));
+    }
     Ok(())
 }
 

@@ -17,6 +17,16 @@ export interface SessionSummary {
   triggerCountsByMapping: Record<string, number>;
 }
 
+/** A finished session, in the shape the patient's history records it. */
+export interface CompletedSession {
+  sessionId: string;
+  patientId: string;
+  presetId: string;
+  startedAtMs: number;
+  endedAtMs: number;
+  triggerCountsByMapping: Record<string, number>;
+}
+
 export interface SessionTracker {
   getSnapshot(): SessionSnapshot;
   subscribe(listener: () => void): () => void;

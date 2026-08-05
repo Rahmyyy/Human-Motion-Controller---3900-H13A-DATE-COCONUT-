@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::fs;
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -5,11 +6,16 @@ use anyhow::{anyhow, Result};
 use rusqlite::Connection;
 
 use crate::patient::repository::Patient;
+use crate::session;
 
 use super::format::{
-    self, ExportFile, ExportedMapping, ExportedPatient, ExportedPreset, ExportedScheduledSession,
+    self, ExportFile, ExportedCompletedSession, ExportedMapping, ExportedPatient, ExportedPreset,
+    ExportedScheduledSession, ExportedSessionMapping,
 };
-use super::repository::{self, NewMapping, NewPatientTree, NewPreset, NewScheduledSession};
+use super::repository::{
+    self, NewCompletedSession, NewMapping, NewPatientTree, NewPreset, NewScheduledSession,
+    NewSessionMapping,
+};
 
 pub fn export_patient(conn: &Connection, patient_id: &str, file_path: &str) -> Result<()> {
     let patient_id = patient_id.trim();
@@ -28,6 +34,7 @@ pub fn export_patient(conn: &Connection, patient_id: &str, file_path: &str) -> R
             .into_iter()
             .map(|mapping| {
                 Ok(ExportedMapping {
+                    source_id: Some(mapping.id),
                     name: mapping.name,
                     created_at: Some(mapping.created_at),
                     keybind: mapping.keybind,
@@ -42,6 +49,7 @@ pub fn export_patient(conn: &Connection, patient_id: &str, file_path: &str) -> R
             .collect::<Result<Vec<_>>>()?;
 
         presets.push(ExportedPreset {
+            source_id: Some(preset_row.id),
             name: preset_row.name,
             created_at: Some(preset_row.created_at),
             default_pose_frames_json: preset_row.default_pose_frames_json,
@@ -57,8 +65,32 @@ pub fn export_patient(conn: &Connection, patient_id: &str, file_path: &str) -> R
         })
         .collect();
 
+    let completed_sessions = session::repository::select_patient_sessions(conn, patient_id)?
+        .into_iter()
+        .map(|session| ExportedCompletedSession {
+            preset_id: session.preset_id,
+            preset_name: session.preset_name,
+            started_at_ms: session.started_at_ms,
+            duration_ms: session.duration_ms,
+            trigger_count: session.trigger_count,
+            mappings: session
+                .mappings
+                .into_iter()
+                .map(|mapping| ExportedSessionMapping {
+                    mapping_id: mapping.mapping_id,
+                    mapping_name: mapping.mapping_name,
+                    keybind: mapping.keybind,
+                    threshold_percentage: mapping.threshold_percentage,
+                    keypress_trigger_threshold_percentage: mapping
+                        .keypress_trigger_threshold_percentage,
+                    trigger_count: mapping.trigger_count,
+                })
+                .collect(),
+        })
+        .collect();
+
     let export_file = ExportFile {
-        export_format_version: format::SUPPORTED_EXPORT_FORMAT_VERSION,
+        export_format_version: format::EXPORT_FORMAT_VERSION,
         exported_at: epoch_seconds_now()?,
         patient: ExportedPatient {
             display_name: patient.display_name,
@@ -68,6 +100,7 @@ pub fn export_patient(conn: &Connection, patient_id: &str, file_path: &str) -> R
             last_activity_at_ms: patient.last_activity_at_ms,
             presets,
             scheduled_sessions,
+            completed_sessions,
         },
     };
 
@@ -99,47 +132,49 @@ pub fn import_patient(conn: &mut Connection, file_path: &str) -> Result<Patient>
         last_activity_at_ms,
         presets: exported_presets,
         scheduled_sessions: exported_sessions,
+        completed_sessions: exported_completed_sessions,
     } = export_file.patient;
 
     let patient_created_at = created_at.unwrap_or_else(|| imported_at.clone());
 
-    let presets = exported_presets
-        .into_iter()
-        .enumerate()
-        .map(|(preset_index, preset)| {
-            let preset_id = format!("{patient_id}-preset-{preset_index}");
+    let mut preset_id_map = HashMap::new();
+    let mut mapping_id_map = HashMap::new();
+    let mut presets = Vec::with_capacity(exported_presets.len());
+    for (preset_index, preset) in exported_presets.into_iter().enumerate() {
+        let preset_id = format!("{patient_id}-preset-{preset_index}");
+        if let Some(source_id) = preset.source_id {
+            preset_id_map.insert(source_id, preset_id.clone());
+        }
 
-            let mappings = preset
-                .movement_mappings
-                .into_iter()
-                .enumerate()
-                .map(|(mapping_index, mapping)| {
-                    Ok(NewMapping {
-                        id: format!("{preset_id}-mapping-{mapping_index}"),
-                        name: mapping.name,
-                        created_at: mapping.created_at.unwrap_or_else(|| imported_at.clone()),
-                        keybind: mapping.keybind,
-                        keypress_type: mapping.keypress_type,
-                        pose_frames_json: mapping.pose_frames_json,
-                        selected_landmarks_json: serde_json::to_string(
-                            &mapping.selected_landmarks,
-                        )?,
-                        threshold_percentage: mapping.threshold_percentage,
-                        keypress_trigger_threshold_percentage: mapping
-                            .keypress_trigger_threshold_percentage,
-                    })
-                })
-                .collect::<Result<Vec<_>>>()?;
+        let mut mappings = Vec::with_capacity(preset.movement_mappings.len());
+        for (mapping_index, mapping) in preset.movement_mappings.into_iter().enumerate() {
+            let mapping_id = format!("{preset_id}-mapping-{mapping_index}");
+            if let Some(source_id) = mapping.source_id {
+                mapping_id_map.insert(source_id, mapping_id.clone());
+            }
 
-            Ok(NewPreset {
-                id: preset_id,
-                name: preset.name,
-                created_at: preset.created_at.unwrap_or_else(|| imported_at.clone()),
-                default_pose_frames_json: preset.default_pose_frames_json,
-                mappings,
-            })
-        })
-        .collect::<Result<Vec<_>>>()?;
+            mappings.push(NewMapping {
+                id: mapping_id,
+                name: mapping.name,
+                created_at: mapping.created_at.unwrap_or_else(|| imported_at.clone()),
+                keybind: mapping.keybind,
+                keypress_type: mapping.keypress_type,
+                pose_frames_json: mapping.pose_frames_json,
+                selected_landmarks_json: serde_json::to_string(&mapping.selected_landmarks)?,
+                threshold_percentage: mapping.threshold_percentage,
+                keypress_trigger_threshold_percentage: mapping
+                    .keypress_trigger_threshold_percentage,
+            });
+        }
+
+        presets.push(NewPreset {
+            id: preset_id,
+            name: preset.name,
+            created_at: preset.created_at.unwrap_or_else(|| imported_at.clone()),
+            default_pose_frames_json: preset.default_pose_frames_json,
+            mappings,
+        });
+    }
 
     let scheduled_sessions = exported_sessions
         .into_iter()
@@ -150,6 +185,46 @@ pub fn import_patient(conn: &mut Connection, file_path: &str) -> Result<Patient>
             created_at_ms: session.created_at_ms,
         })
         .collect();
+
+    let completed_sessions = exported_completed_sessions
+        .into_iter()
+        .enumerate()
+        .map(|(session_index, session)| {
+            let ended_at_ms = session
+                .started_at_ms
+                .checked_add(session.duration_ms)
+                .ok_or_else(|| anyhow!("Completed session timestamp is too large"))?;
+
+            Ok(NewCompletedSession {
+                id: format!("{patient_id}-completed-session-{session_index}"),
+                preset_id: preset_id_map
+                    .get(&session.preset_id)
+                    .cloned()
+                    .unwrap_or(session.preset_id),
+                preset_name: session.preset_name,
+                started_at_ms: session.started_at_ms,
+                ended_at_ms,
+                duration_ms: session.duration_ms,
+                trigger_count: session.trigger_count,
+                mappings: session
+                    .mappings
+                    .into_iter()
+                    .map(|mapping| NewSessionMapping {
+                        mapping_id: mapping_id_map
+                            .get(&mapping.mapping_id)
+                            .cloned()
+                            .unwrap_or(mapping.mapping_id),
+                        mapping_name: mapping.mapping_name,
+                        keybind: mapping.keybind,
+                        threshold_percentage: mapping.threshold_percentage,
+                        keypress_trigger_threshold_percentage: mapping
+                            .keypress_trigger_threshold_percentage,
+                        trigger_count: mapping.trigger_count,
+                    })
+                    .collect(),
+            })
+        })
+        .collect::<Result<Vec<_>>>()?;
 
     repository::insert_patient_tree(
         conn,
@@ -162,6 +237,7 @@ pub fn import_patient(conn: &mut Connection, file_path: &str) -> Result<Patient>
             last_activity_at_ms,
             presets,
             scheduled_sessions,
+            completed_sessions,
         },
     )?;
 

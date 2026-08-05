@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-use crate::{movement_mapping::repository, patient, preset, scheduled_session};
+use crate::{movement_mapping::repository, patient, preset, scheduled_session, session};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -158,5 +158,76 @@ impl From<repository::MovementMappingDetails> for MovementMappingDetailsDto {
 pub struct SessionSummaryDto {
     pub elapsed_ms: u64,
     pub trigger_count: u32,
+    pub trigger_counts_by_mapping: HashMap<String, u32>,
+}
+
+/// One mapping's frozen settings and activity within a completed session.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct SessionMappingStatDto {
+    pub mapping_id: String,
+    pub mapping_name: String,
+    pub keybind: String,
+    pub threshold_percentage: u32,
+    pub keypress_trigger_threshold_percentage: u32,
+    pub trigger_count: i64,
+}
+
+impl From<session::repository::SessionMappingStat> for SessionMappingStatDto {
+    fn from(stat: session::repository::SessionMappingStat) -> Self {
+        Self {
+            mapping_id: stat.mapping_id,
+            mapping_name: stat.mapping_name,
+            keybind: stat.keybind,
+            threshold_percentage: stat.threshold_percentage,
+            keypress_trigger_threshold_percentage: stat.keypress_trigger_threshold_percentage,
+            trigger_count: stat.trigger_count,
+        }
+    }
+}
+
+/// A completed session on its way to the patient history page. `ended_at_ms` is left out because
+/// it is `started_at_ms + duration_ms`; the millisecond values stay well inside the range a
+/// JavaScript number holds exactly, so they cross as plain numbers.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct PatientSessionDto {
+    pub id: String,
+    pub preset_id: String,
+    pub preset_name: String,
+    pub started_at_ms: i64,
+    pub duration_ms: i64,
+    pub trigger_count: i64,
+    pub mappings: Vec<SessionMappingStatDto>,
+}
+
+impl From<session::repository::PatientSession> for PatientSessionDto {
+    fn from(session: session::repository::PatientSession) -> Self {
+        Self {
+            id: session.id,
+            preset_id: session.preset_id,
+            preset_name: session.preset_name,
+            started_at_ms: session.started_at_ms,
+            duration_ms: session.duration_ms,
+            trigger_count: session.trigger_count,
+            mappings: session
+                .mappings
+                .into_iter()
+                .map(SessionMappingStatDto::from)
+                .collect(),
+        }
+    }
+}
+
+/// A session the overlay has just finished, on its way into the patient's history. The preset
+/// name and mapping settings are not carried here; they are snapshotted natively.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct CompletedSessionDto {
+    pub session_id: String,
+    pub patient_id: String,
+    pub preset_id: String,
+    pub started_at_ms: i64,
+    pub ended_at_ms: i64,
     pub trigger_counts_by_mapping: HashMap<String, u32>,
 }

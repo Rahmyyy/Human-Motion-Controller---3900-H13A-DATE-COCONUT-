@@ -5,6 +5,7 @@ export type {
   NativeCommandResult,
 } from "./commands";
 export type {
+  CompletedSessionDto,
   CreateMovementMappingArgs,
   DashboardOverviewDto,
   MovementMappingDetailsDto,
@@ -12,8 +13,10 @@ export type {
   NativeErrorDto,
   PatientDto,
   PatientStatusDto,
+  PatientSessionDto,
   PresetDto,
   PressTypeDto,
+  SessionMappingStatDto,
   SessionSummaryDto,
   ScheduledSessionDto,
   UpdateMovementMappingArgs,

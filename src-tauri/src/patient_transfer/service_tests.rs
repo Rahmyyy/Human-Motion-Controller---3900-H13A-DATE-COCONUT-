@@ -52,6 +52,41 @@ fn seed_source_patient(conn: &rusqlite::Connection) {
         ],
     )
     .unwrap();
+
+    conn.execute(
+        "INSERT INTO sessions (
+            id, patient_id, preset_id, preset_name, started_at_ms, ended_at_ms,
+            duration_ms, trigger_count
+         ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
+        params![
+            "completed-session-1",
+            "patient-1",
+            "preset-1",
+            "Test Preset",
+            10_000,
+            16_000,
+            6_000,
+            3
+        ],
+    )
+    .unwrap();
+
+    conn.execute(
+        "INSERT INTO session_mapping_stats (
+            session_id, mapping_id, mapping_name, keybind, threshold_percentage,
+            keypress_trigger_threshold_percentage, trigger_count
+         ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+        params![
+            "completed-session-1",
+            "mapping-1",
+            "Arm Raise",
+            "W",
+            90,
+            70,
+            3
+        ],
+    )
+    .unwrap();
 }
 
 fn temp_json_path(name: &str) -> String {
@@ -89,6 +124,17 @@ fn export_then_import_round_trips_the_full_patient_tree() {
 
     let export_path = temp_json_path("round-trip");
     export_patient(&conn, "patient-1", &export_path).unwrap();
+
+    let exported_json: serde_json::Value =
+        serde_json::from_str(&fs::read_to_string(&export_path).unwrap()).unwrap();
+    assert_eq!(exported_json["exportFormatVersion"], 1);
+    assert_eq!(
+        exported_json["patient"]["completedSessions"]
+            .as_array()
+            .unwrap()
+            .len(),
+        1
+    );
 
     let imported = import_patient(&mut conn, &export_path).unwrap();
     fs::remove_file(&export_path).ok();
@@ -183,6 +229,76 @@ fn export_then_import_round_trips_the_full_patient_tree() {
     assert_eq!(session_created_at_ms, 2000);
     assert_eq!(count(&conn, "scheduled_sessions"), 2);
 
+    let (history_preset_id, history_preset_name, started_at_ms, duration_ms, trigger_count): (
+        String,
+        String,
+        i64,
+        i64,
+        i64,
+    ) = conn
+        .query_row(
+            "SELECT sessions.preset_id, sessions.preset_name, sessions.started_at_ms,
+                    sessions.duration_ms, sessions.trigger_count
+             FROM sessions
+             WHERE sessions.patient_id = ?1",
+            params![imported.id],
+            |row| {
+                Ok((
+                    row.get(0)?,
+                    row.get(1)?,
+                    row.get(2)?,
+                    row.get(3)?,
+                    row.get(4)?,
+                ))
+            },
+        )
+        .unwrap();
+    let imported_preset_id: String = conn
+        .query_row(
+            "SELECT id FROM presets WHERE patient_id = ?1",
+            params![imported.id],
+            |row| row.get(0),
+        )
+        .unwrap();
+    assert_eq!(history_preset_id, imported_preset_id);
+    assert_eq!(history_preset_name, "Test Preset");
+    assert_eq!(started_at_ms, 10_000);
+    assert_eq!(duration_ms, 6_000);
+    assert_eq!(trigger_count, 3);
+
+    let (history_mapping_id, history_mapping_name, history_threshold, history_triggers): (
+        String,
+        String,
+        u32,
+        i64,
+    ) = conn
+        .query_row(
+            "SELECT stats.mapping_id, stats.mapping_name, stats.threshold_percentage,
+                    stats.trigger_count
+             FROM session_mapping_stats AS stats
+             JOIN sessions ON sessions.id = stats.session_id
+             WHERE sessions.patient_id = ?1",
+            params![imported.id],
+            |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?)),
+        )
+        .unwrap();
+    let imported_mapping_id: String = conn
+        .query_row(
+            "SELECT mappings.id
+             FROM movement_mappings AS mappings
+             JOIN presets ON presets.id = mappings.preset_id
+             WHERE presets.patient_id = ?1",
+            params![imported.id],
+            |row| row.get(0),
+        )
+        .unwrap();
+    assert_eq!(history_mapping_id, imported_mapping_id);
+    assert_eq!(history_mapping_name, "Arm Raise");
+    assert_eq!(history_threshold, 90);
+    assert_eq!(history_triggers, 3);
+    assert_eq!(count(&conn, "sessions"), 2);
+    assert_eq!(count(&conn, "session_mapping_stats"), 2);
+
     // The original patient must be untouched by the import.
     assert_eq!(count(&conn, "patients"), 2);
     assert_eq!(
@@ -193,6 +309,42 @@ fn export_then_import_round_trips_the_full_patient_tree() {
         )
         .unwrap(),
         1
+    );
+}
+
+#[test]
+fn round_trip_preserves_history_after_its_live_preset_was_deleted() {
+    let mut conn = setup_test_conn();
+    seed_source_patient(&conn);
+    conn.execute("DELETE FROM presets WHERE id = 'preset-1'", [])
+        .unwrap();
+
+    let export_path = temp_json_path("deleted-preset-history");
+    export_patient(&conn, "patient-1", &export_path).unwrap();
+    let imported = import_patient(&mut conn, &export_path).unwrap();
+    fs::remove_file(&export_path).ok();
+
+    assert_eq!(imported.preset_count, 0);
+    let history: (String, String, String, String) = conn
+        .query_row(
+            "SELECT sessions.preset_id, sessions.preset_name,
+                    stats.mapping_id, stats.mapping_name
+             FROM sessions
+             JOIN session_mapping_stats AS stats ON stats.session_id = sessions.id
+             WHERE sessions.patient_id = ?1",
+            params![imported.id],
+            |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?)),
+        )
+        .unwrap();
+
+    assert_eq!(
+        history,
+        (
+            "preset-1".into(),
+            "Test Preset".into(),
+            "mapping-1".into(),
+            "Arm Raise".into(),
+        )
     );
 }
 
