@@ -19,7 +19,15 @@ export interface NativeCommandMap {
   get_patients: Command<undefined, PatientDto[]>;
   create_patient: Command<{ displayName: string; clinicalNotes: string | null }, PatientDto>;
   get_patient: Command<{ id: string }, PatientDto>;
-
+  update_patient: Command<
+    {
+      id: string;
+      displayName: string;
+      clinicalNotes: string | null;
+    },
+    PatientDto
+  >;
+  delete_patient: Command<{ id: string }, void>;
   create_preset: Command<{ patientId: string; name: string }, PresetDto>;
   get_preset: Command<{ id: string; patientId: string }, PresetDto>;
   get_presets: Command<{ patientId: string }, PresetDto[]>;

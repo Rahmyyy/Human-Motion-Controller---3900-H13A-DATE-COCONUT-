@@ -72,7 +72,7 @@ pub fn run() {
             patient::commands::get_patients,
             patient::commands::get_patient,
             patient::commands::update_patient,
-            patient::commands::delete_patient,  
+            patient::commands::delete_patient,
             overlay::open_overlay,
             overlay::close_overlay,
         ])

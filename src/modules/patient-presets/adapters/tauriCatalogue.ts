@@ -6,6 +6,7 @@ const toPatient = (dto: PatientDto): Patient => ({
   displayName: dto.displayName,
   clinicalNotes: dto.clinicalNotes,
   createdAt: dto.createdAt,
+  presetCount: dto.presetCount,
 });
 
 const toPreset = (dto: PresetDto): Preset => ({
@@ -36,6 +37,20 @@ export async function getPatient(id: string) {
 
 export async function createPreset(patientId: string, name: string) {
   return toPreset(await invokeNative("create_preset", { patientId, name }));
+}
+
+export async function updatePatient(id: string, displayName: string, clinicalNotes?: string) {
+  return toPatient(
+    await invokeNative("update_patient", {
+      id,
+      displayName,
+      clinicalNotes: clinicalNotes || null,
+    }),
+  );
+}
+
+export function deletePatient(id: string) {
+  return invokeNative("delete_patient", { id });
 }
 
 export async function getPreset(id: string, patientId: string) {

@@ -7,6 +7,7 @@ export interface PatientDto {
   displayName: string;
   clinicalNotes: string | null;
   createdAt: string;
+  presetCount: number;
 }
 
 export interface PresetDto {
