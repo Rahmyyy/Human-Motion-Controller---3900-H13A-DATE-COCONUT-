@@ -65,10 +65,14 @@ export function orderThresholdMappings(sessions: PatientSession[]): ThresholdMap
 
 export function buildThresholdSeries(
   sessions: PatientSession[],
-  mappings: ThresholdMapping[],
+  stableMappings: ThresholdMapping[],
 ): ThresholdSeries {
-  const oldestFirst = [...sessions].reverse();
-  const plotted = oldestFirst.slice(-MAX_THRESHOLD_POINTS);
+  // Sessions arrive newest first. Rank lines from the exact capped window being plotted so an
+  // all-time favourite cannot occupy a line with thirty null values while a visible mapping is
+  // omitted. Existing all-time palette slots are retained wherever possible.
+  const plottedNewestFirst = sessions.slice(0, MAX_THRESHOLD_POINTS);
+  const mappings = preserveStableColors(orderThresholdMappings(plottedNewestFirst), stableMappings);
+  const plotted = [...plottedNewestFirst].reverse();
 
   const points: ThresholdPoint[] = plotted.map((session) => {
     const thresholds = new Map(
@@ -91,8 +95,28 @@ export function buildThresholdSeries(
     mappings,
     points,
     yDomain: thresholdDomain(points, mappings),
-    truncatedFrom: oldestFirst.length > plotted.length ? oldestFirst.length : null,
+    truncatedFrom: sessions.length > plotted.length ? sessions.length : null,
   };
+}
+
+function preserveStableColors(
+  visibleMappings: ThresholdMapping[],
+  stableMappings: ThresholdMapping[],
+): ThresholdMapping[] {
+  const stableColors = new Map(stableMappings.map((mapping) => [mapping.id, mapping.colorIndex]));
+  const reservedColors = new Set(
+    visibleMappings
+      .map((mapping) => stableColors.get(mapping.id))
+      .filter((color): color is number => color !== undefined),
+  );
+  const availableColors = Array.from({ length: MAX_THRESHOLD_SERIES }, (_, index) => index).filter(
+    (color) => !reservedColors.has(color),
+  );
+
+  return visibleMappings.map((mapping) => ({
+    ...mapping,
+    colorIndex: stableColors.get(mapping.id) ?? availableColors.shift() ?? mapping.colorIndex,
+  }));
 }
 
 /**

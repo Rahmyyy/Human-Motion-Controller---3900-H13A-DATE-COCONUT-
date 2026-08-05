@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { localTime, mappingStat, session } from "./testSessions";
 import {
   buildThresholdSeries,
+  MAX_THRESHOLD_POINTS,
   MAX_THRESHOLD_SERIES,
   orderThresholdMappings,
 } from "./thresholdSeries";
@@ -124,9 +125,57 @@ describe("buildThresholdSeries", () => {
     // "Steer" outranks "Accelerate" overall, but is absent from the narrowed range.
     const narrowed = buildThresholdSeries([all[0]!], order);
 
+    expect(narrowed.mappings.map((mapping) => mapping.id)).toEqual(["m1"]);
     expect(narrowed.mappings.find((mapping) => mapping.id === "m1")?.colorIndex).toBe(
       order.find((mapping) => mapping.id === "m1")?.colorIndex,
     );
+  });
+
+  it("backfills a visible mapping when the all-time top five are outside the date range", () => {
+    const oldMappings = Array.from({ length: MAX_THRESHOLD_SERIES }, (_, index) =>
+      mappingStat({
+        mappingId: `old-${index}`,
+        mappingName: `Old ${index}`,
+        triggerCount: 100 - index,
+      }),
+    );
+    const recent = session({
+      id: "recent",
+      mappings: [
+        mappingStat({ mappingId: "recent-mapping", mappingName: "Recent", triggerCount: 1 }),
+      ],
+    });
+    const allTimeOrder = orderThresholdMappings([
+      recent,
+      session({ id: "old", mappings: oldMappings }),
+    ]);
+
+    const series = buildThresholdSeries([recent], allTimeOrder);
+
+    expect(series.mappings.map((mapping) => mapping.id)).toEqual(["recent-mapping"]);
+    expect(series.points[0]?.values.mapping0).toBe(60);
+  });
+
+  it("ranks mappings from the thirty sessions that survive the chart cap", () => {
+    const recent = Array.from({ length: MAX_THRESHOLD_POINTS }, (_, index) =>
+      session({
+        id: `recent-${index}`,
+        mappings: [mappingStat({ mappingId: "visible", mappingName: "Visible", triggerCount: 1 })],
+      }),
+    );
+    const excluded = session({
+      id: "excluded-oldest",
+      mappings: [
+        mappingStat({ mappingId: "excluded", mappingName: "Excluded", triggerCount: 10_000 }),
+      ],
+    });
+    const sessions = [...recent, excluded];
+
+    const series = buildThresholdSeries(sessions, orderThresholdMappings(sessions));
+
+    expect(series.mappings.map((mapping) => mapping.id)).toEqual(["visible"]);
+    expect(series.points).toHaveLength(MAX_THRESHOLD_POINTS);
+    expect(series.points.every((point) => point.values.mapping0 === 60)).toBe(true);
   });
 
   it("tracks a mapping by id when its name changes between sessions", () => {
