@@ -144,26 +144,23 @@ export default function MainDashboardPage() {
         )}
 
         <div className="mt-6 grid items-start gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(18rem,1fr)]">
-          <section className="rounded-xl bg-card py-4 ring-1 ring-foreground/10 shadow-sm">
-            <h2 className="px-4 text-lg font-semibold tracking-tight">Recent Patients</h2>
+          <section className="rounded-xl bg-card p-4 ring-1 ring-foreground/10 shadow-sm">
             {isPatientsLoading ? (
-              <p className="mt-5 px-4 text-sm text-muted-foreground">Loading patients...</p>
+              <p className="text-sm text-muted-foreground">Loading patients...</p>
             ) : patientsError ? (
-              <p className="mx-4 mt-5 rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+              <p className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
                 {patientsError}
               </p>
             ) : patients.length === 0 ? (
-              <div className="mx-4 mt-5 rounded-lg border border-dashed bg-card/50 p-8 text-sm text-muted-foreground">
+              <div className="rounded-lg border border-dashed bg-card/50 p-8 text-sm text-muted-foreground">
                 No patients have been added yet. Add a patient to begin.
               </div>
             ) : (
-              <div className="px-4">
-                <RecentPatientsTable
-                  patients={patients}
-                  onModify={setPatientBeingModified}
-                  onSelect={(patient) => openPatient(patient.id, patient.displayName)}
-                />
-              </div>
+              <RecentPatientsTable
+                patients={patients}
+                onModify={setPatientBeingModified}
+                onSelect={(patient) => openPatient(patient.id, patient.displayName)}
+              />
             )}
           </section>
 

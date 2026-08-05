@@ -22,7 +22,7 @@ export default function RecentPatientsTable({
   onSelect,
 }: RecentPatientsTableProps) {
   return (
-    <div className="mt-4 overflow-hidden rounded-xl border bg-card">
+    <div className="overflow-hidden rounded-xl border bg-card">
       <table className="w-full table-fixed text-left text-sm">
         <thead className="border-b bg-muted/40 text-xs text-muted-foreground">
           <tr>
