@@ -11,6 +11,7 @@ export type {
   MovementMappingSummaryDto,
   NativeErrorDto,
   PatientDto,
+  PatientStatusDto,
   PresetDto,
   PressTypeDto,
   SessionSummaryDto,

@@ -12,7 +12,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import PatientFormFields from "@/features/patients/components/PatientFormFields";
-import { createPatient } from "@/modules/patient-presets";
+import { createPatient, type PatientStatus } from "@/modules/patient-presets";
 
 interface AddPatientDialogProps {
   onPatientCreated(): Promise<void>;
@@ -22,6 +22,7 @@ export default function AddPatientDialog({ onPatientCreated }: AddPatientDialogP
   const [isOpen, setIsOpen] = useState(false);
   const [displayName, setDisplayName] = useState("");
   const [clinicalNotes, setClinicalNotes] = useState("");
+  const [status, setStatus] = useState<PatientStatus>("active");
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -44,6 +45,8 @@ export default function AddPatientDialog({ onPatientCreated }: AddPatientDialogP
           clinicalNotes={clinicalNotes}
           onDisplayNameChange={setDisplayName}
           onClinicalNotesChange={setClinicalNotes}
+          status={status}
+          onStatusChange={setStatus}
         />
 
         <DialogFooter>
@@ -54,10 +57,11 @@ export default function AddPatientDialog({ onPatientCreated }: AddPatientDialogP
               if (!trimmedDisplayName) return;
 
               try {
-                await createPatient(trimmedDisplayName, clinicalNotes.trim() || undefined);
+                await createPatient(trimmedDisplayName, clinicalNotes.trim() || undefined, status);
                 await onPatientCreated();
                 setDisplayName("");
                 setClinicalNotes("");
+                setStatus("active");
                 setIsOpen(false);
               } catch (error) {
                 console.error("Failed to create patient", error);

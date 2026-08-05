@@ -27,6 +27,7 @@ export default function ModifyPatientDialog({
 }: ModifyPatientDialogProps) {
   const [displayName, setDisplayName] = useState(patient.displayName);
   const [clinicalNotes, setClinicalNotes] = useState(patient.clinicalNotes ?? "");
+  const [status, setStatus] = useState(patient.status);
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -42,6 +43,7 @@ export default function ModifyPatientDialog({
         patient.id,
         displayName.trim(),
         clinicalNotes.trim() || undefined,
+        status,
       );
 
       onUpdated(updatedPatient);
@@ -70,6 +72,8 @@ export default function ModifyPatientDialog({
           clinicalNotes={clinicalNotes}
           onDisplayNameChange={setDisplayName}
           onClinicalNotesChange={setClinicalNotes}
+          status={status}
+          onStatusChange={setStatus}
         />
 
         {error && (

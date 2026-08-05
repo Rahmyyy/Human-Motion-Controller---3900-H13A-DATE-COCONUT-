@@ -10,6 +10,7 @@ export {
   getPresets,
   updateDefaultPose,
   updatePatient,
+  touchPatientActivity,
 } from "./adapters/tauriCatalogue";
 export { createPresetSelectionService } from "./catalogue";
 export { createDefaultPoseCalibration } from "./calibration";
@@ -19,6 +20,7 @@ export type {
   DefaultPoseCalibrationStatus,
   DefaultPoseCalibrationViewModel,
   Patient,
+  PatientStatus,
   Preset,
   PresetMutationError,
   PresetSelectionService,

@@ -19,17 +19,22 @@ type Command<Args, Result> = {
 /** Stable Tauri command names and the exact values crossing the frontend/native seam. */
 export interface NativeCommandMap {
   get_patients: Command<undefined, PatientDto[]>;
-  create_patient: Command<{ displayName: string; clinicalNotes: string | null }, PatientDto>;
+  create_patient: Command<
+    { displayName: string; clinicalNotes: string | null; status: PatientDto["status"] },
+    PatientDto
+  >;
   get_patient: Command<{ id: string }, PatientDto>;
   update_patient: Command<
     {
       id: string;
       displayName: string;
       clinicalNotes: string | null;
+      status: PatientDto["status"];
     },
     PatientDto
   >;
   delete_patient: Command<{ id: string }, void>;
+  touch_patient_activity: Command<{ patientId: string }, void>;
 
   create_scheduled_session: Command<
     { patientId: string; scheduledAtMs: number },

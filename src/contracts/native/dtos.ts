@@ -1,6 +1,7 @@
 export const PRESS_TYPES = ["Toggle", "Press", "Release", "Click"] as const;
 
 export type PressTypeDto = (typeof PRESS_TYPES)[number];
+export type PatientStatusDto = "active" | "needsReview";
 
 export interface PatientDto {
   id: string;
@@ -8,6 +9,8 @@ export interface PatientDto {
   clinicalNotes: string | null;
   createdAt: string;
   presetCount: number;
+  status: PatientStatusDto;
+  lastActivityAtMs: number;
 }
 
 export interface ScheduledSessionDto {
