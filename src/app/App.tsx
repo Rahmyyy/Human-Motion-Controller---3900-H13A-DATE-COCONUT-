@@ -4,6 +4,7 @@ import LiveDashboardPage from "@/features/dashboard/LiveDashboardPage";
 import MainDashboardPage from "@/features/dashboard/MainDashboardPage";
 import MovementMappingRoutePage from "@/features/movement-mapping/MovementMappingRoutePage";
 import MovementRecognitionPage from "@/features/movement-recognition/MovementRecognitionPage";
+import PatientHistoryPage from "@/features/patient-history/PatientHistoryPage";
 import PatientListPage from "@/features/patients/PatientListPage";
 import PresetMappingsPage from "@/features/preset-mapping/PresetMappingsPage";
 import PresetSelectionPage from "@/features/presets/PresetSelectionPage";
@@ -23,6 +24,7 @@ export default function App() {
           <Route path="/session-history" element={<SessionHistoryPage />} />
         </Route>
         <Route path="/patients/:patientId/presets" element={<PresetSelectionPage />} />
+        <Route path="/patients/:patientId/history" element={<PatientHistoryPage />} />
         <Route
           path="/patients/:patientId/presets/:presetId/edit"
           element={<PresetMappingsPage />}
