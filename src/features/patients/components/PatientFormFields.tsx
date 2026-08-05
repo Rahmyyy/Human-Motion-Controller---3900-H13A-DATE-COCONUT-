@@ -27,23 +27,17 @@ export default function PatientFormFields({
         <Input
           id={displayNameId}
           value={displayName}
-          onChange={(event) =>
-            onDisplayNameChange(event.target.value)
-          }
+          onChange={(event) => onDisplayNameChange(event.target.value)}
           placeholder="e.g. Alex J."
         />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor={clinicalNotesId}>
-          Clinical Notes Optional
-        </Label>
+        <Label htmlFor={clinicalNotesId}>Clinical Notes Optional</Label>
         <Textarea
           id={clinicalNotesId}
           value={clinicalNotes}
-          onChange={(event) =>
-            onClinicalNotesChange(event.target.value)
-          }
+          onChange={(event) => onClinicalNotesChange(event.target.value)}
           placeholder="e.g. Stroke rehab, upper body focus"
         />
       </div>

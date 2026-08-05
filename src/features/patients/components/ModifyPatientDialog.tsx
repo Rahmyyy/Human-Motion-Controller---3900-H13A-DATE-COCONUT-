@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -16,7 +16,7 @@ type ModifyPatientDialogProps = {
   onClose: () => void;
   onDeleted: (patientId: string) => void;
   onUpdated: (patient: Patient) => void;
-  patient: Patient | null;
+  patient: Patient;
 };
 
 export default function ModifyPatientDialog({
@@ -25,21 +25,14 @@ export default function ModifyPatientDialog({
   onUpdated,
   patient,
 }: ModifyPatientDialogProps) {
-  const [displayName, setDisplayName] = useState("");
-  const [clinicalNotes, setClinicalNotes] = useState("");
+  const [displayName, setDisplayName] = useState(patient.displayName);
+  const [clinicalNotes, setClinicalNotes] = useState(patient.clinicalNotes ?? "");
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
-  useEffect(() => {
-    if (!patient) return;
-    setDisplayName(patient.displayName);
-    setClinicalNotes(patient.clinicalNotes ?? "");
-    setError(null);
-  }, [patient]);
-
   async function handleSave() {
-    if (!patient || !displayName.trim()) return;
+    if (!displayName.trim()) return;
 
     try {
       setIsSaving(true);
@@ -61,7 +54,7 @@ export default function ModifyPatientDialog({
 
   return (
     <Dialog
-      open={patient !== null}
+      open
       onOpenChange={(open) => {
         if (!open && !isSaving) onClose();
       }}
@@ -92,7 +85,7 @@ export default function ModifyPatientDialog({
             disabled={isSaving}
             onClick={() => setIsDeleteOpen(true)}
           >
-            Delete patient
+            Delete Patient
           </Button>
 
           <div className="flex gap-2">
@@ -104,17 +97,15 @@ export default function ModifyPatientDialog({
             </Button>
           </div>
         </DialogFooter>
-        {patient && (
-          <DeletePatientDialog
-            open={isDeleteOpen}
-            patient={patient}
-            onOpenChange={setIsDeleteOpen}
-            onDeleted={(patientId) => {
-              setIsDeleteOpen(false);
-              onDeleted(patientId);
-            }}
-          />
-        )}
+        <DeletePatientDialog
+          open={isDeleteOpen}
+          patient={patient}
+          onOpenChange={setIsDeleteOpen}
+          onDeleted={(patientId) => {
+            setIsDeleteOpen(false);
+            onDeleted(patientId);
+          }}
+        />
       </DialogContent>
     </Dialog>
   );

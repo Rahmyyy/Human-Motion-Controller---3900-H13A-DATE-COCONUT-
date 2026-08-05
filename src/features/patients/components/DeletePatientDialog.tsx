@@ -50,7 +50,7 @@ export default function DeletePatientDialog({
     >
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Delete patient?</DialogTitle>
+          <DialogTitle>Delete Patient?</DialogTitle>
           <DialogDescription>
             Delete “{patient.displayName}” and all of their presets and movement mappings? This
             cannot be undone.
@@ -73,7 +73,7 @@ export default function DeletePatientDialog({
             Cancel
           </Button>
           <Button type="button" variant="destructive" disabled={isDeleting} onClick={handleDelete}>
-            {isDeleting ? "Deleting..." : "Delete patient"}
+            {isDeleting ? "Deleting..." : "Delete Patient"}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -112,24 +112,27 @@ export default function PatientListPage() {
             />
           )}
         </section>
-        <ModifyPatientDialog
-          patient={patientBeingModified}
-          onClose={() => setPatientBeingModified(null)}
-          onDeleted={(patientId) => {
-            setPatients((currentPatients) =>
-              currentPatients.filter((patient) => patient.id !== patientId),
-            );
-            setPatientBeingModified(null);
-          }}
-          onUpdated={(updatedPatient) => {
-            setPatients((currentPatients) =>
-              currentPatients.map((patient) =>
-                patient.id === updatedPatient.id ? updatedPatient : patient,
-              ),
-            );
-            setPatientBeingModified(null);
-          }}
-        />
+        {patientBeingModified && (
+          <ModifyPatientDialog
+            key={patientBeingModified.id}
+            patient={patientBeingModified}
+            onClose={() => setPatientBeingModified(null)}
+            onDeleted={(patientId) => {
+              setPatients((currentPatients) =>
+                currentPatients.filter((patient) => patient.id !== patientId),
+              );
+              setPatientBeingModified(null);
+            }}
+            onUpdated={(updatedPatient) => {
+              setPatients((currentPatients) =>
+                currentPatients.map((patient) =>
+                  patient.id === updatedPatient.id ? updatedPatient : patient,
+                ),
+              );
+              setPatientBeingModified(null);
+            }}
+          />
+        )}
       </div>
     </section>
   );
