@@ -6,8 +6,10 @@ use rusqlite::Connection;
 
 use crate::patient::repository::Patient;
 
-use super::format::{self, ExportFile, ExportedMapping, ExportedPatient, ExportedPreset};
-use super::repository::{self, NewMapping, NewPatientTree, NewPreset};
+use super::format::{
+    self, ExportFile, ExportedMapping, ExportedPatient, ExportedPreset, ExportedScheduledSession,
+};
+use super::repository::{self, NewMapping, NewPatientTree, NewPreset, NewScheduledSession};
 
 pub fn export_patient(conn: &Connection, patient_id: &str, file_path: &str) -> Result<()> {
     let patient_id = patient_id.trim();
@@ -27,6 +29,7 @@ pub fn export_patient(conn: &Connection, patient_id: &str, file_path: &str) -> R
             .map(|mapping| {
                 Ok(ExportedMapping {
                     name: mapping.name,
+                    created_at: Some(mapping.created_at),
                     keybind: mapping.keybind,
                     keypress_type: mapping.keypress_type,
                     pose_frames_json: mapping.pose_frames_json,
@@ -40,10 +43,19 @@ pub fn export_patient(conn: &Connection, patient_id: &str, file_path: &str) -> R
 
         presets.push(ExportedPreset {
             name: preset_row.name,
+            created_at: Some(preset_row.created_at),
             default_pose_frames_json: preset_row.default_pose_frames_json,
             movement_mappings,
         });
     }
+
+    let scheduled_sessions = repository::select_scheduled_sessions_for_patient(conn, patient_id)?
+        .into_iter()
+        .map(|session| ExportedScheduledSession {
+            scheduled_at_ms: session.scheduled_at_ms,
+            created_at_ms: session.created_at_ms,
+        })
+        .collect();
 
     let export_file = ExportFile {
         export_format_version: format::SUPPORTED_EXPORT_FORMAT_VERSION,
@@ -51,7 +63,11 @@ pub fn export_patient(conn: &Connection, patient_id: &str, file_path: &str) -> R
         patient: ExportedPatient {
             display_name: patient.display_name,
             clinical_notes: patient.clinical_notes,
+            created_at: Some(patient.created_at),
+            status: patient.status,
+            last_activity_at_ms: patient.last_activity_at_ms,
             presets,
+            scheduled_sessions,
         },
     };
 
@@ -73,11 +89,21 @@ pub fn import_patient(conn: &mut Connection, file_path: &str) -> Result<Patient>
 
     let now = SystemTime::now().duration_since(UNIX_EPOCH)?;
     let patient_id = format!("patient-{}", now.as_nanos());
-    let created_at = now.as_secs().to_string();
+    let imported_at = now.as_secs().to_string();
 
-    let presets = export_file
-        .patient
-        .presets
+    let ExportedPatient {
+        display_name,
+        clinical_notes,
+        created_at,
+        status,
+        last_activity_at_ms,
+        presets: exported_presets,
+        scheduled_sessions: exported_sessions,
+    } = export_file.patient;
+
+    let patient_created_at = created_at.unwrap_or_else(|| imported_at.clone());
+
+    let presets = exported_presets
         .into_iter()
         .enumerate()
         .map(|(preset_index, preset)| {
@@ -91,6 +117,7 @@ pub fn import_patient(conn: &mut Connection, file_path: &str) -> Result<Patient>
                     Ok(NewMapping {
                         id: format!("{preset_id}-mapping-{mapping_index}"),
                         name: mapping.name,
+                        created_at: mapping.created_at.unwrap_or_else(|| imported_at.clone()),
                         keybind: mapping.keybind,
                         keypress_type: mapping.keypress_type,
                         pose_frames_json: mapping.pose_frames_json,
@@ -107,22 +134,34 @@ pub fn import_patient(conn: &mut Connection, file_path: &str) -> Result<Patient>
             Ok(NewPreset {
                 id: preset_id,
                 name: preset.name,
+                created_at: preset.created_at.unwrap_or_else(|| imported_at.clone()),
                 default_pose_frames_json: preset.default_pose_frames_json,
                 mappings,
             })
         })
         .collect::<Result<Vec<_>>>()?;
 
-    let display_name = export_file.patient.display_name;
+    let scheduled_sessions = exported_sessions
+        .into_iter()
+        .enumerate()
+        .map(|(session_index, session)| NewScheduledSession {
+            id: format!("{patient_id}-scheduled-session-{session_index}"),
+            scheduled_at_ms: session.scheduled_at_ms,
+            created_at_ms: session.created_at_ms,
+        })
+        .collect();
 
     repository::insert_patient_tree(
         conn,
         &NewPatientTree {
             patient_id: patient_id.clone(),
-            display_name: display_name.clone(),
-            clinical_notes: export_file.patient.clinical_notes,
-            created_at,
+            display_name,
+            clinical_notes,
+            created_at: patient_created_at,
+            status,
+            last_activity_at_ms,
             presets,
+            scheduled_sessions,
         },
     )?;
 

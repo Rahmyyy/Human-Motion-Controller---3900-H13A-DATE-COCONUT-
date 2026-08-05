@@ -25,13 +25,23 @@ pub struct ExportedPatient {
     pub display_name: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub clinical_notes: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub created_at: Option<String>,
+    #[serde(default = "default_patient_status")]
+    pub status: String,
+    #[serde(default)]
+    pub last_activity_at_ms: i64,
     pub presets: Vec<ExportedPreset>,
+    #[serde(default)]
+    pub scheduled_sessions: Vec<ExportedScheduledSession>,
 }
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ExportedPreset {
     pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub created_at: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub default_pose_frames_json: Option<String>,
     pub movement_mappings: Vec<ExportedMapping>,
@@ -41,12 +51,25 @@ pub struct ExportedPreset {
 #[serde(rename_all = "camelCase")]
 pub struct ExportedMapping {
     pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub created_at: Option<String>,
     pub keybind: String,
     pub keypress_type: String,
     pub pose_frames_json: String,
     pub selected_landmarks: Vec<u32>,
     pub threshold_percentage: u32,
     pub keypress_trigger_threshold_percentage: u32,
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ExportedScheduledSession {
+    pub scheduled_at_ms: i64,
+    pub created_at_ms: i64,
+}
+
+fn default_patient_status() -> String {
+    "active".to_string()
 }
 
 /// Parses and fully validates an export file's contents before any of it reaches the database.
@@ -101,8 +124,27 @@ fn validate_patient(patient: &ExportedPatient) -> Result<()> {
         }
     }
 
+    validate_created_at("Patient", patient.created_at.as_deref())?;
+
+    match patient.status.as_str() {
+        "active" | "needsReview" => {}
+        status => return Err(anyhow!("Patient has invalid status '{status}'")),
+    }
+
+    if patient.last_activity_at_ms < 0 {
+        return Err(anyhow!(
+            "Patient last activity timestamp cannot be negative"
+        ));
+    }
+
     for preset in &patient.presets {
         validate_preset(preset)?;
+    }
+
+    for session in &patient.scheduled_sessions {
+        if session.scheduled_at_ms < 0 || session.created_at_ms < 0 {
+            return Err(anyhow!("Scheduled session timestamps cannot be negative"));
+        }
     }
 
     Ok(())
@@ -120,6 +162,8 @@ fn validate_preset(preset: &ExportedPreset) -> Result<()> {
             "Preset name cannot exceed {MAX_PRESET_NAME_LENGTH} characters"
         ));
     }
+
+    validate_created_at(&format!("Preset '{name}'"), preset.created_at.as_deref())?;
 
     match &preset.default_pose_frames_json {
         Some(frames) => {
@@ -166,6 +210,11 @@ fn validate_mapping(preset: &ExportedPreset, mapping: &ExportedMapping) -> Resul
         return Err(anyhow!("Movement mapping '{name}' keybind cannot be empty"));
     }
 
+    validate_created_at(
+        &format!("Movement mapping '{name}'"),
+        mapping.created_at.as_deref(),
+    )?;
+
     match mapping.keypress_type.trim() {
         "Toggle" | "Press" | "Release" | "Click" => {}
         other => {
@@ -205,6 +254,16 @@ fn validate_mapping(preset: &ExportedPreset, mapping: &ExportedMapping) -> Resul
              {MIN_KEYPRESS_TRIGGER_THRESHOLD_PERCENTAGE} and \
              {MAX_KEYPRESS_TRIGGER_THRESHOLD_PERCENTAGE}"
         ));
+    }
+
+    Ok(())
+}
+
+fn validate_created_at(owner: &str, created_at: Option<&str>) -> Result<()> {
+    if let Some(created_at) = created_at {
+        created_at
+            .parse::<u64>()
+            .map_err(|_| anyhow!("{owner} creation timestamp must be epoch seconds"))?;
     }
 
     Ok(())
