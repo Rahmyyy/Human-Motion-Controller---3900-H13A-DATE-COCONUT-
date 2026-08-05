@@ -5,6 +5,7 @@ mod native;
 mod overlay;
 mod patient;
 mod preset;
+mod session;
 
 #[cfg(test)]
 mod test_support;
@@ -71,6 +72,7 @@ pub fn run() {
             patient::commands::create_patient,
             patient::commands::get_patients,
             patient::commands::get_patient,
+            session::commands::record_completed_session,
             overlay::open_overlay,
             overlay::close_overlay,
         ])

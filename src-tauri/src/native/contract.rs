@@ -112,3 +112,16 @@ pub struct SessionSummaryDto {
     pub trigger_count: u32,
     pub trigger_counts_by_mapping: HashMap<String, u32>,
 }
+
+/// A session the overlay has just finished, on its way into the patient's history. The preset
+/// name and mapping settings are not carried here; they are snapshotted natively.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct CompletedSessionDto {
+    pub session_id: String,
+    pub patient_id: String,
+    pub preset_id: String,
+    pub started_at_ms: i64,
+    pub ended_at_ms: i64,
+    pub trigger_counts_by_mapping: HashMap<String, u32>,
+}
