@@ -32,7 +32,7 @@ export default function DefaultPoseCalibrationPage() {
 
 function CalibrationMessage({ message }: { message: string }) {
   return (
-    <main className="grid min-h-screen place-items-center bg-slate-50 p-8">
+    <main className="site-page-gutter grid min-h-screen place-items-center bg-slate-50 py-8">
       <p className="text-sm text-muted-foreground">{message}</p>
     </main>
   );

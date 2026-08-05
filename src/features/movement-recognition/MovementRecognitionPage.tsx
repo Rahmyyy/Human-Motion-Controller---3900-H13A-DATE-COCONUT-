@@ -11,7 +11,7 @@ export default function MovementRecognitionPage() {
   const { error, phase, recognitionStatus } = useRecognitionRuntime(patientId, presetId);
 
   return (
-    <main className="grid h-screen w-full grid-rows-[auto_minmax(0,1fr)] gap-4 overflow-hidden bg-slate-50 p-8">
+    <main className="site-page-gutter grid h-screen w-full grid-rows-[auto_minmax(0,1fr)] gap-4 overflow-hidden bg-slate-50 py-8">
       <header className="flex items-start justify-between gap-6">
         <div>
           <h1 className="text-3xl font-semibold tracking-tight text-foreground">

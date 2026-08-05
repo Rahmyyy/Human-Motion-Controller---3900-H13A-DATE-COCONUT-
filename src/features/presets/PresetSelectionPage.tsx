@@ -11,8 +11,8 @@ export default function PresetSelectionPage() {
   const presets = usePresetSelection(patientId);
 
   return (
-    <section className="min-h-screen bg-muted/20 px-8 py-8 pb-40">
-      <div className="mx-auto max-w-7xl">
+    <section className="site-page-gutter min-h-screen bg-muted/20 py-8 pb-40">
+      <div className="w-full">
         <PresetPageHeader
           patientId={patientId}
           patientName={patientName}

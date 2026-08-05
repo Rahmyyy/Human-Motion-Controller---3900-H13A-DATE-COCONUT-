@@ -27,7 +27,7 @@ export default function LiveSessionPage() {
   }
 
   return (
-    <main className="grid h-screen place-items-center bg-slate-950 p-8">
+    <main className="site-page-gutter grid h-screen place-items-center bg-slate-950 py-8">
       <div className="grid max-w-md justify-items-center gap-4 text-center text-white">
         {error ? (
           <>

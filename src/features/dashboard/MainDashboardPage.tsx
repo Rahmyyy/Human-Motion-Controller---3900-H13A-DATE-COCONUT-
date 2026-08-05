@@ -101,8 +101,8 @@ export default function MainDashboardPage() {
   }
 
   return (
-    <section className="min-h-screen bg-muted/20 px-5 py-8 sm:px-8">
-      <div className="mx-auto max-w-7xl">
+    <section className="site-page-gutter min-h-screen bg-muted/20 py-8">
+      <div className="w-full">
         <header className="flex flex-col items-start justify-between gap-6 sm:flex-row">
           <div className="max-w-3xl">
             <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">

@@ -31,7 +31,7 @@ export default function SessionSummaryView({
   }, [loader, patientId, presetId, summary]);
 
   return (
-    <section className="min-h-screen bg-background px-8 py-10">
+    <section className="site-page-gutter min-h-screen bg-background py-10">
       <div className="mx-auto grid max-w-4xl gap-6">
         <header className="grid gap-1">
           <div className="flex items-center gap-2">
