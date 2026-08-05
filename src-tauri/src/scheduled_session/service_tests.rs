@@ -50,7 +50,7 @@ fn create_session_rejects_missing_patient_and_past_time() {
 fn overview_counts_patients_and_uses_inclusive_exclusive_day_bounds() {
     let conn = setup_test_conn();
     conn.execute(
-        "INSERT INTO patients (id, display_name, created_at) VALUES ('patient-2', 'Second', '1')",
+        "INSERT INTO patients (id, display_name, created_at, status) VALUES ('patient-2', 'Second', '1', 'needsReview')",
         [],
     )
     .unwrap();
@@ -69,7 +69,7 @@ fn overview_counts_patients_and_uses_inclusive_exclusive_day_bounds() {
 
     let overview = get_dashboard_overview(&conn, 1_000, 2_000).unwrap();
 
-    assert_eq!(overview.active_patient_count, 2);
+    assert_eq!(overview.active_patient_count, 1);
     assert_eq!(overview.sessions_today_count, 2);
     assert_eq!(
         overview

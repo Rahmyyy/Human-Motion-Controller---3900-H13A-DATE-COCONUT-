@@ -64,9 +64,11 @@ pub fn select_dashboard_overview(
     day_start_ms: i64,
     day_end_ms: i64,
 ) -> Result<DashboardOverview> {
-    let active_patient_count = conn.query_row("SELECT COUNT(*) FROM patients", [], |row| {
-        row.get::<_, i64>(0)
-    })?;
+    let active_patient_count = conn.query_row(
+        "SELECT COUNT(*) FROM patients WHERE status = 'active'",
+        [],
+        |row| row.get::<_, i64>(0),
+    )?;
     let sessions_today_count = conn.query_row(
         "
         SELECT COUNT(*)
