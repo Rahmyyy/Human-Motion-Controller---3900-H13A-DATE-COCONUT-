@@ -67,6 +67,29 @@ pub fn init_db(app: &AppHandle) -> Result<DbState> {
         [],
     )?;
 
+    conn.execute(
+        "
+        CREATE TABLE IF NOT EXISTS scheduled_sessions (
+            id TEXT PRIMARY KEY,
+            patient_id TEXT NOT NULL,
+            scheduled_at_ms INTEGER NOT NULL,
+            created_at_ms INTEGER NOT NULL,
+            FOREIGN KEY (patient_id)
+                REFERENCES patients(id)
+                ON DELETE CASCADE
+        )
+        ",
+        [],
+    )?;
+
+    conn.execute(
+        "
+        CREATE INDEX IF NOT EXISTS idx_scheduled_sessions_scheduled_at
+        ON scheduled_sessions(scheduled_at_ms)
+        ",
+        [],
+    )?;
+
     Ok(DbState {
         conn: Mutex::new(conn),
     })

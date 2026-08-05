@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-use crate::{movement_mapping::repository, patient, preset};
+use crate::{movement_mapping::repository, patient, preset, scheduled_session};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -19,6 +19,48 @@ impl From<patient::repository::Patient> for PatientDto {
             display_name: patient.display_name,
             clinical_notes: patient.clinical_notes,
             created_at: patient.created_at,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct ScheduledSessionDto {
+    pub id: String,
+    pub patient_id: String,
+    pub patient_display_name: String,
+    pub scheduled_at_ms: i64,
+}
+
+impl From<scheduled_session::repository::ScheduledSession> for ScheduledSessionDto {
+    fn from(session: scheduled_session::repository::ScheduledSession) -> Self {
+        Self {
+            id: session.id,
+            patient_id: session.patient_id,
+            patient_display_name: session.patient_display_name,
+            scheduled_at_ms: session.scheduled_at_ms,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct DashboardOverviewDto {
+    pub active_patient_count: i64,
+    pub sessions_today_count: i64,
+    pub todays_schedule: Vec<ScheduledSessionDto>,
+}
+
+impl From<scheduled_session::repository::DashboardOverview> for DashboardOverviewDto {
+    fn from(overview: scheduled_session::repository::DashboardOverview) -> Self {
+        Self {
+            active_patient_count: overview.active_patient_count,
+            sessions_today_count: overview.sessions_today_count,
+            todays_schedule: overview
+                .todays_schedule
+                .into_iter()
+                .map(ScheduledSessionDto::from)
+                .collect(),
         }
     }
 }

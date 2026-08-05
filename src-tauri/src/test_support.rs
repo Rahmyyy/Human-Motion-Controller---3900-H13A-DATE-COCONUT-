@@ -42,6 +42,19 @@ pub fn setup_test_conn() -> Connection {
                 ON DELETE CASCADE
         );
 
+        CREATE TABLE scheduled_sessions (
+            id TEXT PRIMARY KEY,
+            patient_id TEXT NOT NULL,
+            scheduled_at_ms INTEGER NOT NULL,
+            created_at_ms INTEGER NOT NULL,
+            FOREIGN KEY (patient_id)
+                REFERENCES patients(id)
+                ON DELETE CASCADE
+        );
+
+        CREATE INDEX idx_scheduled_sessions_scheduled_at
+        ON scheduled_sessions(scheduled_at_ms);
+
         INSERT INTO patients (
             id,
             display_name,
