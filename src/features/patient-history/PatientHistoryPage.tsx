@@ -1,43 +1,95 @@
-import { UserRound } from "lucide-react";
 import { useLocation, useParams } from "react-router";
-import BackButton from "@/components/BackButton";
+import { DATE_RANGE_LABELS } from "@/modules/patient-history";
+import CompletedSessionsTable from "./components/CompletedSessionsTable";
+import PatientHistoryEmptyState from "./components/PatientHistoryEmptyState";
+import PatientHistoryFilters from "./components/PatientHistoryFilters";
+import PatientHistoryHeader from "./components/PatientHistoryHeader";
+import PatientHistoryMetrics from "./components/PatientHistoryMetrics";
+import PresetUsagePanel from "./components/PresetUsagePanel";
+import SessionActivityPanel from "./components/SessionActivityPanel";
+import ThresholdChangesPanel from "./components/ThresholdChangesPanel";
+import { usePatientHistory } from "./hooks/usePatientHistory";
 
 /**
- * A patient's completed sessions over time. Currently the empty shell: the panels arrive
- * once the history read path lands.
+ * A patient's completed sessions over time. The history service owns loading, filtering and
+ * every derived series; this page places the panels and hands each one its slice.
  */
 export default function PatientHistoryPage() {
   const { patientId } = useParams<{ patientId: string }>();
   const location = useLocation();
-  const patientName = location.state?.patientName ?? "selected patient";
+  const history = usePatientHistory(patientId);
+  // Router state paints the name immediately; the loaded patient corrects it and survives a refresh.
+  const patientName = history.patientName ?? location.state?.patientName ?? "selected patient";
+
+  const showAllTime = () => history.setDateRange("all");
+  const hasNoHistory = !history.isLoading && !history.error && history.totalSessionCount === 0;
 
   return (
-    <section className="min-h-screen bg-muted/20 px-8 py-8">
+    <section className="min-h-screen bg-muted/20 px-8 py-8 pb-16">
       <div className="mx-auto max-w-7xl">
-        <header>
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div className="inline-flex items-center gap-3 self-start rounded-lg border bg-card px-4 py-3">
-              <UserRound className="size-6 text-primary" aria-hidden="true" />
-              <div>
-                <p className="text-sm text-muted-foreground">Patient</p>
-                <p className="font-semibold text-foreground">{patientName}</p>
-              </div>
+        <PatientHistoryHeader patientId={patientId} patientName={patientName} />
+
+        {hasNoHistory ? (
+          <PatientHistoryEmptyState patientId={patientId} patientName={patientName} />
+        ) : (
+          <>
+            <div className="mt-6">
+              <PatientHistoryFilters
+                dateRange={history.filter.dateRange}
+                disabled={history.isLoading || Boolean(history.error)}
+                onDateRangeChange={history.setDateRange}
+                onPresetChange={history.setPresetId}
+                presetId={history.filter.presetId}
+                presetOptions={history.presetOptions}
+              />
             </div>
 
-            <BackButton
-              label="Back to presets"
-              state={{ patientName }}
-              to={`/patients/${patientId}/presets`}
+            <PatientHistoryMetrics
+              isLoading={history.isLoading}
+              rangeLabel={DATE_RANGE_LABELS[history.filter.dateRange]}
+              summary={history.summary}
             />
-          </div>
 
-          <h1 className="mt-8 text-3xl font-semibold tracking-tight text-foreground">
-            Patient history
-          </h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Review completed sessions and movement activity over time.
-          </p>
-        </header>
+            <div className="mt-4 grid gap-4 lg:grid-cols-3">
+              <div className="lg:col-span-2">
+                <SessionActivityPanel
+                  activity={history.activity}
+                  error={history.error}
+                  isLoading={history.isLoading}
+                  onRetry={history.retry}
+                  onShowAllTime={showAllTime}
+                />
+              </div>
+              <PresetUsagePanel
+                error={history.error}
+                isLoading={history.isLoading}
+                onRetry={history.retry}
+                onShowAllTime={showAllTime}
+                usage={history.presetUsage}
+              />
+            </div>
+
+            <div className="mt-4">
+              <ThresholdChangesPanel
+                error={history.error}
+                isLoading={history.isLoading}
+                onRetry={history.retry}
+                onShowAllTime={showAllTime}
+                series={history.thresholds}
+              />
+            </div>
+
+            <div className="mt-4">
+              <CompletedSessionsTable
+                error={history.error}
+                isLoading={history.isLoading}
+                onRetry={history.retry}
+                onShowAllTime={showAllTime}
+                sessions={history.sessions}
+              />
+            </div>
+          </>
+        )}
       </div>
     </section>
   );
