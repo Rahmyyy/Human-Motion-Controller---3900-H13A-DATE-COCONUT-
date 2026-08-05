@@ -5,6 +5,7 @@ export type {
   NativeCommandResult,
 } from "./commands";
 export type {
+  CompletedSessionDto,
   CreateMovementMappingArgs,
   MovementMappingDetailsDto,
   MovementMappingSummaryDto,

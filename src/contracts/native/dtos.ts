@@ -53,6 +53,19 @@ export interface SessionSummaryDto {
   triggerCountsByMapping: Record<string, number>;
 }
 
+/**
+ * A session the overlay has just finished, on its way into the patient's history. The preset
+ * name and mapping settings are not carried here; they are snapshotted natively.
+ */
+export interface CompletedSessionDto {
+  sessionId: string;
+  patientId: string;
+  presetId: string;
+  startedAtMs: number;
+  endedAtMs: number;
+  triggerCountsByMapping: Record<string, number>;
+}
+
 export interface NativeErrorDto {
   code: string;
   message: string;

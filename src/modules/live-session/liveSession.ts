@@ -1,7 +1,13 @@
 import type { PoseFrameSource } from "@/modules/pose-capture";
-import { closeOverlay, onEndSessionRequested } from "./adapters/tauriSession";
+import {
+  closeOverlay,
+  onEndSessionRequested,
+  recordCompletedSession,
+} from "./adapters/tauriSession";
+import { toCompletedSession } from "./completedSession";
 import { createPresetRecognitionRuntime, emptyRecognitionStatus } from "./presetRecognition";
 import type {
+  CompletedSession,
   EndSessionRequestedEvent,
   LiveSession,
   LiveSessionSnapshot,
@@ -15,6 +21,13 @@ interface LiveSessionDependencies {
   createRecognition(): PresetRecognitionRuntime;
   onEndRequested(listener: (event: EndSessionRequestedEvent) => void): Promise<() => void>;
   closeOverlay(sessionId: string, summary: SessionSummary): Promise<void>;
+  recordCompletedSession(session: CompletedSession): Promise<void>;
+}
+
+/** What ending a session produces: stats for the main window, and a row for the history. */
+interface FinishedSession {
+  completed: CompletedSession | null;
+  summary: SessionSummary;
 }
 
 class OverlayLiveSession implements LiveSession {
@@ -32,6 +45,8 @@ class OverlayLiveSession implements LiveSession {
   private ownsRunningSession = false;
   private operationToken = 0;
   private unlistenEndRequested: (() => void) | null = null;
+  private patientId: string | null = null;
+  private presetId: string | null = null;
   private sessionId: string | null = null;
   private endPromise: Promise<void> | null = null;
 
@@ -54,6 +69,8 @@ class OverlayLiveSession implements LiveSession {
     const token = ++this.operationToken;
     this.stopRuntime();
     this.unlistenEndRequested?.();
+    this.patientId = patientId ?? null;
+    this.presetId = presetId ?? null;
     this.sessionId = sessionId ?? null;
     this.endPromise = null;
     const unlistenEndRequested = await this.dependencies.onEndRequested((event) => {
@@ -109,12 +126,7 @@ class OverlayLiveSession implements LiveSession {
     if (this.endPromise) return this.endPromise;
     const sessionId = this.sessionId;
     ++this.operationToken;
-    const summary = this.finishRuntime();
-    this.endPromise = sessionId
-      ? this.dependencies.closeOverlay(sessionId, summary).catch((error) => {
-          this.publishError(errorMessage(error));
-        })
-      : Promise.resolve();
+    this.endPromise = this.closeSession(sessionId, this.finishRuntime());
     return this.endPromise;
   };
 
@@ -123,6 +135,8 @@ class OverlayLiveSession implements LiveSession {
     this.stopRuntime();
     this.unlistenEndRequested?.();
     this.unlistenEndRequested = null;
+    this.patientId = null;
+    this.presetId = null;
   };
 
   private publishRecognitionRuntime = () => {
@@ -146,7 +160,31 @@ class OverlayLiveSession implements LiveSession {
     this.notify();
   };
 
-  private finishRuntime(): SessionSummary {
+  /**
+   * Writes the session to the patient's history, then tears the overlay down. That order is
+   * required: closing the overlay destroys this webview, so anything queued after it may
+   * never run. A failed write is logged rather than raised — losing one history row must not
+   * strand the user with an overlay they cannot close.
+   */
+  private async closeSession(sessionId: string | null, finished: FinishedSession) {
+    if (finished.completed) {
+      try {
+        await this.dependencies.recordCompletedSession(finished.completed);
+      } catch (error) {
+        console.error("Failed to record completed session", error);
+      }
+    }
+
+    if (!sessionId) return;
+
+    try {
+      await this.dependencies.closeOverlay(sessionId, finished.summary);
+    } catch (error) {
+      this.publishError(errorMessage(error));
+    }
+  }
+
+  private finishRuntime(): FinishedSession {
     this.recognition?.dispose();
     this.recognition = null;
     this.unsubscribeRecognition?.();
@@ -168,7 +206,13 @@ class OverlayLiveSession implements LiveSession {
       triggerCount: summary.triggerCount,
     };
     this.notify();
-    return summary;
+    return {
+      completed: toCompletedSession(
+        { patientId: this.patientId, presetId: this.presetId, sessionId: this.sessionId },
+        session,
+      ),
+      summary,
+    };
   }
 
   private stopRuntime() {
@@ -211,6 +255,7 @@ export function createLiveSession(
     createRecognition: () => createPresetRecognitionRuntime(poseSource, tracker),
     onEndRequested: onEndSessionRequested,
     closeOverlay,
+    recordCompletedSession,
   });
 }
 
