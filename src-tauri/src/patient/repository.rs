@@ -8,6 +8,7 @@ pub struct Patient {
     pub display_name: String,
     pub clinical_notes: Option<String>,
     pub created_at: String,
+    pub preset_count: i64,
 }
 
 pub fn insert_patient(
@@ -35,9 +36,20 @@ pub fn insert_patient(
 pub fn select_patients(conn: &Connection) -> Result<Vec<Patient>> {
     let mut statement = conn.prepare(
         "
-        SELECT id, display_name, clinical_notes, created_at
+        SELECT
+            patients.id,
+            patients.display_name,
+            patients.clinical_notes,
+            patients.created_at,
+            COUNT(presets.id)
         FROM patients
-        ORDER BY created_at DESC
+        LEFT JOIN presets ON presets.patient_id = patients.id
+        GROUP BY
+            patients.id,
+            patients.display_name,
+            patients.clinical_notes,
+            patients.created_at
+        ORDER BY patients.created_at DESC
         ",
     )?;
 
@@ -48,6 +60,7 @@ pub fn select_patients(conn: &Connection) -> Result<Vec<Patient>> {
                 display_name: row.get(1)?,
                 clinical_notes: row.get(2)?,
                 created_at: row.get(3)?,
+                preset_count: row.get(4)?,
             })
         })?
         .collect::<Result<Vec<_>, _>>()?;
@@ -58,20 +71,54 @@ pub fn select_patients(conn: &Connection) -> Result<Vec<Patient>> {
 pub fn select_patient_by_id(conn: &Connection, id: &str) -> Result<Patient> {
     let mut statement = conn.prepare(
         "
-        SELECT id, display_name, clinical_notes, created_at
+        SELECT
+            patients.id,
+            patients.display_name,
+            patients.clinical_notes,
+            patients.created_at,
+            COUNT(presets.id)
         FROM patients
-        WHERE id = ?1
+        LEFT JOIN presets ON presets.patient_id = patients.id
+        WHERE patients.id = ?1
+        GROUP BY
+            patients.id,
+            patients.display_name,
+            patients.clinical_notes,
+            patients.created_at
         ",
     )?;
 
-    let patient = statement.query_row(params![id], |row| {
+    Ok(statement.query_row(params![id], |row| {
         Ok(Patient {
             id: row.get(0)?,
             display_name: row.get(1)?,
             clinical_notes: row.get(2)?,
             created_at: row.get(3)?,
+            preset_count: row.get(4)?,
         })
-    })?;
+    })?)
+}
 
-    Ok(patient)
+pub fn update_patient(
+    conn: &Connection,
+    id: &str,
+    display_name: &str,
+    clinical_notes: Option<&str>,
+) -> Result<usize> {
+    let rows_affected = conn.execute(
+        "
+        UPDATE patients
+        SET display_name = ?1, clinical_notes = ?2
+        WHERE id = ?3
+        ",
+        params![display_name, clinical_notes, id],
+    )?;
+
+    Ok(rows_affected)
+}
+
+pub fn delete_patient(conn: &Connection, id: &str) -> Result<usize> {
+    let rows_affected = conn.execute("DELETE FROM patients WHERE id = ?1", params![id])?;
+
+    Ok(rows_affected)
 }

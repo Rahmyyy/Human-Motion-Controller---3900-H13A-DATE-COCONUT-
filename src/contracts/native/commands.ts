@@ -21,6 +21,15 @@ export interface NativeCommandMap {
   get_patients: Command<undefined, PatientDto[]>;
   create_patient: Command<{ displayName: string; clinicalNotes: string | null }, PatientDto>;
   get_patient: Command<{ id: string }, PatientDto>;
+  update_patient: Command<
+    {
+      id: string;
+      displayName: string;
+      clinicalNotes: string | null;
+    },
+    PatientDto
+  >;
+  delete_patient: Command<{ id: string }, void>;
 
   create_scheduled_session: Command<
     { patientId: string; scheduledAtMs: number },

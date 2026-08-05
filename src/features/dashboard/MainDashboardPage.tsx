@@ -2,6 +2,8 @@ import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { CalendarDays, Users } from "lucide-react";
 
+import ModifyPatientDialog from "@/features/patients/components/ModifyPatientDialog";
+import RecentPatientsTable from "@/features/patients/components/RecentPatientsTable";
 import { getPatients, type Patient } from "@/modules/patient-presets";
 import {
   getDashboardOverview,
@@ -28,6 +30,7 @@ export default function MainDashboardPage() {
   const [isOverviewLoading, setIsOverviewLoading] = useState(true);
   const [patientsError, setPatientsError] = useState<string | null>(null);
   const [overviewError, setOverviewError] = useState<string | null>(null);
+  const [patientBeingModified, setPatientBeingModified] = useState<Patient | null>(null);
   const navigate = useNavigate();
 
   const loadOverview = useCallback(async () => {
@@ -142,7 +145,7 @@ export default function MainDashboardPage() {
 
         <div className="mt-6 grid items-start gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(18rem,1fr)]">
           <section className="rounded-xl bg-card py-4 ring-1 ring-foreground/10 shadow-sm">
-            <h2 className="px-4 text-lg font-semibold tracking-tight">Patients</h2>
+            <h2 className="px-4 text-lg font-semibold tracking-tight">Recent Patients</h2>
             {isPatientsLoading ? (
               <p className="mt-5 px-4 text-sm text-muted-foreground">Loading patients...</p>
             ) : patientsError ? (
@@ -154,22 +157,12 @@ export default function MainDashboardPage() {
                 No patients have been added yet. Add a patient to begin.
               </div>
             ) : (
-              <div className="mt-4 space-y-4 px-4">
-                {patients.map((patient) => (
-                  <button
-                    key={patient.id}
-                    type="button"
-                    onClick={() => {
-                      openPatient(patient.id, patient.displayName);
-                    }}
-                    className="w-full rounded-lg border bg-card p-5 text-left shadow-sm transition hover:bg-muted/50"
-                  >
-                    <h3 className="font-semibold">{patient.displayName}</h3>
-                    {patient.clinicalNotes && (
-                      <p className="mt-2 text-sm text-muted-foreground">{patient.clinicalNotes}</p>
-                    )}
-                  </button>
-                ))}
+              <div className="px-4">
+                <RecentPatientsTable
+                  patients={patients}
+                  onModify={setPatientBeingModified}
+                  onSelect={(patient) => openPatient(patient.id, patient.displayName)}
+                />
               </div>
             )}
           </section>
@@ -184,6 +177,30 @@ export default function MainDashboardPage() {
             <NeedsAttentionCard />
           </aside>
         </div>
+
+        {patientBeingModified && (
+          <ModifyPatientDialog
+            key={patientBeingModified.id}
+            patient={patientBeingModified}
+            onClose={() => setPatientBeingModified(null)}
+            onDeleted={(patientId) => {
+              setPatients((currentPatients) =>
+                currentPatients.filter((patient) => patient.id !== patientId),
+              );
+              setPatientBeingModified(null);
+              void loadOverview();
+            }}
+            onUpdated={(updatedPatient) => {
+              setPatients((currentPatients) =>
+                currentPatients.map((patient) =>
+                  patient.id === updatedPatient.id ? updatedPatient : patient,
+                ),
+              );
+              setPatientBeingModified(null);
+              void loadOverview();
+            }}
+          />
+        )}
       </div>
     </section>
   );

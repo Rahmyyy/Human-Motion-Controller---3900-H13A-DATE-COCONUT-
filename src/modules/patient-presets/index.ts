@@ -1,6 +1,7 @@
 export {
   createPatient,
   createPreset,
+  deletePatient,
   deletePreset,
   duplicatePreset,
   getPatient,
@@ -8,6 +9,7 @@ export {
   getPreset,
   getPresets,
   updateDefaultPose,
+  updatePatient,
 } from "./adapters/tauriCatalogue";
 export { createPresetSelectionService } from "./catalogue";
 export { createDefaultPoseCalibration } from "./calibration";

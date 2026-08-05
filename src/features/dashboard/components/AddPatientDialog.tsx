@@ -11,9 +11,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import PatientFormFields from "@/features/patients/components/PatientFormFields";
 import { createPatient } from "@/modules/patient-presets";
 
 interface AddPatientDialogProps {
@@ -40,27 +38,13 @@ export default function AddPatientDialog({ onPatientCreated }: AddPatientDialogP
           <DialogDescription>Create a new patient profile for preset selection.</DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-5">
-          <div className="space-y-2">
-            <Label htmlFor="display-name">Patient Display Name</Label>
-            <Input
-              id="display-name"
-              value={displayName}
-              onChange={(event) => setDisplayName(event.target.value)}
-              placeholder="e.g. Nathan Cleary"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="clinical-notes">Clinical Notes Optional</Label>
-            <Textarea
-              id="clinical-notes"
-              value={clinicalNotes}
-              onChange={(event) => setClinicalNotes(event.target.value)}
-              placeholder="e.g. Stroke rehab, upper body focus"
-            />
-          </div>
-        </div>
+        <PatientFormFields
+          idPrefix="add-patient"
+          displayName={displayName}
+          clinicalNotes={clinicalNotes}
+          onDisplayNameChange={setDisplayName}
+          onClinicalNotesChange={setClinicalNotes}
+        />
 
         <DialogFooter>
           <Button

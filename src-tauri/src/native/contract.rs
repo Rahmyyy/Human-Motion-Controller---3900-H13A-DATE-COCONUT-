@@ -10,6 +10,7 @@ pub struct PatientDto {
     pub display_name: String,
     pub clinical_notes: Option<String>,
     pub created_at: String,
+    pub preset_count: i64,
 }
 
 impl From<patient::repository::Patient> for PatientDto {
@@ -19,6 +20,7 @@ impl From<patient::repository::Patient> for PatientDto {
             display_name: patient.display_name,
             clinical_notes: patient.clinical_notes,
             created_at: patient.created_at,
+            preset_count: patient.preset_count,
         }
     }
 }
