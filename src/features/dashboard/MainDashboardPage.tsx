@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router";
-import { CalendarDays, Users } from "lucide-react";
+import { CalendarDays, UserCheck, Users } from "lucide-react";
 
 import ModifyPatientDialog from "@/features/patients/components/ModifyPatientDialog";
 import RecentPatientsTable from "@/features/patients/components/RecentPatientsTable";
@@ -16,6 +16,7 @@ import AddSessionDialog from "./components/AddSessionDialog";
 import DashboardMetricCard from "./components/DashboardMetricCard";
 import NeedsAttentionCard from "./components/NeedsAttentionCard";
 import TodaysScheduleCard from "./components/TodaysScheduleCard";
+import { countReadyPatients } from "./patientSummary";
 
 const emptyOverview: DashboardOverview = {
   activePatientCount: 0,
@@ -122,7 +123,10 @@ export default function MainDashboardPage() {
           </div>
         </header>
 
-        <section className="mt-8 grid gap-4 sm:grid-cols-2" aria-label="Dashboard summary">
+        <section
+          className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-3"
+          aria-label="Dashboard summary"
+        >
           <DashboardMetricCard
             icon={Users}
             value={overview.activePatientCount}
@@ -135,6 +139,12 @@ export default function MainDashboardPage() {
             label="Sessions Today"
             description="Scheduled sessions"
           />
+          <DashboardMetricCard
+            icon={UserCheck}
+            value={countReadyPatients(patients)}
+            label="Patients Ready"
+            description="Ready for a session"
+          />
         </section>
 
         {overviewError && !isOverviewLoading && (
@@ -144,15 +154,17 @@ export default function MainDashboardPage() {
         )}
 
         <div className="mt-6 grid items-start gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(18rem,1fr)]">
-          <section className="rounded-xl bg-card p-4 ring-1 ring-foreground/10 shadow-sm">
+          <section className="min-w-0">
             {isPatientsLoading ? (
-              <p className="text-sm text-muted-foreground">Loading patients...</p>
+              <p className="rounded-xl border bg-card p-4 text-sm text-muted-foreground shadow-sm">
+                Loading patients...
+              </p>
             ) : patientsError ? (
               <p className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
                 {patientsError}
               </p>
             ) : patients.length === 0 ? (
-              <div className="rounded-lg border border-dashed bg-card/50 p-8 text-sm text-muted-foreground">
+              <div className="rounded-xl border border-dashed bg-card/50 p-8 text-sm text-muted-foreground">
                 No patients have been added yet. Add a patient to begin.
               </div>
             ) : (
@@ -171,7 +183,12 @@ export default function MainDashboardPage() {
               sessions={overview.todaysSchedule}
               onSelectSession={openScheduledPatient}
             />
-            <NeedsAttentionCard />
+            <NeedsAttentionCard
+              error={patientsError}
+              isLoading={isPatientsLoading}
+              patients={patients}
+              onSelectPatient={(patient) => openPatient(patient.id, patient.displayName)}
+            />
           </aside>
         </div>
 
