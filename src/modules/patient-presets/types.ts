@@ -17,6 +17,11 @@ export interface Patient {
   lastActivityAtMs: number;
 }
 
+export interface ImportedPatientSummary {
+  id: string;
+  displayName: string;
+}
+
 export interface Preset {
   id: string;
   patientId: string;

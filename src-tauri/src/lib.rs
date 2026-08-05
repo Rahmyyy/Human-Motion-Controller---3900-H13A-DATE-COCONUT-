@@ -85,6 +85,7 @@ pub fn run() {
             scheduled_session::commands::create_scheduled_session,
             scheduled_session::commands::get_dashboard_overview,
             patient_transfer::commands::export_patient,
+            patient_transfer::commands::preview_import_patient,
             patient_transfer::commands::import_patient,
             overlay::open_overlay,
             overlay::close_overlay,

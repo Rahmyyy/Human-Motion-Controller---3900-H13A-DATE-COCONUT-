@@ -66,11 +66,15 @@ pub fn export_patient(conn: &Connection, patient_id: &str, file_path: &str) -> R
     Ok(())
 }
 
-pub fn import_patient(conn: &mut Connection, file_path: &str) -> Result<ImportedPatientSummary> {
-    let raw =
-        fs::read_to_string(file_path).map_err(|_| anyhow!("Could not read the selected file"))?;
+/// Parses and validates an export file without writing anything, so the caller can inspect it
+/// (e.g. to warn about a same-name patient already existing) before committing to the import.
+pub fn preview_import(file_path: &str) -> Result<String> {
+    let export_file = load_export_file(file_path)?;
+    Ok(export_file.patient.display_name)
+}
 
-    let export_file = format::parse_and_validate(&raw)?;
+pub fn import_patient(conn: &mut Connection, file_path: &str) -> Result<ImportedPatientSummary> {
+    let export_file = load_export_file(file_path)?;
 
     let now = SystemTime::now().duration_since(UNIX_EPOCH)?;
     let patient_id = format!("patient-{}", now.as_nanos());
@@ -131,6 +135,13 @@ pub fn import_patient(conn: &mut Connection, file_path: &str) -> Result<Imported
         id: patient_id,
         display_name,
     })
+}
+
+fn load_export_file(file_path: &str) -> Result<ExportFile> {
+    let raw =
+        fs::read_to_string(file_path).map_err(|_| anyhow!("Could not read the selected file"))?;
+
+    format::parse_and_validate(&raw)
 }
 
 fn epoch_seconds_now() -> Result<String> {

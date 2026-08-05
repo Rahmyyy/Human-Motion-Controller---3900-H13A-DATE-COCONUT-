@@ -1,6 +1,7 @@
 import type {
   CreateMovementMappingArgs,
   DashboardOverviewDto,
+  ImportedPatientSummaryDto,
   MovementMappingDetailsDto,
   MovementMappingSummaryDto,
   PatientDto,
@@ -41,6 +42,10 @@ export interface NativeCommandMap {
     ScheduledSessionDto
   >;
   get_dashboard_overview: Command<{ dayStartMs: number; dayEndMs: number }, DashboardOverviewDto>;
+
+  export_patient: Command<{ patientId: string; filePath: string }, void>;
+  preview_import_patient: Command<{ filePath: string }, string>;
+  import_patient: Command<{ filePath: string }, ImportedPatientSummaryDto>;
 
   create_preset: Command<{ patientId: string; name: string }, PresetDto>;
   get_preset: Command<{ id: string; patientId: string }, PresetDto>;

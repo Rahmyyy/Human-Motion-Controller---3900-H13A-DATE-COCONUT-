@@ -26,6 +26,11 @@ export interface DashboardOverviewDto {
   todaysSchedule: ScheduledSessionDto[];
 }
 
+export interface ImportedPatientSummaryDto {
+  id: string;
+  displayName: string;
+}
+
 export interface PresetDto {
   id: string;
   patientId: string;

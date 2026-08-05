@@ -1,5 +1,10 @@
-import { invokeNative, type PatientDto, type PresetDto } from "@/contracts/native";
-import type { Patient, PatientStatus, Preset } from "../types";
+import {
+  invokeNative,
+  type ImportedPatientSummaryDto,
+  type PatientDto,
+  type PresetDto,
+} from "@/contracts/native";
+import type { ImportedPatientSummary, Patient, PatientStatus, Preset } from "../types";
 
 const toPatient = (dto: PatientDto): Patient => ({
   id: dto.id,
@@ -18,6 +23,11 @@ const toPreset = (dto: PresetDto): Preset => ({
   createdAt: dto.createdAt,
   mappingCount: dto.mappingCount,
   defaultPoseFramesJson: dto.defaultPoseFramesJson,
+});
+
+const toImportedPatientSummary = (dto: ImportedPatientSummaryDto): ImportedPatientSummary => ({
+  id: dto.id,
+  displayName: dto.displayName,
 });
 
 export async function getPatients() {
@@ -40,6 +50,18 @@ export async function createPatient(
 
 export async function getPatient(id: string) {
   return toPatient(await invokeNative("get_patient", { id }));
+}
+
+export function exportPatient(patientId: string, filePath: string) {
+  return invokeNative("export_patient", { patientId, filePath });
+}
+
+export function previewImportPatient(filePath: string) {
+  return invokeNative("preview_import_patient", { filePath });
+}
+
+export async function importPatient(filePath: string) {
+  return toImportedPatientSummary(await invokeNative("import_patient", { filePath }));
 }
 
 export async function createPreset(patientId: string, name: string) {

@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Info, UserRound } from "lucide-react";
 import CreatePresetDialog from "./CreatePresetDialog";
 import type { Preset } from "@/modules/patient-presets";
+import ExportPatientButton from "./ExportPatientButton";
 
 interface PresetPageHeaderProps {
   createError: string | null;
@@ -40,6 +41,7 @@ export default function PresetPageHeader({
             onCreate={onCreatePreset}
             patientId={patientId}
           />
+          <ExportPatientButton patientId={patientId} patientName={patientName} />
           <BackButton to="/" />
         </div>
       </div>

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router";
 import { CalendarDays, UserCheck, Users } from "lucide-react";
 
 import ModifyPatientDialog from "@/features/patients/components/ModifyPatientDialog";
+import ImportPatientButton from "@/features/patients/components/ImportPatientButton";
 import RecentPatientsTable from "@/features/patients/components/RecentPatientsTable";
 import { getPatients, type Patient } from "@/modules/patient-presets";
 import {
@@ -114,6 +115,12 @@ export default function MainDashboardPage() {
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
+            <ImportPatientButton
+              patients={patients}
+              onImported={async () => {
+                await Promise.all([loadPatients(), loadOverview()]);
+              }}
+            />
             <AddPatientDialog
               onPatientCreated={async () => {
                 await Promise.all([loadPatients(), loadOverview()]);
