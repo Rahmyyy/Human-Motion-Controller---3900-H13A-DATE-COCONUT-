@@ -1,7 +1,5 @@
-import { MoreHorizontal } from "lucide-react";
-
-import { Button } from "@/components/ui/button";
 import type { Patient } from "@/modules/patient-presets";
+import PatientActionsMenu from "./PatientActionsMenu";
 
 type RecentPatientsTableProps = {
   patients: Patient[];
@@ -69,19 +67,10 @@ export default function RecentPatientsTable({
               <td className="px-4 py-3">{patient.presetCount}</td>
 
               <td className="px-4 py-3">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon-sm"
-                  aria-label={`Modify ${patient.displayName}`}
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    onModify(patient);
-                  }}
-                  onKeyDown={(event) => event.stopPropagation()}
-                >
-                  <MoreHorizontal aria-hidden="true" />
-                </Button>
+              <PatientActionsMenu
+                patient={patient}
+                onModify={onModify}
+              />
               </td>
             </tr>
           ))}
