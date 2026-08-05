@@ -11,8 +11,10 @@ export type {
   MovementMappingSummaryDto,
   NativeErrorDto,
   PatientDto,
+  PatientSessionDto,
   PresetDto,
   PressTypeDto,
+  SessionMappingStatDto,
   SessionSummaryDto,
   UpdateMovementMappingArgs,
 } from "./dtos";

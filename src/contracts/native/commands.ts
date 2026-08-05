@@ -4,6 +4,7 @@ import type {
   MovementMappingDetailsDto,
   MovementMappingSummaryDto,
   PatientDto,
+  PatientSessionDto,
   PresetDto,
   PressTypeDto,
   SessionSummaryDto,
@@ -42,6 +43,7 @@ export interface NativeCommandMap {
   delete_movement_mapping: Command<{ id: string; presetId: string }, void>;
 
   record_completed_session: Command<{ session: CompletedSessionDto }, void>;
+  get_patient_sessions: Command<{ patientId: string }, PatientSessionDto[]>;
 
   press_key: Command<{ key: string }, void>;
   execute_action: Command<{ key: string; pressType: PressTypeDto }, void>;

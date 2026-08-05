@@ -66,6 +66,27 @@ export interface CompletedSessionDto {
   triggerCountsByMapping: Record<string, number>;
 }
 
+/** One mapping's frozen settings and activity within a completed session. */
+export interface SessionMappingStatDto {
+  mappingId: string;
+  mappingName: string;
+  keybind: string;
+  thresholdPercentage: number;
+  keypressTriggerThresholdPercentage: number;
+  triggerCount: number;
+}
+
+/** A completed session as the patient history page reads it back. */
+export interface PatientSessionDto {
+  id: string;
+  presetId: string;
+  presetName: string;
+  startedAtMs: number;
+  durationMs: number;
+  triggerCount: number;
+  mappings: SessionMappingStatDto[];
+}
+
 export interface NativeErrorDto {
   code: string;
   message: string;
