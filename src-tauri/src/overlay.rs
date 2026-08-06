@@ -3,6 +3,14 @@ use std::sync::Mutex;
 use serde::Serialize;
 use tauri::{AppHandle, Emitter, LogicalPosition, Manager, WebviewUrl, WebviewWindowBuilder};
 
+#[cfg(target_os = "macos")]
+#[path = "overlay/macos.rs"]
+mod platform;
+
+#[cfg(not(target_os = "macos"))]
+#[path = "overlay/standard.rs"]
+mod platform;
+
 use crate::native::contract::SessionSummaryDto;
 
 /// Serialises overlay creation. These commands are `async`, so two invokes
@@ -43,7 +51,7 @@ pub async fn open_overlay(
         // Deliberately no set_focus: key presses are synthesised with enigo,
         // which delivers them to whichever window holds keyboard focus. An
         // overlay that takes focus would eat every keystroke meant for the game.
-        existing.show().map_err(|e| e.to_string())?;
+        platform::show(&app, &existing)?;
         return Ok(());
     }
 
@@ -58,6 +66,7 @@ pub async fn open_overlay(
         .decorations(false)
         .transparent(true)
         .always_on_top(true)
+        .visible(platform::SHOW_ON_BUILD)
         .skip_taskbar(true)
         .resizable(false)
         .shadow(false)
@@ -71,6 +80,8 @@ pub async fn open_overlay(
     let _ = overlay.remove_menu();
 
     position_top_right(&overlay);
+
+    platform::configure(&overlay)?;
 
     Ok(())
 }
@@ -91,9 +102,7 @@ pub async fn close_overlay(
     session_id: String,
     summary: SessionSummaryDto,
 ) -> Result<(), String> {
-    if let Some(overlay) = app.get_webview_window(OVERLAY_LABEL) {
-        overlay.close().map_err(|e| e.to_string())?;
-    }
+    platform::close(&app)?;
 
     if let Some(main) = app.get_webview_window(MAIN_LABEL) {
         main.emit(

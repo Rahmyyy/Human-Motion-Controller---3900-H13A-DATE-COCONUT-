@@ -29,6 +29,11 @@ pub fn create_preset(conn: &Connection, patient_id: &str, name: &str) -> Result<
     let created_at = now.as_secs().to_string();
 
     repository::insert_preset(conn, &id, patient_id, name, &created_at)?;
+    crate::patient::repository::touch_patient_activity(
+        conn,
+        patient_id,
+        i64::try_from(now.as_millis())?,
+    )?;
     repository::select_preset_by_id(conn, &id, patient_id)
 }
 
@@ -86,6 +91,11 @@ pub fn duplicate_preset(conn: &mut Connection, source_id: &str) -> Result<Preset
         &created_at,
         source.default_pose_frames_json.as_deref(),
         &source.patient_id,
+    )?;
+    crate::patient::repository::touch_patient_activity(
+        conn,
+        &source.patient_id,
+        i64::try_from(now.as_millis())?,
     )?;
     repository::select_preset_by_id(conn, &duplicate_id, &source.patient_id)
 }

@@ -5,11 +5,16 @@ import type {
   RecordingTrimRange,
 } from "@/modules/pose-capture";
 
+export type PatientStatus = "active" | "needsReview";
+
 export interface Patient {
   id: string;
   displayName: string;
   clinicalNotes: string | null;
   createdAt: string;
+  presetCount: number;
+  status: PatientStatus;
+  lastActivityAtMs: number;
 }
 
 export interface Preset {

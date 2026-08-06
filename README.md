@@ -21,3 +21,6 @@ patients to control existing PC games during rehabilitation exercises.
 - Feature branches should be linked to Jira Tickets - `feature/H13ADATE-51-Tauri-Setup`
 
 See [INSTALLATION.md](INSTALLATION.md) for Docker verification and native development setup.
+
+See [FEATURE_IMPLEMENTATION_GUIDE.md](FEATURE_IMPLEMENTATION_GUIDE.md) for the general pattern used
+to add features across the React, Tauri, Rust, and SQLite layers.

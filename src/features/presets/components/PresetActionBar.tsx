@@ -19,8 +19,8 @@ export default function PresetActionBar({
 }) {
   const navigate = useNavigate();
   return (
-    <footer className="fixed right-0 bottom-0 left-(--sidebar-width) border-t bg-background px-8 py-5 transition-[left] duration-150">
-      <div className="mx-auto flex max-w-7xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <footer className="site-page-gutter fixed right-0 bottom-0 left-(--sidebar-width) border-t bg-background py-5 transition-[left] duration-150">
+      <div className="flex w-full flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-sm text-muted-foreground">Selected for {patientName}</p>
           <div className="mt-1 flex flex-wrap items-center gap-3">

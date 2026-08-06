@@ -1,8 +1,10 @@
 import BackButton from "@/components/BackButton";
 import { Button } from "@/components/ui/button";
-import { Info, UserRound } from "lucide-react";
+import { History, Info, UserRound } from "lucide-react";
+import { useNavigate } from "react-router";
 import CreatePresetDialog from "./CreatePresetDialog";
 import type { Preset } from "@/modules/patient-presets";
+import ExportPatientButton from "./ExportPatientButton";
 
 interface PresetPageHeaderProps {
   createError: string | null;
@@ -21,6 +23,8 @@ export default function PresetPageHeader({
   patientName,
   patientId,
 }: PresetPageHeaderProps) {
+  const navigate = useNavigate();
+
   return (
     <header>
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -33,6 +37,15 @@ export default function PresetPageHeader({
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            disabled={!patientId}
+            onClick={() => navigate(`/patients/${patientId}/history`, { state: { patientName } })}
+          >
+            <History className="size-4" aria-hidden="true" />
+            Patient History
+          </Button>
           <CreatePresetDialog
             error={createError}
             isCreating={isCreating}
@@ -40,7 +53,8 @@ export default function PresetPageHeader({
             onCreate={onCreatePreset}
             patientId={patientId}
           />
-          <BackButton to="/patients" />
+          <ExportPatientButton patientId={patientId} patientName={patientName} />
+          <BackButton to="/" />
         </div>
       </div>
 

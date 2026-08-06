@@ -4,7 +4,10 @@ mod movement_mapping;
 mod native;
 mod overlay;
 mod patient;
+mod patient_transfer;
 mod preset;
+mod scheduled_session;
+mod session;
 
 #[cfg(test)]
 mod test_support;
@@ -16,12 +19,18 @@ use tauri::{
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    tauri::Builder::default()
+    let builder = tauri::Builder::default();
+
+    #[cfg(target_os = "macos")]
+    let builder = builder.plugin(tauri_nspanel::init());
+
+    builder
         .plugin(
             tauri_plugin_log::Builder::new()
                 .level(tauri_plugin_log::log::LevelFilter::Info)
                 .build(),
         )
+        .plugin(tauri_plugin_dialog::init())
         .setup(move |app| {
             // Starts up SQLite
             app.manage(db::init_db(app.handle())?);
@@ -71,6 +80,16 @@ pub fn run() {
             patient::commands::create_patient,
             patient::commands::get_patients,
             patient::commands::get_patient,
+            patient::commands::update_patient,
+            patient::commands::delete_patient,
+            patient::commands::touch_patient_activity,
+            scheduled_session::commands::create_scheduled_session,
+            scheduled_session::commands::get_dashboard_overview,
+            patient_transfer::commands::export_patient,
+            patient_transfer::commands::preview_import_patient,
+            patient_transfer::commands::import_patient,
+            session::commands::record_completed_session,
+            session::commands::get_patient_sessions,
             overlay::open_overlay,
             overlay::close_overlay,
         ])

@@ -24,7 +24,7 @@ export default function MovementMappingWorkspace({
   presentation: { backTo, description, title },
 }: MovementMappingWorkspaceProps) {
   return (
-    <main className="grid h-screen w-full grid-rows-[auto_minmax(0,1fr)] gap-4 overflow-hidden bg-slate-50 p-8">
+    <main className="site-page-gutter grid h-screen w-full grid-rows-[auto_minmax(0,1fr)] gap-4 overflow-hidden bg-slate-50 py-8">
       <MovementMappingHeader backTo={backTo} description={description} title={title} />
       <div className="grid min-h-0 gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <MovementCameraPanel
