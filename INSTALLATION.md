@@ -29,7 +29,8 @@ the image. It then runs:
 - Vite production build
 - Rust formatting checks
 - Clippy
-- Rust tests
+- Rust tests with a coverage summary
+- Frontend tests with a coverage summary
 
 Docker does not launch the interactive Tauri application or validate native webcam and keyboard
 integration.

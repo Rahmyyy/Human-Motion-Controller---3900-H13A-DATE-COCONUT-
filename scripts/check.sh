@@ -16,7 +16,7 @@ cargo clippy \
   -- \
   -D warnings
 
-cargo test \
+cargo llvm-cov \
   --manifest-path src-tauri/Cargo.toml
 
-npm run test
+npm run test:coverage
