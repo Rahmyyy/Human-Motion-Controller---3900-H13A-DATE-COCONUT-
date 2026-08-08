@@ -37,12 +37,12 @@ Repository and business logic tests use isolated in-memory SQLite databases, whi
 
 The database tests cover:
 
-* successful and repeated database initialisation
-* indexes and foreign keys
-* database constraints
-* cascade behaviour
-* database and filesystem failures
-* incompatible existing database schemas
+- successful and repeated database initialisation
+- indexes and foreign keys
+- database constraints
+- cascade behaviour
+- database and filesystem failures
+- incompatible existing database schemas
 
 SQLite is not mocked because the real database behaviour is important to verify.
 
@@ -52,21 +52,21 @@ Tauri startup tests use Tauri's `MockRuntime`.
 
 They cover:
 
-* database setup and application state
-* startup ordering
-* database and menu setup failures
-* Tauri builder and plugin setup
-* successful and failed IPC command calls
+- database setup and application state
+- startup ordering
+- database and menu setup failures
+- Tauri builder and plugin setup
+- successful and failed IPC command calls
 
 Keyboard and menu functionality are replaced with test fakes where needed so automated tests do not send real keyboard input or modify the native application menu.
 
 Some behaviours cannot be reliably tested through the automated test suite, including:
 
-* the real Tauri event loop
-* native macOS menu behaviour
-* NSPanel behaviour
-* webcam permissions
-* real keyboard injection
+- the real Tauri event loop
+- native macOS menu behaviour
+- NSPanel behaviour
+- webcam permissions
+- real keyboard injection
 
 These behaviours are instead tested manually by running the application natively and following documented test cases.
 
@@ -77,4 +77,3 @@ cd src-tauri
 cargo test
 cargo llvm-cov
 ```
-
