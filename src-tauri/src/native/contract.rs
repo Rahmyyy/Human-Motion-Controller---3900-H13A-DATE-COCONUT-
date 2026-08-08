@@ -173,8 +173,8 @@ pub struct SessionMappingStatDto {
     pub trigger_count: i64,
 }
 
-impl From<session::repository::SessionMappingStat> for SessionMappingStatDto {
-    fn from(stat: session::repository::SessionMappingStat) -> Self {
+impl From<session::model::SessionMappingStat> for SessionMappingStatDto {
+    fn from(stat: session::model::SessionMappingStat) -> Self {
         Self {
             mapping_id: stat.mapping_id,
             mapping_name: stat.mapping_name,
@@ -201,8 +201,8 @@ pub struct PatientSessionDto {
     pub mappings: Vec<SessionMappingStatDto>,
 }
 
-impl From<session::repository::PatientSession> for PatientSessionDto {
-    fn from(session: session::repository::PatientSession) -> Self {
+impl From<session::model::PatientSession> for PatientSessionDto {
+    fn from(session: session::model::PatientSession) -> Self {
         Self {
             id: session.id,
             preset_id: session.preset_id,
