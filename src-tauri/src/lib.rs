@@ -33,7 +33,8 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .setup(move |app| {
             // Starts up SQLite
-            app.manage(db::init_db(app.handle())?);
+            let app_data_dir = app.path().app_data_dir()?;
+            app.manage(db::init_db(&app_data_dir)?);
 
             input::init_action_backend();
 
