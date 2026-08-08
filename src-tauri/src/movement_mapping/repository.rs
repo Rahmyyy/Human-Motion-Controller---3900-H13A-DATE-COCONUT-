@@ -1,37 +1,7 @@
 use anyhow::Result;
 use rusqlite::{params, Connection};
 
-#[derive(serde::Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct MovementMappingSummary {
-    pub id: String,
-    pub name: String,
-    pub keybind: String,
-    pub keypress_type: String,
-    pub pose_frames_json: String,
-    pub selected_landmarks: Vec<u32>,
-    pub threshold_percentage: u32,
-    pub keypress_trigger_threshold_percentage: u32,
-}
-
-#[derive(serde::Serialize)]
-pub struct MovementMappingDetails {
-    pub id: String,
-    pub preset_id: String,
-    pub name: String,
-    pub keybind: String,
-    pub keypress_type: String,
-    pub pose_frames_json: String,
-    pub selected_landmarks: Vec<u32>,
-    pub threshold_percentage: u32,
-    pub keypress_trigger_threshold_percentage: u32,
-}
-
-/// Decode the stored `selected_landmarks_json` column. An empty selection (stored as `[]`) is
-/// treated as "all tracked landmarks" downstream.
-fn parse_selected_landmarks(raw: String) -> Vec<u32> {
-    serde_json::from_str::<Vec<u32>>(&raw).unwrap_or_default()
-}
+use super::model::{parse_selected_landmarks, MovementMappingDetails, MovementMappingSummary};
 
 /// Column values for a new `movement_mappings` row, grouped so the insert takes one argument
 /// instead of eight positional strings.
