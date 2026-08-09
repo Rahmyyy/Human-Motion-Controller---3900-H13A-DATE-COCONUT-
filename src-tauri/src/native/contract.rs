@@ -82,8 +82,8 @@ pub struct PresetDto {
     pub default_pose_frames_json: Option<String>,
 }
 
-impl From<preset::repository::Preset> for PresetDto {
-    fn from(preset: preset::repository::Preset) -> Self {
+impl From<preset::model::Preset> for PresetDto {
+    fn from(preset: preset::model::Preset) -> Self {
         Self {
             id: preset.id,
             patient_id: preset.patient_id,
