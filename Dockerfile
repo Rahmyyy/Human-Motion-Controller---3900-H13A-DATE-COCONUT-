@@ -2,7 +2,8 @@ FROM node:24-trixie AS node
 FROM rust:1.96-trixie
 COPY --from=node /usr/local /usr/local
 
-RUN rustup component add rustfmt clippy
+RUN rustup component add rustfmt clippy llvm-tools-preview \
+  && cargo install cargo-llvm-cov --version 0.8.7 --locked
 
 # install all dependencies for Tauri (debian)
 RUN apt update && apt install -y \

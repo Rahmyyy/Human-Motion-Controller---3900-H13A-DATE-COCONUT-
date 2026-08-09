@@ -1,48 +1,18 @@
 import BackButton from "@/components/BackButton";
-import type { PoseFrame } from "@/features/camera/poseFrame";
-import MovementCameraPanel from "@/features/movement-mapping/components/MovementCameraPanel";
-import RecordingControls from "@/features/movement-mapping/components/RecordingControls";
-import RecordingQualityPanel from "@/features/movement-mapping/components/RecordingQualityPanel";
-import RecordingTrimPanel from "@/features/movement-mapping/components/RecordingTrimPanel";
-import type { RecordingQuality } from "@/features/movement-mapping/recording/analyseRecordingQuality";
-import type { RecordingTrimRange } from "@/features/movement-mapping/recording/trimRecording";
-import type { RecordingState } from "@/features/movement-mapping/services/recordingService.types";
+import type { DefaultPoseCalibrationViewModel } from "@/modules/patient-presets";
+import MovementCameraPanel from "@/components/pose-recording/MovementCameraPanel";
+import RecordingControls from "@/components/pose-recording/RecordingControls";
+import RecordingQualityPanel from "@/components/pose-recording/RecordingQualityPanel";
+import RecordingTrimPanel from "@/components/pose-recording/RecordingTrimPanel";
 
 type Props = {
   backTo: string;
-  canSave: boolean;
-  countdownSeconds: number | null;
-  error: string | null;
-  onCancelCountdown: () => void;
-  onResetRecording: () => void;
-  onSave: () => void;
-  onStartRecording: () => void;
-  onStopRecording: () => void;
-  onTrimRecording: (range: RecordingTrimRange) => void;
-  recordedFrames: PoseFrame[];
-  recordingQuality: RecordingQuality | null;
-  recordingState: RecordingState;
-  recordingTrim: RecordingTrimRange | null;
+  calibration: DefaultPoseCalibrationViewModel;
 };
 
-export default function DefaultPoseCalibrationWorkspace({
-  backTo,
-  canSave,
-  countdownSeconds,
-  error,
-  onCancelCountdown,
-  onResetRecording,
-  onSave,
-  onStartRecording,
-  onStopRecording,
-  onTrimRecording,
-  recordedFrames,
-  recordingQuality,
-  recordingState,
-  recordingTrim,
-}: Props) {
+export default function DefaultPoseCalibrationWorkspace({ backTo, calibration }: Props) {
   return (
-    <main className="grid h-screen w-full grid-rows-[auto_minmax(0,1fr)] gap-4 overflow-hidden bg-slate-50 p-8">
+    <main className="site-page-gutter grid h-screen w-full grid-rows-[auto_minmax(0,1fr)] gap-4 overflow-hidden bg-slate-50 py-8">
       <header className="flex items-start justify-between gap-6">
         <div>
           <h1 className="text-3xl font-semibold tracking-tight text-foreground">
@@ -58,32 +28,37 @@ export default function DefaultPoseCalibrationWorkspace({
 
       <div className="grid min-h-0 gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <MovementCameraPanel
-          countdownSeconds={countdownSeconds}
-          frames={recordedFrames}
-          recordingState={recordingState}
+          countdownSeconds={calibration.countdownSeconds}
+          frames={calibration.recordedFrames}
+          recordingState={calibration.recordingState}
         />
         <div className="grid min-h-0 content-start gap-4 overflow-y-auto pr-1">
           <section className="rounded-lg border bg-card p-4 text-sm text-muted-foreground">
             Record at least one second with the patient fully visible. Re-record this calibration if
             the camera position or the patient's resting posture changes significantly.
           </section>
-          {recordingState === "recorded" && recordingTrim && (
-            <RecordingTrimPanel trim={recordingTrim} onChange={onTrimRecording} />
+          {calibration.recordingState === "recorded" && calibration.recordingTrim && (
+            <RecordingTrimPanel
+              trim={calibration.recordingTrim}
+              onChange={calibration.trimRecording}
+            />
           )}
-          {recordingQuality && <RecordingQualityPanel quality={recordingQuality} />}
-          {error && (
+          {calibration.recordingQuality && (
+            <RecordingQualityPanel quality={calibration.recordingQuality} />
+          )}
+          {calibration.error && (
             <p className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
-              {error}
+              {calibration.error}
             </p>
           )}
           <RecordingControls
-            state={recordingState}
-            canSave={canSave}
-            onCancel={onCancelCountdown}
-            onReRecord={onResetRecording}
-            onSave={onSave}
-            onStart={onStartRecording}
-            onStop={onStopRecording}
+            state={calibration.recordingState}
+            canSave={calibration.canSave}
+            onCancel={calibration.cancelCountdown}
+            onReRecord={calibration.resetRecording}
+            onSave={calibration.save}
+            onStart={calibration.startRecording}
+            onStop={calibration.stopRecording}
             saveLabel="Save Default State"
             startLabel="Start Calibration"
           />

@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import type { RecognitionStatus } from "../services/recognitionService";
+import type { RecognitionStatus } from "@/modules/recognition";
 
 interface RecognitionStatusPanelProps {
   isLoading: boolean;

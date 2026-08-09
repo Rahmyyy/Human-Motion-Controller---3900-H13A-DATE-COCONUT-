@@ -1,15 +1,14 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router";
 import BackButton from "@/components/BackButton";
-import { getMovementMappings } from "@/features/movement-mapping/api/movementMappingsApi";
-import type { PresetMappingCardData } from "@/features/preset-mapping/types";
+import { getMovementMappings, type MovementMapping } from "@/modules/movement-mapping";
 import ActiveMappingsPanel from "./components/ActiveMappingsPanel";
 import SessionStatusPanel from "./components/SessionStatusPanel";
 import TriggerCountPanel from "./components/TriggerCountPanel";
 
 export default function LiveDashboardPage() {
   const { patientId, presetId } = useParams<{ patientId: string; presetId: string }>();
-  const [mappings, setMappings] = useState<PresetMappingCardData[]>([]);
+  const [mappings, setMappings] = useState<MovementMapping[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const displayedLoadError = presetId ? loadError : "Preset not found.";
@@ -39,7 +38,7 @@ export default function LiveDashboardPage() {
   }, [presetId]);
 
   return (
-    <main className="min-h-screen bg-slate-50 p-8">
+    <main className="site-page-gutter min-h-screen bg-slate-50 py-8">
       <header className="flex items-start justify-between gap-6">
         <div>
           <h1 className="text-3xl font-semibold tracking-tight text-foreground">

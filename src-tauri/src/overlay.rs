@@ -1,18 +1,17 @@
-use std::collections::HashMap;
 use std::sync::Mutex;
 
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use tauri::{AppHandle, Emitter, LogicalPosition, Manager, WebviewUrl, WebviewWindowBuilder};
 
-/// Final stats for one completed session, reported by the overlay (the only
-/// window that owns live session state) when it asks to be closed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct SessionSummary {
-    elapsed_ms: u64,
-    trigger_count: u32,
-    trigger_counts_by_mapping: HashMap<String, u32>,
-}
+#[cfg(target_os = "macos")]
+#[path = "overlay/macos.rs"]
+mod platform;
+
+#[cfg(not(target_os = "macos"))]
+#[path = "overlay/standard.rs"]
+mod platform;
+
+use crate::native::contract::SessionSummaryDto;
 
 /// Serialises overlay creation. These commands are `async`, so two invokes
 /// arriving together (React strict mode remounts the session page) would
@@ -42,6 +41,7 @@ pub async fn open_overlay(
     app: AppHandle,
     patient_id: String,
     preset_id: String,
+    session_id: String,
 ) -> Result<(), String> {
     // Held for the whole command; there is no await inside, so it is never
     // held across a suspension point.
@@ -51,12 +51,14 @@ pub async fn open_overlay(
         // Deliberately no set_focus: key presses are synthesised with enigo,
         // which delivers them to whichever window holds keyboard focus. An
         // overlay that takes focus would eat every keystroke meant for the game.
-        existing.show().map_err(|e| e.to_string())?;
+        platform::show(&app, &existing)?;
         return Ok(());
     }
 
     // HashRouter, so the route travels in the fragment of the shared entrypoint.
-    let url = format!("index.html#/patients/{patient_id}/presets/{preset_id}/overlay");
+    let url = format!(
+        "index.html#/patients/{patient_id}/presets/{preset_id}/overlay?sessionId={session_id}"
+    );
 
     let overlay = WebviewWindowBuilder::new(&app, OVERLAY_LABEL, WebviewUrl::App(url.into()))
         .title("Human Controller Overlay")
@@ -64,6 +66,7 @@ pub async fn open_overlay(
         .decorations(false)
         .transparent(true)
         .always_on_top(true)
+        .visible(platform::SHOW_ON_BUILD)
         .skip_taskbar(true)
         .resizable(false)
         .shadow(false)
@@ -77,6 +80,8 @@ pub async fn open_overlay(
     let _ = overlay.remove_menu();
 
     position_top_right(&overlay);
+
+    platform::configure(&overlay)?;
 
     Ok(())
 }
@@ -92,18 +97,33 @@ pub async fn open_overlay(
 /// `async` for the same reason as [`open_overlay`]: window lifecycle work does
 /// not belong on the main thread.
 #[tauri::command]
-pub async fn close_overlay(app: AppHandle, summary: SessionSummary) -> Result<(), String> {
-    if let Some(overlay) = app.get_webview_window(OVERLAY_LABEL) {
-        overlay.close().map_err(|e| e.to_string())?;
-    }
+pub async fn close_overlay(
+    app: AppHandle,
+    session_id: String,
+    summary: SessionSummaryDto,
+) -> Result<(), String> {
+    platform::close(&app)?;
 
     if let Some(main) = app.get_webview_window(MAIN_LABEL) {
-        main.emit("session-ended", &summary)
-            .map_err(|e| e.to_string())?;
+        main.emit(
+            "session-ended",
+            &SessionEndedEvent {
+                session_id: &session_id,
+                summary: &summary,
+            },
+        )
+        .map_err(|e| e.to_string())?;
         main.set_focus().map_err(|e| e.to_string())?;
     }
 
     Ok(())
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct SessionEndedEvent<'a> {
+    session_id: &'a str,
+    summary: &'a SessionSummaryDto,
 }
 
 /// Ties the overlay's lifetime to the main window. The overlay is hidden from

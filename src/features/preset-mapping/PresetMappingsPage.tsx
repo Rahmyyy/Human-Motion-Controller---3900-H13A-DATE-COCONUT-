@@ -10,8 +10,8 @@ export default function PresetMappingsPage() {
   const mappings = usePresetMappings(patientId, presetId);
 
   return (
-    <section className="min-h-screen bg-background px-8 py-10">
-      <div className="mx-auto max-w-6xl">
+    <section className="site-page-gutter min-h-screen bg-background py-10">
+      <div className="w-full">
         <PresetMappingsHeader
           canAddMovement={Boolean(mappings.preset?.defaultPoseFramesJson)}
           patientId={patientId}
@@ -46,8 +46,8 @@ export default function PresetMappingsPage() {
         )}
       </div>
 
-      <div className="fixed inset-x-0 bottom-8 px-8">
-        <div className="mx-auto flex max-w-6xl justify-end">
+      <div className="site-page-gutter fixed inset-x-0 bottom-8">
+        <div className="flex w-full justify-end">
           {mappings.preset?.defaultPoseFramesJson ? (
             <Button asChild size="lg">
               <Link to={`/patients/${patientId}/presets/${presetId}/recognition`}>

@@ -25,26 +25,14 @@ export default function DefaultPoseCalibrationPage() {
   return (
     <DefaultPoseCalibrationWorkspace
       backTo={`/patients/${patientId}/presets/${presetId}/edit`}
-      canSave={calibration.canSave}
-      countdownSeconds={calibration.countdownSeconds}
-      error={calibration.error}
-      onCancelCountdown={calibration.cancelCountdown}
-      onResetRecording={calibration.resetRecording}
-      onSave={calibration.save}
-      onStartRecording={calibration.startRecording}
-      onStopRecording={calibration.stopRecording}
-      onTrimRecording={calibration.trimRecording}
-      recordedFrames={calibration.recordedFrames}
-      recordingQuality={calibration.recordingQuality}
-      recordingState={calibration.recordingState}
-      recordingTrim={calibration.recordingTrim}
+      calibration={calibration}
     />
   );
 }
 
 function CalibrationMessage({ message }: { message: string }) {
   return (
-    <main className="grid min-h-screen place-items-center bg-slate-50 p-8">
+    <main className="site-page-gutter grid min-h-screen place-items-center bg-slate-50 py-8">
       <p className="text-sm text-muted-foreground">{message}</p>
     </main>
   );

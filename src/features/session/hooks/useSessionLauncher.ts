@@ -1,8 +1,8 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
-import { createSessionLauncherService } from "../services/sessionLauncherService";
+import { createSessionLauncher } from "@/modules/live-session";
 
 export function useSessionLauncher(patientId: string | undefined, presetId: string | undefined) {
-  const [service] = useState(createSessionLauncherService);
+  const [service] = useState(createSessionLauncher);
   const snapshot = useSyncExternalStore(
     service.subscribe,
     service.getSnapshot,

@@ -6,7 +6,7 @@ import { useSessionLauncher } from "./hooks/useSessionLauncher";
 
 /**
  * Main-window view for a running session. The overlay window does the real
- * work — camera, recognition, key presses — so this page only launches it and
+ * work - camera, recognition, key presses - so this page only launches it and
  * offers a second way to stop, for when the overlay has been dragged somewhere
  * awkward or the user has tabbed back here.
  */
@@ -27,7 +27,7 @@ export default function LiveSessionPage() {
   }
 
   return (
-    <main className="grid h-screen place-items-center bg-slate-950 p-8">
+    <main className="site-page-gutter grid h-screen place-items-center bg-slate-950 py-8">
       <div className="grid max-w-md justify-items-center gap-4 text-center text-white">
         {error ? (
           <>

@@ -1,7 +1,4 @@
-import {
-  TRACKED_LANDMARKS,
-  type TrackedLandmark,
-} from "@/features/movement-recognition/recognition/types";
+import { TRACKED_LANDMARKS, type TrackedLandmark } from "@/modules/pose-capture";
 
 /**
  * Static humanoid layout for the landmark selector. Coordinates live in an abstract viewBox space

@@ -1,3 +1,3 @@
 pub mod commands;
-mod repository;
+pub(crate) mod repository;
 mod service;

@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 import { Check, Pencil, PersonStanding, Workflow } from "lucide-react";
 import { Link } from "react-router";
 
-import type { Preset } from "../api/presetsApi";
+import type { Preset } from "@/modules/patient-presets";
 import DeletePresetDialog from "./DeletePresetDialog";
 import DuplicatePresetDialog from "./DuplicatePresetDialog";
 
