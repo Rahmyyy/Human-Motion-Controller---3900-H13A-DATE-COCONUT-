@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-use crate::{movement_mapping::repository, patient, preset, scheduled_session, session};
+use crate::{movement_mapping::model, patient, preset, scheduled_session, session};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -108,8 +108,8 @@ pub struct MovementMappingSummaryDto {
     pub keypress_trigger_threshold_percentage: u32,
 }
 
-impl From<repository::MovementMappingSummary> for MovementMappingSummaryDto {
-    fn from(mapping: repository::MovementMappingSummary) -> Self {
+impl From<model::MovementMappingSummary> for MovementMappingSummaryDto {
+    fn from(mapping: model::MovementMappingSummary) -> Self {
         Self {
             id: mapping.id,
             name: mapping.name,
@@ -137,8 +137,8 @@ pub struct MovementMappingDetailsDto {
     pub keypress_trigger_threshold_percentage: u32,
 }
 
-impl From<repository::MovementMappingDetails> for MovementMappingDetailsDto {
-    fn from(mapping: repository::MovementMappingDetails) -> Self {
+impl From<model::MovementMappingDetails> for MovementMappingDetailsDto {
+    fn from(mapping: model::MovementMappingDetails) -> Self {
         Self {
             id: mapping.id,
             preset_id: mapping.preset_id,
