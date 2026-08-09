@@ -1,7 +1,7 @@
 use tauri::Manager;
 
-use super::{open, overlay_window, test_app};
-use crate::overlay::{close_with_main_window, platform, MAIN_LABEL};
+use super::test_app;
+use crate::overlay::{close_with_main_window, MAIN_LABEL};
 
 /// The overlay is hidden from the taskbar, so a user who closes the main window mid-session
 /// would otherwise leave the app running with no visible way to quit it. Registering the hook
@@ -22,6 +22,9 @@ fn the_close_hook_is_registered_only_when_a_main_window_exists() {
 #[cfg(not(target_os = "macos"))]
 mod standard {
     use super::*;
+    use crate::overlay::platform;
+
+    use super::super::{open, overlay_window};
 
     #[test]
     fn configuring_an_overlay_is_a_no_op() {
