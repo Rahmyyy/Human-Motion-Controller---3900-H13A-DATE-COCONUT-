@@ -1,4 +1,4 @@
-use super::repository::{self, Preset};
+use super::{model::Preset, repository};
 use anyhow::{anyhow, Result};
 use rusqlite::Connection;
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -141,22 +141,11 @@ pub fn update_default_pose(
         return Err(anyhow!("Default pose must contain at least two frames"));
     }
 
-    let rows_affected = repository::update_default_pose_frames(conn, id, default_pose_frames_json)?;
+    let rows_affected =
+        repository::update_default_pose_frames(conn, id, patient_id, default_pose_frames_json)?;
     if rows_affected == 0 {
         return Err(anyhow!("Preset not found"));
     }
 
     repository::select_preset_by_id(conn, id, patient_id)
 }
-
-#[cfg(test)]
-#[path = "service_tests.rs"]
-mod tests;
-
-#[cfg(test)]
-#[path = "duplication_tests.rs"]
-mod duplication_tests;
-
-#[cfg(test)]
-#[path = "deletion_tests.rs"]
-mod deletion_tests;

@@ -1,16 +1,7 @@
 use anyhow::Result;
 use rusqlite::{params, Connection};
 
-#[derive(serde::Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct Preset {
-    pub id: String,
-    pub patient_id: String,
-    pub name: String,
-    pub created_at: String,
-    pub mapping_count: i64,
-    pub default_pose_frames_json: Option<String>,
-}
+use super::model::Preset;
 
 pub fn insert_preset(
     conn: &Connection,
@@ -101,16 +92,7 @@ pub fn select_presets_by_patient(conn: &Connection, patient_id: &str) -> Result<
     )?;
 
     let presets = statement
-        .query_map(params![patient_id], |row| {
-            Ok(Preset {
-                id: row.get(0)?,
-                patient_id: row.get(1)?,
-                name: row.get(2)?,
-                created_at: row.get(3)?,
-                mapping_count: row.get(4)?,
-                default_pose_frames_json: row.get(5)?,
-            })
-        })?
+        .query_map(params![patient_id], preset_from_row)?
         .collect::<Result<Vec<_>, _>>()?;
 
     Ok(presets)
@@ -129,16 +111,7 @@ pub fn select_preset_by_id(conn: &Connection, id: &str, patient_id: &str) -> Res
         ",
     )?;
 
-    let preset = statement.query_row(params![id, patient_id], |row| {
-        Ok(Preset {
-            id: row.get(0)?,
-            patient_id: row.get(1)?,
-            name: row.get(2)?,
-            created_at: row.get(3)?,
-            mapping_count: row.get(4)?,
-            default_pose_frames_json: row.get(5)?,
-        })
-    })?;
+    let preset = statement.query_row(params![id, patient_id], preset_from_row)?;
 
     Ok(preset)
 }
@@ -156,16 +129,7 @@ pub fn select_preset_by_id_any_patient(conn: &Connection, id: &str) -> Result<Pr
         ",
     )?;
 
-    Ok(statement.query_row(params![id], |row| {
-        Ok(Preset {
-            id: row.get(0)?,
-            patient_id: row.get(1)?,
-            name: row.get(2)?,
-            created_at: row.get(3)?,
-            mapping_count: row.get(4)?,
-            default_pose_frames_json: row.get(5)?,
-        })
-    })?)
+    Ok(statement.query_row(params![id], preset_from_row)?)
 }
 
 pub fn delete_preset(conn: &Connection, id: &str) -> Result<usize> {
@@ -176,16 +140,28 @@ pub fn delete_preset(conn: &Connection, id: &str) -> Result<usize> {
 pub fn update_default_pose_frames(
     conn: &Connection,
     id: &str,
+    patient_id: &str,
     default_pose_frames_json: &str,
 ) -> Result<usize> {
     let rows_affected = conn.execute(
         "
         UPDATE presets
         SET default_pose_frames_json = ?1
-        WHERE id = ?2
+        WHERE id = ?2 AND patient_id = ?3
         ",
-        params![default_pose_frames_json, id],
+        params![default_pose_frames_json, id, patient_id],
     )?;
 
     Ok(rows_affected)
+}
+
+fn preset_from_row(row: &rusqlite::Row<'_>) -> rusqlite::Result<Preset> {
+    Ok(Preset {
+        id: row.get(0)?,
+        patient_id: row.get(1)?,
+        name: row.get(2)?,
+        created_at: row.get(3)?,
+        mapping_count: row.get(4)?,
+        default_pose_frames_json: row.get(5)?,
+    })
 }
