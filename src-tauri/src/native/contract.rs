@@ -38,8 +38,8 @@ pub struct ScheduledSessionDto {
     pub scheduled_at_ms: i64,
 }
 
-impl From<scheduled_session::repository::ScheduledSession> for ScheduledSessionDto {
-    fn from(session: scheduled_session::repository::ScheduledSession) -> Self {
+impl From<scheduled_session::model::ScheduledSession> for ScheduledSessionDto {
+    fn from(session: scheduled_session::model::ScheduledSession) -> Self {
         Self {
             id: session.id,
             patient_id: session.patient_id,
@@ -57,8 +57,8 @@ pub struct DashboardOverviewDto {
     pub todays_schedule: Vec<ScheduledSessionDto>,
 }
 
-impl From<scheduled_session::repository::DashboardOverview> for DashboardOverviewDto {
-    fn from(overview: scheduled_session::repository::DashboardOverview) -> Self {
+impl From<scheduled_session::model::DashboardOverview> for DashboardOverviewDto {
+    fn from(overview: scheduled_session::model::DashboardOverview) -> Self {
         Self {
             active_patient_count: overview.active_patient_count,
             sessions_today_count: overview.sessions_today_count,

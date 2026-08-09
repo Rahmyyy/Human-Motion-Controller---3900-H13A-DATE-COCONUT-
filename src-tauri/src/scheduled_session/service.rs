@@ -3,7 +3,10 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use anyhow::{anyhow, Result};
 use rusqlite::Connection;
 
-use super::repository::{self, DashboardOverview, ScheduledSession};
+use super::{
+    model::{DashboardOverview, ScheduledSession},
+    repository,
+};
 
 pub fn create_scheduled_session(
     conn: &Connection,
