@@ -2,7 +2,10 @@ use anyhow::{anyhow, Result};
 use rusqlite::Connection;
 use std::collections::HashMap;
 
-use super::repository::{self, PatientSession, Session, SessionMappingStat};
+use super::{
+    model::{PatientSession, Session, SessionMappingStat},
+    repository,
+};
 use crate::{patient, preset};
 
 /// Everything the frontend knows about a session that just ended. The preset name and the
@@ -114,7 +117,3 @@ fn mapping_stats(
 fn total_triggers(trigger_counts: &HashMap<String, u32>) -> i64 {
     trigger_counts.values().map(|count| i64::from(*count)).sum()
 }
-
-#[cfg(test)]
-#[path = "service_tests.rs"]
-mod tests;

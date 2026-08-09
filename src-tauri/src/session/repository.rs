@@ -2,48 +2,7 @@ use anyhow::Result;
 use rusqlite::{params, Connection};
 use std::collections::HashMap;
 
-/// A completed session as stored in `sessions`.
-pub struct Session {
-    pub id: String,
-    pub patient_id: String,
-    pub preset_id: String,
-    pub preset_name: String,
-    pub started_at_ms: i64,
-    pub ended_at_ms: i64,
-    pub duration_ms: i64,
-    pub trigger_count: i64,
-}
-
-/// A completed session's per-mapping row in `session_mapping_stats`.
-pub struct SessionMappingStat {
-    pub mapping_id: String,
-    pub mapping_name: String,
-    pub keybind: String,
-    pub threshold_percentage: u32,
-    pub keypress_trigger_threshold_percentage: u32,
-    pub trigger_count: i64,
-}
-
-/// A completed session with the mapping settings it ran with, as the history page reads it.
-pub struct PatientSession {
-    pub id: String,
-    pub preset_id: String,
-    pub preset_name: String,
-    pub started_at_ms: i64,
-    pub duration_ms: i64,
-    pub trigger_count: i64,
-    pub mappings: Vec<SessionMappingStat>,
-}
-
-/// The mapping settings a session ran with, read from the live tables at the moment the
-/// session ends so they can be frozen into `session_mapping_stats`.
-pub struct MappingSnapshot {
-    pub id: String,
-    pub name: String,
-    pub keybind: String,
-    pub threshold_percentage: u32,
-    pub keypress_trigger_threshold_percentage: u32,
-}
+use super::model::{MappingSnapshot, PatientSession, Session, SessionMappingStat};
 
 /// Writes the session and its per-mapping rows together: a session row without its
 /// breakdown would render as a history entry with no activity behind it.
@@ -153,8 +112,6 @@ pub fn select_mapping_snapshots(
 /// Two flat reads rather than one join: joining would repeat all six session columns once per
 /// mapping row, and detecting where one session's rows end would land in this layer anyway.
 pub fn select_patient_sessions(conn: &Connection, patient_id: &str) -> Result<Vec<PatientSession>> {
-    let mut stats_by_session = select_mapping_stats_by_session(conn, patient_id)?;
-
     // Served by idx_sessions_patient_started_at.
     let mut statement = conn.prepare(
         "
@@ -164,6 +121,7 @@ pub fn select_patient_sessions(conn: &Connection, patient_id: &str) -> Result<Ve
         ORDER BY started_at_ms DESC
         ",
     )?;
+    let mut stats_by_session = select_mapping_stats_by_session(conn, patient_id)?;
 
     let rows = statement
         .query_map(params![patient_id], |row| {
