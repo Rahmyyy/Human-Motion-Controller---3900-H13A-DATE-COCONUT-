@@ -1,7 +1,9 @@
 use std::sync::Mutex;
 
 use serde::Serialize;
-use tauri::{AppHandle, Emitter, LogicalPosition, Manager, WebviewUrl, WebviewWindowBuilder};
+use tauri::{
+    AppHandle, Emitter, LogicalPosition, Manager, Runtime, WebviewUrl, WebviewWindowBuilder,
+};
 
 #[cfg(target_os = "macos")]
 #[path = "overlay/macos.rs"]
@@ -10,6 +12,8 @@ mod platform;
 #[cfg(not(target_os = "macos"))]
 #[path = "overlay/standard.rs"]
 mod platform;
+
+pub(crate) use platform::OverlayRuntime;
 
 use crate::native::contract::SessionSummaryDto;
 
@@ -37,8 +41,8 @@ const SCREEN_MARGIN: f64 = 24.0;
 /// building a webview window there deadlocks WebView2 on Windows — the window
 /// appears but never paints, and the event loop stops servicing anything else.
 #[tauri::command]
-pub async fn open_overlay(
-    app: AppHandle,
+pub async fn open_overlay<R: Runtime + platform::OverlayRuntime>(
+    app: AppHandle<R>,
     patient_id: String,
     preset_id: String,
     session_id: String,
@@ -97,8 +101,8 @@ pub async fn open_overlay(
 /// `async` for the same reason as [`open_overlay`]: window lifecycle work does
 /// not belong on the main thread.
 #[tauri::command]
-pub async fn close_overlay(
-    app: AppHandle,
+pub async fn close_overlay<R: Runtime + platform::OverlayRuntime>(
+    app: AppHandle<R>,
     session_id: String,
     summary: SessionSummaryDto,
 ) -> Result<(), String> {
@@ -129,7 +133,7 @@ struct SessionEndedEvent<'a> {
 /// Ties the overlay's lifetime to the main window. The overlay is hidden from
 /// the taskbar, so without this a user who closes the main window mid-session
 /// would leave the app running with no visible way to quit it.
-pub fn close_with_main_window(app: &AppHandle) {
+pub fn close_with_main_window<R: Runtime>(app: &AppHandle<R>) {
     let Some(main) = app.get_webview_window(MAIN_LABEL) else {
         return;
     };
@@ -147,7 +151,7 @@ pub fn close_with_main_window(app: &AppHandle) {
 /// Parks the overlay in the top-right corner of whichever monitor it opened on.
 /// Positioning is best effort — a failure here leaves a usable overlay in the
 /// default spot, so it must not fail the session.
-fn position_top_right(overlay: &tauri::WebviewWindow) {
+fn position_top_right<R: Runtime>(overlay: &tauri::WebviewWindow<R>) {
     let Ok(Some(monitor)) = overlay.current_monitor() else {
         return;
     };

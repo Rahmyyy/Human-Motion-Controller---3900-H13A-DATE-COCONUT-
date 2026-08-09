@@ -24,3 +24,56 @@ See [INSTALLATION.md](INSTALLATION.md) for Docker verification and native develo
 
 See [FEATURE_IMPLEMENTATION_GUIDE.md](FEATURE_IMPLEMENTATION_GUIDE.md) for the general pattern used
 to add features across the React, Tauri, Rust, and SQLite layers.
+
+## Testing Approach
+
+Our automated checks run formatting, linting, compilation and tests for both the React frontend and Rust backend. See [INSTALLATION.md](INSTALLATION.md) for Docker and native testing commands.
+
+### Backend database
+
+Backend tests use the same database schema initialiser as the application.
+
+Repository and business logic tests use isolated in-memory SQLite databases, while startup tests use temporary directories so they do not affect a developer's local application data.
+
+The database tests cover:
+
+- successful and repeated database initialisation
+- indexes and foreign keys
+- database constraints
+- cascade behaviour
+- database and filesystem failures
+- incompatible existing database schemas
+
+SQLite is not mocked because the real database behaviour is important to verify.
+
+### Tauri startup
+
+Tauri startup tests use Tauri's `MockRuntime`.
+
+They cover:
+
+- database setup and application state
+- startup ordering
+- database and menu setup failures
+- Tauri builder and plugin setup
+- successful and failed IPC command calls
+
+Keyboard and menu functionality are replaced with test fakes where needed so automated tests do not send real keyboard input or modify the native application menu.
+
+Some behaviours cannot be reliably tested through the automated test suite, including:
+
+- the real Tauri event loop
+- native macOS menu behaviour
+- NSPanel behaviour
+- webcam permissions
+- real keyboard injection
+
+These behaviours are instead tested manually by running the application natively and following documented test cases.
+
+### Running backend tests
+
+```bash
+cd src-tauri
+cargo test
+cargo llvm-cov
+```
