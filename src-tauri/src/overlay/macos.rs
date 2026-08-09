@@ -149,6 +149,12 @@ where
     })
     .map_err(|error| error.to_string())?;
 
+    receive_main_thread_result(receiver)
+}
+
+pub(super) fn receive_main_thread_result<T>(
+    receiver: std::sync::mpsc::Receiver<Result<T, String>>,
+) -> Result<T, String> {
     receiver
         .recv()
         .map_err(|_| "macOS main-thread window task was cancelled".to_string())?
