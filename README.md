@@ -85,6 +85,29 @@ Manual overlay test cases:
 3. Try opening the overlay twice and check that only one overlay appears. End the session and check that the main window receives the session summary.
 4. Close the main window during a session and check that the overlay also closes. Restart the app and check that the overlay can open normally again.
 
+### Native input
+
+The input tests use a fake in-memory input system so automated tests do not send real keyboard or mouse inputs.
+
+They cover:
+
+- recognising keyboard and mouse inputs
+- handling valid and invalid key names
+- pressing, releasing, clicking, and toggling held keys
+- handling unsupported inputs
+- handling keyboard or mouse input failures
+- setting up and retrying the input system
+
+The real Enigo input system is not used in automated tests because it would send actual keyboard and mouse inputs to whichever application is currently active. Operating system permissions also need to be tested on a real desktop.
+
+Manual native-input test cases:
+
+1. Give the application input permissions, open a text editor, and check that configured keyboard inputs work.
+2. Test separate press and release actions and check that the key stays held between them.
+3. Test a toggle action and check that each trigger switches the key between pressed and released.
+4. Test left, right, and middle mouse clicks and check that each works correctly.
+5. Deny input permission, restart the application, and check that it retries correctly without repeatedly showing the permission prompt.
+
 Some behaviours cannot be reliably tested through the automated test suite, including:
 
 - the real Tauri event loop
