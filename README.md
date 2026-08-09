@@ -60,6 +60,31 @@ They cover:
 
 Keyboard and menu functionality are replaced with test fakes where needed so automated tests do not send real keyboard input or modify the native application menu.
 
+### Session overlay
+
+The overlay tests use Tauri's `MockRuntime` to test most of the overlay behaviour without opening real native windows.
+
+They cover:
+
+- opening, closing, and reopening the overlay
+- making sure opening or closing it twice does not cause problems
+- sending the final session summary back to the main window
+- handling missing windows and invalid requests
+- checking overlay positioning
+- handling failures during overlay tasks
+
+Some parts of the overlay depend directly on macOS and cannot be tested properly using Tauri's `MockRuntime`. This includes creating the real overlay window, detecting monitors,
+keeping the overlay above full-screen applications, and making sure it does not take keyboard focus.
+
+These parts are tested manually instead.
+
+Manual overlay test cases:
+
+1. Start a session and check that one transparent overlay appears in the top-right of the active monitor without taking keyboard focus.
+2. Open a game in macOS full-screen mode and check that the overlay stays visible and can still be clicked.
+3. Try opening the overlay twice and check that only one overlay appears. End the session and check that the main window receives the session summary.
+4. Close the main window during a session and check that the overlay also closes. Restart the app and check that the overlay can open normally again.
+
 Some behaviours cannot be reliably tested through the automated test suite, including:
 
 - the real Tauri event loop
