@@ -6,12 +6,22 @@ use tempfile::tempdir;
 use super::{configure_builder, initialize_app, logging_plugin};
 use crate::db::DbState;
 
+/// The origin Tauri serves the app from, which decides whether the IPC counts as
+/// local. Windows and Android use `http://tauri.localhost`; everywhere else uses
+/// the `tauri://` custom protocol. A mismatch makes Tauri treat the request as
+/// remote web content and reject it against the mock context's empty ACL.
+const APP_ORIGIN: &str = if cfg!(any(windows, target_os = "android")) {
+    "http://tauri.localhost"
+} else {
+    "tauri://localhost"
+};
+
 fn invoke_request(command: &str, body: serde_json::Value) -> tauri::webview::InvokeRequest {
     tauri::webview::InvokeRequest {
         cmd: command.into(),
         callback: tauri::ipc::CallbackFn(0),
         error: tauri::ipc::CallbackFn(1),
-        url: "tauri://localhost".parse().unwrap(),
+        url: APP_ORIGIN.parse().unwrap(),
         body: body.into(),
         headers: Default::default(),
         invoke_key: test::INVOKE_KEY.to_string(),

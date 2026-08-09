@@ -167,3 +167,6 @@ fn position_top_right<R: Runtime>(overlay: &tauri::WebviewWindow<R>) {
         log::warn!("Failed to position overlay window: {error}");
     }
 }
+
+#[cfg(test)]
+mod tests;
