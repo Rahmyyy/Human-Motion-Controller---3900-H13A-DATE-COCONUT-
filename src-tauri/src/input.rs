@@ -161,46 +161,4 @@ pub fn init_action_backend() {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn maps_an_uppercase_letter_to_the_unshifted_key() {
-        // Regression: an uppercase char makes enigo produce a virtual key with
-        // the shift state still in the high byte, which maps to no scan code
-        // and silently sends a keypress no application can receive.
-        assert_eq!(
-            Action::from_raw_str("L", PressType::Click),
-            Ok(Action::Keyboard(Key::Unicode('l'), PressType::Click))
-        );
-    }
-
-    #[test]
-    fn leaves_already_lowercase_and_digit_keys_alone() {
-        assert_eq!(
-            Action::from_raw_str("w", PressType::Click),
-            Ok(Action::Keyboard(Key::Unicode('w'), PressType::Click))
-        );
-        assert_eq!(
-            Action::from_raw_str("4", PressType::Click),
-            Ok(Action::Keyboard(Key::Unicode('4'), PressType::Click))
-        );
-    }
-
-    #[test]
-    fn maps_named_keys() {
-        assert_eq!(
-            Action::from_raw_str("Space", PressType::Click),
-            Ok(Action::Keyboard(Key::Space, PressType::Click))
-        );
-        assert_eq!(
-            Action::from_raw_str("ArrowUp", PressType::Click),
-            Ok(Action::Keyboard(Key::UpArrow, PressType::Click))
-        );
-    }
-
-    #[test]
-    fn rejects_an_unknown_named_key() {
-        assert!(Action::from_raw_str("Nonsense", PressType::Click).is_err());
-    }
-}
+mod tests;
