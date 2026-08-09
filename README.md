@@ -60,6 +60,8 @@ They cover:
 
 Keyboard and menu functionality are replaced with test fakes where needed so automated tests do not send real keyboard input or modify the native application menu.
 
+The binary `main.rs` is intentionally only a launcher that delegates to `human_controller_lib::run()`; it has no application logic of its own. The meaningful startup and command-registration behaviour is tested through `lib.rs` with Tauri's `MockRuntime`. Calling the binary entrypoint in a unit test would start the real native event loop, so `main.rs` is treated as a manual smoke-test entrypoint rather than a unit-test target.
+
 ### Session overlay
 
 The overlay tests use Tauri's `MockRuntime` to test most of the overlay behaviour without opening real native windows.
