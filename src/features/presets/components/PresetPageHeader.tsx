@@ -27,12 +27,38 @@ export default function PresetPageHeader({
 
   return (
     <header>
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-        <div className="inline-flex items-center gap-3 self-start rounded-lg border bg-card px-4 py-3">
-          <UserRound className="size-6 text-primary" aria-hidden="true" />
-          <div>
-            <p className="text-sm text-muted-foreground">Patient</p>
-            <p className="font-semibold text-foreground">{patientName}</p>
+      <BackButton to="/" />
+
+      <div className="mt-6 flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+        <div>
+          <div className="flex items-center gap-2">
+            <h1 className="text-3xl font-semibold tracking-tight text-foreground">
+              Choose a preset
+            </h1>
+            <div className="group relative">
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                aria-describedby="preset-page-help"
+                aria-label="About preset selection"
+              >
+                <Info className="size-4" aria-hidden="true" />
+              </Button>
+              <div
+                id="preset-page-help"
+                role="tooltip"
+                className="invisible absolute top-full left-0 z-20 mt-2 w-64 rounded-md border bg-popover p-3 text-sm text-popover-foreground opacity-0 shadow-sm transition-opacity group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100"
+              >
+                Select a saved movement profile or create one to test recognition.
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-3 flex items-center gap-2 text-sm">
+            <UserRound className="size-4 text-primary" aria-hidden="true" />
+            <span className="text-muted-foreground">Patient</span>
+            <span className="font-medium text-foreground">{patientName}</span>
           </div>
         </div>
 
@@ -54,29 +80,6 @@ export default function PresetPageHeader({
             patientId={patientId}
           />
           <ExportPatientButton patientId={patientId} patientName={patientName} />
-          <BackButton to="/" />
-        </div>
-      </div>
-
-      <div className="mt-8 flex items-center gap-2">
-        <h1 className="text-3xl font-semibold tracking-tight text-foreground">Choose a preset</h1>
-        <div className="group relative">
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-sm"
-            aria-describedby="preset-page-help"
-            aria-label="About preset selection"
-          >
-            <Info className="size-4" aria-hidden="true" />
-          </Button>
-          <div
-            id="preset-page-help"
-            role="tooltip"
-            className="invisible absolute top-full left-0 z-20 mt-2 w-64 rounded-md border bg-popover p-3 text-sm text-popover-foreground opacity-0 shadow-sm transition-opacity group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100"
-          >
-            Select a saved movement profile or create one to test recognition.
-          </div>
         </div>
       </div>
     </header>
