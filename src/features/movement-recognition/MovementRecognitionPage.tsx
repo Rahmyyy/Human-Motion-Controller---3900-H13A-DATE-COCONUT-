@@ -16,7 +16,6 @@ export default function MovementRecognitionPage() {
           <h1 className="text-3xl font-semibold tracking-tight text-foreground">
             Live Recognition
           </h1>
-          <p className="mt-2 text-sm text-muted-foreground">Current preset: {presetId}</p>
         </div>
       </header>
 
