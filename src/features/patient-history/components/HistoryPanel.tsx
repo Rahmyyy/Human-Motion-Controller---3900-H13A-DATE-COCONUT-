@@ -36,7 +36,7 @@ export default function HistoryPanel({
   title,
 }: HistoryPanelProps) {
   return (
-    <Card className="shadow-sm">
+    <Card className="bg-card/70 shadow-none ring-0">
       <CardHeader className="gap-1">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>

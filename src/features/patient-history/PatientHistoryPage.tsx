@@ -25,7 +25,7 @@ export default function PatientHistoryPage() {
   const hasNoHistory = !history.isLoading && !history.error && history.totalSessionCount === 0;
 
   return (
-    <section className="min-h-screen bg-muted/20 px-8 py-8 pb-16">
+    <section className="site-page-gutter min-h-screen bg-muted/20 py-8 pb-16">
       <div className="mx-auto max-w-7xl">
         <PatientHistoryHeader patientId={patientId} patientName={patientName} />
 

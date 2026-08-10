@@ -16,7 +16,7 @@ export default function PatientHistoryMetricCard({
   value,
 }: PatientHistoryMetricCardProps) {
   return (
-    <Card className="justify-center py-5 shadow-sm">
+    <Card className="justify-center bg-card/70 py-5 shadow-none ring-0">
       <CardContent className="flex items-center gap-4">
         <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
           <Icon className="size-6" aria-hidden="true" />
