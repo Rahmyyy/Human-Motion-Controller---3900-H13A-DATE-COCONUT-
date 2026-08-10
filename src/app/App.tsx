@@ -1,5 +1,4 @@
 import { HashRouter, Route, Routes } from "react-router";
-import LiveDashboardPage from "@/features/dashboard/LiveDashboardPage";
 import MainDashboardPage from "@/features/dashboard/MainDashboardPage";
 import MovementMappingRoutePage from "@/features/movement-mapping/MovementMappingRoutePage";
 import MovementRecognitionPage from "@/features/movement-recognition/MovementRecognitionPage";
@@ -36,10 +35,6 @@ export default function App() {
         <Route
           path="/patients/:patientId/presets/:presetId/movements/new"
           element={<MovementMappingRoutePage />}
-        />
-        <Route
-          path="/patients/:patientId/presets/:presetId/dashboard"
-          element={<LiveDashboardPage />}
         />
         <Route
           path="/patients/:patientId/presets/:presetId/session"
