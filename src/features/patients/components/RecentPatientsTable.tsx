@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { Search } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
@@ -19,6 +19,7 @@ import {
 import PatientActionsMenu from "./PatientActionsMenu";
 
 type RecentPatientsTableProps = {
+  headerActions?: ReactNode;
   patients: Patient[];
   onModify: (patient: Patient) => void;
   onSelect: (patient: Patient) => void;
@@ -40,6 +41,7 @@ function getInitials(displayName: string) {
 }
 
 export default function RecentPatientsTable({
+  headerActions,
   patients,
   onModify,
   onSelect,
@@ -56,7 +58,10 @@ export default function RecentPatientsTable({
   return (
     <div className="overflow-hidden rounded-xl border bg-card">
       <div className="flex flex-col gap-3 border-b p-4 xl:flex-row xl:items-center xl:justify-between">
-        <h2 className="text-lg font-semibold">Recent Patients</h2>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-lg font-semibold">Recent Patients</h2>
+          {headerActions ? <div className="flex items-center gap-1">{headerActions}</div> : null}
+        </div>
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
           <div className="relative sm:w-72">
             <Search
@@ -168,9 +173,11 @@ export default function RecentPatientsTable({
       </div>
 
       {visiblePatients.length === 0 && (
-        <p className="border-t px-4 py-10 text-center text-sm text-muted-foreground">
-          No patients match the current search and filter.
-        </p>
+        <div className="border-t px-4 py-10 text-center text-sm text-muted-foreground">
+          {patients.length === 0
+            ? "No patients have been added yet. Add or import a patient to begin."
+            : "No patients match the current search and filter."}
+        </div>
       )}
     </div>
   );

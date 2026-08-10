@@ -16,11 +16,16 @@ import { Upload } from "lucide-react";
 import { importPatient, previewImportPatient, type Patient } from "@/modules/patient-presets";
 
 interface ImportPatientButtonProps {
+  compact?: boolean;
   patients: Patient[];
   onImported: () => Promise<void>;
 }
 
-export default function ImportPatientButton({ patients, onImported }: ImportPatientButtonProps) {
+export default function ImportPatientButton({
+  compact = false,
+  patients,
+  onImported,
+}: ImportPatientButtonProps) {
   const [isImporting, setIsImporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pendingDuplicate, setPendingDuplicate] = useState<{
@@ -81,9 +86,17 @@ export default function ImportPatientButton({ patients, onImported }: ImportPati
 
   return (
     <div className="flex flex-col items-end gap-2">
-      <Button type="button" variant="outline" onClick={handleImport} disabled={isImporting}>
+      <Button
+        type="button"
+        variant={compact ? "ghost" : "outline"}
+        size={compact ? "icon" : "default"}
+        title={compact ? "Import Patient" : undefined}
+        aria-label={compact ? "Import Patient" : undefined}
+        onClick={handleImport}
+        disabled={isImporting}
+      >
         <Upload className="size-4" aria-hidden="true" />
-        {isImporting ? "Importing…" : "Import Patient"}
+        {!compact && (isImporting ? "Importing…" : "Import Patient")}
       </Button>
 
       {error && (
