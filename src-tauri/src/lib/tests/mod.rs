@@ -38,7 +38,10 @@ fn initialize_app_registers_database_state_menu_and_input_backend() {
     initialize_app(
         &mut app,
         temp_dir.path(),
-        || input_initialized.set(true),
+        || {
+            input_initialized.set(true);
+            Ok(())
+        },
         |_| {
             menu_installed.set(true);
             Ok(())
@@ -62,7 +65,10 @@ fn initialize_app_stops_before_side_effects_when_database_setup_fails() {
     let result = initialize_app(
         &mut app,
         &file_in_the_way.join("app-data"),
-        || input_initialized.set(true),
+        || {
+            input_initialized.set(true);
+            Ok(())
+        },
         |_| panic!("menu installation must not run after database failure"),
     );
 
@@ -80,7 +86,10 @@ fn initialize_app_propagates_menu_installation_failure() {
     let result = initialize_app(
         &mut app,
         temp_dir.path(),
-        || input_initialized.set(true),
+        || {
+            input_initialized.set(true);
+            Ok(())
+        },
         |_| Err(tauri::Error::AssetNotFound("test menu".into())),
     );
 

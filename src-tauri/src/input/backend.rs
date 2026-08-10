@@ -1,8 +1,4 @@
-use std::{
-    fmt::Display,
-    sync::{Mutex, MutexGuard, OnceLock},
-    time::Duration,
-};
+use std::sync::{Mutex, MutexGuard, OnceLock};
 
 use enigo::{Button, Direction, Enigo, Key, Keyboard, Mouse, Settings};
 use log::{error, info};
@@ -29,13 +25,21 @@ pub(super) fn request_enigo() -> Result<MutexGuard<'static, Enigo>, String> {
     request_backend(&ENIGO_HANDLER)
 }
 
-pub(super) fn init_action_backend() {
-    let enigo = create_with_retry(Settings::default(), Enigo::new, std::thread::sleep);
+pub(super) fn init_action_backend() -> Result<(), ()> {
+    let enigo = match Enigo::new(&Settings::default()) {
+        Ok(x) => x,
+        Err(e) => {
+            error!("Failed to initialize enigo: {}", e);
+            return Err(());
+        }
+    };
 
     match store_backend(&ENIGO_HANDLER, enigo).expect("Enigo backend lock was poisoned") {
         StoreResult::Initialized => info!("Initialised enigo backend"),
         StoreResult::Reinitialized => info!("Re-initialised enigo backend"),
     }
+
+    Ok(())
 }
 
 pub(super) fn request_backend<T>(
@@ -67,27 +71,5 @@ pub(super) fn store_backend<T>(
             .set(Mutex::new(backend))
             .map_err(|_| "Input backend was initialised concurrently".to_string())?;
         Ok(StoreResult::Initialized)
-    }
-}
-
-pub(super) fn create_with_retry<T, E, C, S>(
-    mut settings: Settings,
-    mut create: C,
-    mut sleep: S,
-) -> T
-where
-    E: Display,
-    C: FnMut(&Settings) -> Result<T, E>,
-    S: FnMut(Duration),
-{
-    loop {
-        info!("Attempting to initialize enigo backend...");
-        match create(&settings) {
-            Ok(backend) => return backend,
-            Err(error) => error!("Failed to initialize enigo: {error}"),
-        }
-
-        settings.open_prompt_to_get_permissions = false;
-        sleep(Duration::from_secs(1));
     }
 }

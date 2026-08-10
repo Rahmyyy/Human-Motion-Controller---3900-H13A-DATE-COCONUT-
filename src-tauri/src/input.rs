@@ -28,8 +28,8 @@ fn execute_with<B: InputBackend>(
 }
 
 /// Initialises the real operating-system input adapter during Tauri startup.
-pub fn init_action_backend() {
-    backend::init_action_backend();
+pub fn init_action_backend() -> Result<(), ()> {
+    backend::init_action_backend()
 }
 
 #[cfg(test)]
