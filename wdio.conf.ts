@@ -1,7 +1,6 @@
 import { lstatSync, mkdtempSync, realpathSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { basename, dirname, join } from "node:path";
-import type { Options } from "@wdio/types";
 
 const dataDirectoryPrefix = "human-controller-e2e-";
 const e2eDataDirectory = mkdtempSync(join(tmpdir(), dataDirectoryPrefix));
@@ -26,7 +25,7 @@ function removeE2eDataDirectory() {
   rmSync(resolvedDirectory, { recursive: true });
 }
 
-export const config: Options.Testrunner = {
+export const config: WebdriverIO.Config = {
   runner: "local",
   specs: ["./e2e/specs/**/*.e2e.ts"],
   maxInstances: 1,
