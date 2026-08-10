@@ -4,6 +4,9 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
+    "prepare:mediapipe": "node scripts/copy-mediapipe-assets.mjs",
+    "prebuild": "npm run prepare:mediapipe",
+    "predev": "npm run prepare:mediapipe",
     "dev": "vite",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
