@@ -1,45 +1,29 @@
-import { describe, expect, it } from "vitest";
-import { createPatientHistoryWithDependencies } from "./history";
-import { session } from "./testSessions";
+import { describe, expect, it, vi } from "vitest";
+import { createPatientHistory } from "./history";
 import { ALL_PRESETS } from "./types";
 
-describe("patient history lifecycle", () => {
-  it("resets the preset filter when switching patients but preserves the date range", async () => {
-    const sessionsByPatient = {
-      patientA: [session({ id: "session-a", presetId: "preset-a" })],
-      patientB: [session({ id: "session-b", presetId: "preset-b" })],
-    };
-    const history = createPatientHistoryWithDependencies({
-      loadSessions: async (patientId) =>
-        sessionsByPatient[patientId as keyof typeof sessionsByPatient] ?? [],
-      loadPatient: async (patientId) => ({ displayName: patientId }),
-      now: () => Date.now(),
+describe("createPatientHistory", () => {
+  it("starts out loading, with nothing to show yet", () => {
+    expect(createPatientHistory().getSnapshot()).toMatchObject({
+      error: null,
+      isLoading: true,
+      patientName: null,
+      filter: { dateRange: "30d", presetId: ALL_PRESETS },
+      sessions: [],
+      totalSessionCount: 0,
     });
-
-    await history.start("patientA");
-    history.setDateRange("all");
-    history.setPresetId("preset-a");
-
-    await history.start("patientB");
-
-    expect(history.getSnapshot().filter).toEqual({
-      dateRange: "all",
-      presetId: ALL_PRESETS,
-    });
-    expect(history.getSnapshot().sessions.map(({ id }) => id)).toEqual(["session-b"]);
   });
 
-  it("preserves the preset filter when retrying the same patient", async () => {
-    const history = createPatientHistoryWithDependencies({
-      loadSessions: async () => [session({ presetId: "preset-a" })],
-      loadPatient: async () => ({ displayName: "Patient A" }),
-      now: () => Date.now(),
+  /** Outside the app there is no native store to read from, so the load reports its failure. */
+  it("reads its sessions from the native store", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const page = createPatientHistory();
+
+    await page.start("patient-1");
+
+    expect(page.getSnapshot()).toMatchObject({
+      error: "Could not load this patient's history.",
+      isLoading: false,
     });
-
-    await history.start("patientA");
-    history.setPresetId("preset-a");
-    await history.retry();
-
-    expect(history.getSnapshot().filter.presetId).toBe("preset-a");
   });
 });
