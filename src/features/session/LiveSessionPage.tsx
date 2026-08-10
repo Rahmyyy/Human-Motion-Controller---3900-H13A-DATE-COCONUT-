@@ -34,7 +34,7 @@ export default function LiveSessionPage() {
             <h1 className="text-xl font-semibold">Session cannot start</h1>
             <p className="text-sm text-white/70">{error}</p>
             <Button type="button" variant="outline" onClick={() => navigate("/")}>
-              Back to presets
+              Back to dashboard
             </Button>
           </>
         ) : (
