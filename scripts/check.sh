@@ -20,3 +20,5 @@ cargo llvm-cov \
   --manifest-path src-tauri/Cargo.toml
 
 npm run test:coverage
+
+bash scripts/e2e.sh

@@ -18,6 +18,7 @@ export default function PatientActionsMenu({ onModify, patient }: PatientActions
           variant="ghost"
           size="icon-sm"
           aria-label={`Actions for ${patient.displayName}`}
+          data-testid={`patient-actions-${patient.id}`}
           onClick={(event) => event.stopPropagation()}
           onKeyDown={(event) => event.stopPropagation()}
         >
@@ -33,6 +34,7 @@ export default function PatientActionsMenu({ onModify, patient }: PatientActions
           onClick={(event) => event.stopPropagation()}
         >
           <DropdownMenuPrimitive.Item
+            data-testid={`modify-patient-${patient.id}`}
             className="flex cursor-default items-center gap-2 rounded-md px-2 py-1.5 outline-none select-none focus:bg-muted"
             onSelect={() => onModify(patient)}
           >
