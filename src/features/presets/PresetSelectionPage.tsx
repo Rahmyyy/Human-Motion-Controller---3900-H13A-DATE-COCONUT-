@@ -3,6 +3,7 @@ import { useLocation, useParams } from "react-router";
 import { getPatient } from "@/modules/patient-presets";
 import PresetActionBar from "./components/PresetActionBar";
 import PresetCollection from "./components/PresetCollection";
+import CreatePresetDialog from "./components/CreatePresetDialog";
 import PresetPageHeader from "./components/PresetPageHeader";
 import { usePresetSelection } from "./hooks/usePresetSelection";
 
@@ -45,16 +46,19 @@ export default function PresetSelectionPage() {
   return (
     <section className="site-page-gutter min-h-screen bg-muted/20 py-8 pb-40">
       <div className="w-full">
-        <PresetPageHeader
-          patientId={patientId}
-          patientName={patientName}
-          createError={presets.createError}
-          isCreating={presets.isCreating}
-          onClearCreateError={presets.clearCreateError}
-          onCreatePreset={presets.createPreset}
-        />
+        <PresetPageHeader patientId={patientId} patientName={patientName} />
 
         <section className="mt-8" aria-label="Saved presets">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <h2 className="text-lg font-semibold text-foreground">Saved Presets</h2>
+            <CreatePresetDialog
+              error={presets.createError}
+              isCreating={presets.isCreating}
+              onClearError={presets.clearCreateError}
+              onCreate={presets.createPreset}
+              patientId={patientId}
+            />
+          </div>
           {presets.isLoading ? (
             <p className="mt-5 text-sm text-muted-foreground">Loading presets...</p>
           ) : presets.error ? (
