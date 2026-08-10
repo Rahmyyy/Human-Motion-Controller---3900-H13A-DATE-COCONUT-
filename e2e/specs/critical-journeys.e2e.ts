@@ -92,7 +92,7 @@ describe("critical patient and preset journeys", () => {
 
     // A new patient begins with empty history but can navigate directly back to their presets.
     await expect($("h1=Choose a preset")).toBeDisplayed();
-    await expect($(`p=${patientName}`)).toBeDisplayed();
+    await expect($(`span=${patientName}`)).toBeDisplayed();
 
     await clickButton("Patient History");
     await expect($("h1=Patient history")).toBeDisplayed();
