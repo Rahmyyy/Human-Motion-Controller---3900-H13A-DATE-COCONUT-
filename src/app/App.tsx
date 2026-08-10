@@ -8,6 +8,7 @@ import PresetSelectionPage from "@/features/presets/PresetSelectionPage";
 import DefaultPoseCalibrationPage from "@/features/presets/DefaultPoseCalibrationPage";
 import LiveSessionPage from "@/features/session/LiveSessionPage";
 import SessionOverlayWindow from "@/features/session/SessionOverlayWindow";
+import NotFoundPage from "./NotFoundPage";
 
 export default function App() {
   return (
@@ -44,6 +45,7 @@ export default function App() {
           path="/patients/:patientId/presets/:presetId/overlay"
           element={<SessionOverlayWindow />}
         />
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </HashRouter>
   );
