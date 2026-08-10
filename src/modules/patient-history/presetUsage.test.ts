@@ -95,6 +95,41 @@ describe("buildPresetUsage", () => {
     expect(buildPresetUsage(sessions).slices[0]?.label).toBe("mario kart 2");
   });
 
+  /** Only three slices get their own colour; the rest are pooled so the donut stays readable. */
+  it("pools the presets beyond the coloured three into one slice", () => {
+    const sessions = [
+      ...twoSessionsOn("preset-1", "mario kart"),
+      ...twoSessionsOn("preset-2", "chess"),
+      ...twoSessionsOn("preset-3", "tetris"),
+      session({ id: "d", presetId: "preset-4", presetName: "pong" }),
+      session({ id: "e", presetId: "preset-5", presetName: "snake" }),
+    ];
+
+    const slices = buildPresetUsage(sessions).slices;
+
+    expect(slices).toHaveLength(4);
+    expect(
+      slices
+        .slice(0, 3)
+        .map((slice) => slice.label)
+        .sort(),
+    ).toEqual(["chess", "mario kart", "tetris"]);
+    expect(slices[3]).toMatchObject({ key: "other", sessionCount: 2, colorIndex: null });
+  });
+
+  it("still totals a hundred percent once the pooled slice is included", () => {
+    const sessions = [
+      ...twoSessionsOn("preset-1", "mario kart"),
+      ...twoSessionsOn("preset-2", "chess"),
+      ...twoSessionsOn("preset-3", "tetris"),
+      session({ id: "d", presetId: "preset-4", presetName: "pong" }),
+    ];
+
+    const slices = buildPresetUsage(sessions).slices;
+
+    expect(slices.reduce((total, slice) => total + slice.percentage, 0)).toBe(100);
+  });
+
   it("returns an empty usage when there are no sessions", () => {
     expect(buildPresetUsage([])).toEqual({
       slices: [],
@@ -104,3 +139,11 @@ describe("buildPresetUsage", () => {
     });
   });
 });
+
+/** Two sessions on one preset, so it outranks the single-session presets pooled into "Other". */
+function twoSessionsOn(presetId: string, presetName: string) {
+  return [
+    session({ id: `${presetId}-a`, presetId, presetName }),
+    session({ id: `${presetId}-b`, presetId, presetName }),
+  ];
+}
