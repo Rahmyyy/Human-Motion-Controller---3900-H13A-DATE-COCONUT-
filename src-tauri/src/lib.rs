@@ -141,15 +141,19 @@ where
     if enigo_initalized.is_err() {
         let app_handle = app.handle();
 
-        app_handle
+        let restart = app_handle
             .dialog()
-            .message("Press OK to restart the application and try again.")
+            .message("Press OK once permissions have been granted to restart the application, or Cancel to exit.")
             .title("Please grant permission for human-controller to control your computer")
-            .kind(tauri_plugin_dialog::MessageDialogKind::Info)
-            .buttons(tauri_plugin_dialog::MessageDialogButtons::Ok)
+            .kind(tauri_plugin_dialog::MessageDialogKind::Warning)
+            .buttons(tauri_plugin_dialog::MessageDialogButtons::OkCancel)
             .blocking_show();
 
-        app_handle.restart();
+        if restart {
+            app_handle.restart();
+        } else {
+            app_handle.exit(1);
+        }
     }
 
     install_menu(app)?;
