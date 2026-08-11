@@ -36,8 +36,7 @@ export default function CreatePresetDialog({
   const [presetName, setPresetName] = useState("");
 
   const trimmedPresetName = presetName.trim();
-  const canContinue =
-    selectedMode === "template" || (selectedMode === "custom" && trimmedPresetName.length > 0);
+  const canContinue = selectedMode === "custom" && trimmedPresetName.length > 0;
 
   const resetDialog = () => {
     setSelectedMode(null);
@@ -52,9 +51,7 @@ export default function CreatePresetDialog({
       if (preset && patientId) {
         navigate(`/patients/${patientId}/presets/${preset.id}/edit`);
       }
-      return;
     }
-    // later add to here, functionality for existing templates
   };
 
   return (

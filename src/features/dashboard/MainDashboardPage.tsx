@@ -13,7 +13,6 @@ import {
   type ScheduledSession,
 } from "@/modules/scheduling";
 import AddPatientDialog from "./components/AddPatientDialog";
-import AddSessionDialog from "./components/AddSessionDialog";
 import DashboardMetricCard from "./components/DashboardMetricCard";
 import NeedsAttentionCard from "./components/NeedsAttentionCard";
 import TodaysScheduleCard from "./components/TodaysScheduleCard";
@@ -114,20 +113,6 @@ export default function MainDashboardPage() {
               Select a patient to view their available preset mappings.
             </p>
           </div>
-          <div className="flex flex-wrap gap-2">
-            <AddPatientDialog
-              onPatientCreated={async () => {
-                await Promise.all([loadPatients(), loadOverview()]);
-              }}
-            />
-            <ImportPatientButton
-              patients={patients}
-              onImported={async () => {
-                await Promise.all([loadPatients(), loadOverview()]);
-              }}
-            />
-            <AddSessionDialog patients={patients} onSessionCreated={loadOverview} />
-          </div>
         </header>
 
         <section
@@ -170,12 +155,24 @@ export default function MainDashboardPage() {
               <p className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
                 {patientsError}
               </p>
-            ) : patients.length === 0 ? (
-              <div className="rounded-xl border border-dashed bg-card/50 p-8 text-sm text-muted-foreground">
-                No patients have been added yet. Add a patient to begin.
-              </div>
             ) : (
               <RecentPatientsTable
+                headerActions={
+                  <>
+                    <AddPatientDialog
+                      onPatientCreated={async () => {
+                        await Promise.all([loadPatients(), loadOverview()]);
+                      }}
+                    />
+                    <ImportPatientButton
+                      compact
+                      patients={patients}
+                      onImported={async () => {
+                        await Promise.all([loadPatients(), loadOverview()]);
+                      }}
+                    />
+                  </>
+                }
                 patients={patients}
                 onModify={setPatientBeingModified}
                 onSelect={(patient) => openPatient(patient.id, patient.displayName)}
@@ -187,7 +184,9 @@ export default function MainDashboardPage() {
             <TodaysScheduleCard
               error={overviewError}
               isLoading={isOverviewLoading}
+              patients={patients}
               sessions={overview.todaysSchedule}
+              onSessionCreated={loadOverview}
               onSelectSession={openScheduledPatient}
             />
             <NeedsAttentionCard

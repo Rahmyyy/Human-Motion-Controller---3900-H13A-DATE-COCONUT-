@@ -7,11 +7,16 @@ import { Download } from "lucide-react";
 import { exportPatient } from "@/modules/patient-presets";
 
 interface ExportPatientButtonProps {
+  compact?: boolean;
   patientId: string | undefined;
   patientName: string;
 }
 
-export default function ExportPatientButton({ patientId, patientName }: ExportPatientButtonProps) {
+export default function ExportPatientButton({
+  compact = false,
+  patientId,
+  patientName,
+}: ExportPatientButtonProps) {
   const [isExporting, setIsExporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -41,9 +46,17 @@ export default function ExportPatientButton({ patientId, patientName }: ExportPa
 
   return (
     <div className="flex flex-col items-end gap-2">
-      <Button type="button" variant="outline" onClick={handleExport} disabled={isExporting}>
+      <Button
+        type="button"
+        variant={compact ? "ghost" : "outline"}
+        size={compact ? "icon" : "default"}
+        title={compact ? "Export Patient" : undefined}
+        aria-label={compact ? "Export Patient" : undefined}
+        onClick={handleExport}
+        disabled={isExporting}
+      >
         <Download className="size-4" aria-hidden="true" />
-        {isExporting ? "Exporting…" : "Export Patient"}
+        {!compact && (isExporting ? "Exporting…" : "Export Patient")}
       </Button>
 
       {error && (

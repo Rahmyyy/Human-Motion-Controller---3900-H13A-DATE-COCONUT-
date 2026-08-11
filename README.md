@@ -62,6 +62,42 @@ Keyboard and menu functionality are replaced with test fakes where needed so aut
 
 The binary `main.rs` is intentionally only a launcher that delegates to `human_controller_lib::run()`; it has no application logic of its own. The meaningful startup and command-registration behaviour is tested through `lib.rs` with Tauri's `MockRuntime`. Calling the binary entrypoint in a unit test would start the real native event loop, so `main.rs` is treated as a manual smoke-test entrypoint rather than a unit-test target.
 
+### End-to-end journeys
+
+WebdriverIO launches a debug Tauri binary through a test-only embedded WebDriver server. These
+tests use the real React application, Tauri IPC commands, Rust services and repositories, and an
+isolated on-disk SQLite database. The test build creates a new temporary app-data directory for
+every run and removes it after the suite, so it never reads or modifies a developer's application
+data. The WebDriver server is available only when the explicit `e2e` Cargo feature is enabled and
+is not included in normal production builds.
+
+The automated journeys cover:
+
+- session creation being unavailable until a patient exists
+- creating and loading a patient through the real persistence layer
+- navigating between presets and empty patient history
+- creating a custom preset and enforcing calibration before movement configuration
+- validating and persisting scheduled sessions
+- duplicating and deleting presets through their confirmation dialogs
+- loading a completed session from SQLite and rendering its history summary and table row
+- modifying and deleting a patient, including cascade cleanup of their saved data
+- recovering from an unknown application route
+- returning to the dashboard and verifying persisted state throughout the journeys
+
+Run the desktop E2E suite with:
+
+```bash
+npm run test:e2e
+```
+
+The native app build makes this suite slower than Vitest and Rust unit tests, so the E2E suite is
+kept deliberately small and focused on critical cross-layer journeys.
+
+The completed-session history journey inserts its session through the real Tauri command rather
+than starting a webcam session. This keeps the database, service, IPC and rendering layers real
+while avoiding webcam permissions and pose-recognition timing in headless CI. Webcam capture,
+native input delivery and real overlay-window behaviour remain covered by the manual checks below.
+
 ### Session overlay
 
 The overlay tests use Tauri's `MockRuntime` to test most of the overlay behaviour without opening real native windows.
@@ -112,7 +148,6 @@ Manual native-input test cases:
 
 Some behaviours cannot be reliably tested through the automated test suite, including:
 
-- the real Tauri event loop
 - native macOS menu behaviour
 - NSPanel behaviour
 - webcam permissions
