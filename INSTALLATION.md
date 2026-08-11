@@ -1,93 +1,15 @@
-# Developer Internal Installation Guide
+# Developer Setup
 
-Human Controller is a native Tauri desktop application. Docker covers the reproducible build,
-linting, and automated test workflow. Running the interactive application requires native host
-dependencies because webcam access, desktop windows, keyboard injection, and platform packaging
-cannot be fully exercised inside the container.
+Looking for the full installation walkthrough? See the
+**[Installation Manual (PDF)](<Installation Manual.pdf>)**. It is the main guide for installing and
+running Human Controller and includes the platform-specific instructions.
 
-## Option 1: Run automated checks with Docker **(Does not run the program only checks)**
+This file is a shorter reference for developers who already have the required tools installed.
 
-This option requires only:
+## Start the app locally
 
-- Git
-- Docker Desktop with Docker Compose
-
-Clone the repository and run the checks:
-
-```bash
-git clone https://github.com/unsw-cse-comp99-3900/capstone-project-26t2-3900-h13a-date.git
-cd capstone-project-26t2-3900-h13a-date
-docker compose run --build --rm app-checks
-```
-
-Docker installs the required Node.js, Rust, Cargo, npm, and Linux Tauri build dependencies inside
-the image. It then runs:
-
-- Prettier formatting checks
-- ESLint
-- TypeScript type-checking
-- Vite production build
-- Rust formatting checks
-- Clippy
-- Rust tests with a coverage summary
-- Frontend tests with a coverage summary
-- Tauri end-to-end journeys against an isolated SQLite database
-
-Docker launches the Tauri application inside a virtual display for the end-to-end journeys. It
-does not validate physical webcam access, operating-system permissions, or real keyboard input.
-
-## Option 2: Run the application natively
-
-Native development requires Git, Node.js 24 LTS, npm, Rust, Cargo, Docker Desktop, and the
-platform-specific Tauri prerequisites below. Node.js includes npm. Newer Node.js releases may work,
-but Node.js 24 is the supported team baseline.
-
-### Windows
-
-Use an Administrator PowerShell terminal rather than WSL. Install Git, Node.js LTS, Rustup, Docker
-Desktop, and the Visual Studio Build Tools with the C++ workload:
-
-```powershell
-winget install --id Git.Git
-winget install --id OpenJS.NodeJS.LTS
-winget install --id Rustlang.Rustup
-
-// you need desktop dev with c++ package as well here, see Tauri prereqs guide for windows at bottom of the installation guide.
-winget install --id Microsoft.VisualStudio.2022.BuildTools
-```
-
-Restart Windows or close and reopen PowerShell after installation. Then select Rust's stable MSVC
-toolchain:
-
-```powershell
-rustup default stable-msvc
-```
-
-### macOS
-
-First install the Xcode Command Line Tools:
-
-```bash
-xcode-select --install
-```
-
-I use homebrew, but im sure u can downloads these manually with a different manager aswell.
-
-[Homebrew Install Guide](https://brew.sh/)
-
-```bash
-brew install git node@24
-```
-
-For rust i downloaded this a while back so, i didnt reset this up but
-
-[Rust Install Guide](https://rust-lang.org/tools/install/)
-
-**If you have issues with commands not working:** Remember to update `~/.zshrc` or equivalent with relative export paths, and reload this.
-
-### Start development
-
-After installing the native prerequisites:
+Human Controller uses Node.js 24, Rust, and Tauri. If this is your first time working with Tauri,
+check the [official prerequisites](https://v2.tauri.app/start/prerequisites/) before continuing.
 
 ```bash
 git clone https://github.com/unsw-cse-comp99-3900/capstone-project-26t2-3900-h13a-date.git
@@ -96,53 +18,63 @@ npm ci
 npm run tauri dev
 ```
 
-The first Tauri run downloads and compiles Rust dependencies, so it will take longer than later
-runs.
+The first launch can be slow because Rust needs to compile the native dependencies. You may also be
+asked to allow camera, Accessibility, or Input Monitoring access.
 
-## Build a native installer
+## Run all checks with Docker
 
-Run the build on the operating system being targeted:
+If you have Docker Desktop with Docker Compose v2 installed, run:
 
 ```bash
-npm run tauri build
+docker compose run --build --rm app-checks
 ```
 
-Tauri builds are platform-specific. Windows builds should be produced and tested on Windows, while
-macOS builds should be produced and tested on macOS.
+The first build can take up to around 20 minutes. This runs the same main workflow used by GitHub
+Actions, including formatting, linting, builds, frontend and Rust coverage, and desktop E2E tests.
 
-## Docker Usage
-
-The project is containerised to the maximum practical extent. Docker provides a reproducible Linux
-environment that installs the dependencies needed for automated checks, builds the frontend, and
-runs frontend and Rust formatting, linting, compilation, and tests.
-
-The interactive application must run on the native host operating system. Tauri needs direct access
-to the desktop windowing system, webcam permissions, and native keyboard APIs used to control
-external games. Windows and macOS installers must also be built and integration-tested on their
-respective operating systems.
-
-No separate database container is required because the planned SQLite database is embedded in the
-desktop application rather than running as an independent database service. This is as the client
-wanted with a easy setup for non-technical clinicians, who only want local storage.
+Docker is useful for repeatable automated checks, but it cannot properly test a physical webcam,
+real keyboard or mouse input, operating-system permissions, full-screen overlays, or native
+installers.
 
 ## Useful commands
 
 ```bash
-# Run all checks natively
-bash scripts/check.sh
-
-# Run all checks in Docker
-docker compose run --build --rm app-checks
-
-# Start the native application in development mode
+# Run the frontend app through Tauri
 npm run tauri dev
 
-# Build the native application
-npm run tauri build
+# Run frontend unit and component tests
+npm test
 
-# Build and run the Tauri E2E journeys with isolated temporary app data
+# Run frontend coverage
+npm run test:coverage
+
+# Run Rust tests
+cargo test --manifest-path src-tauri/Cargo.toml
+
+# Run Rust coverage
+cargo llvm-cov --manifest-path src-tauri/Cargo.toml
+
+# Run desktop E2E tests
 npm run test:e2e
+
+# Run the complete local check workflow
+bash scripts/check.sh
 ```
 
-For anything I missed it will probably be specific to your install, most likely a Tauri prerequisite that is missing.
-[official Tauri prerequisites](https://v2.tauri.app/start/prerequisites/).
+The desktop E2E suite builds a debug copy of the Tauri application, so it takes longer than the
+unit tests.
+
+## Build an installer
+
+```bash
+npm run tauri build
+```
+
+Tauri installers are platform-specific. Build and test the Windows installer on Windows and the
+macOS installer on macOS.
+
+There is no separate database setup. Human Controller uses an embedded SQLite database and does
+not need a database server or internet connection.
+
+For the testing approach, coverage figures, architecture, and known limitations, see
+[SOFTWARE_QUALITY.md](SOFTWARE_QUALITY.md).
