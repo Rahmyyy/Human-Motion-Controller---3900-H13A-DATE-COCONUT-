@@ -1,4 +1,4 @@
-use tauri::{AppHandle, Manager as _};
+use tauri::{AppHandle, Manager as _, Runtime, WebviewWindow};
 use tauri_nspanel::{
     objc2_app_kit::{NSWindowCollectionBehavior, NSWindowStyleMask},
     tauri_panel, ManagerExt as _, WebviewWindowExt as _,
@@ -7,6 +7,12 @@ use tauri_nspanel::{
 use super::OVERLAY_LABEL;
 
 pub const SHOW_ON_BUILD: bool = false;
+
+pub trait OverlayRuntime: Runtime {
+    fn configure_overlay(overlay: &WebviewWindow<Self>) -> Result<(), String>;
+    fn show_overlay(app: &AppHandle<Self>, overlay: &WebviewWindow<Self>) -> Result<(), String>;
+    fn close_overlay(app: &AppHandle<Self>) -> Result<(), String>;
+}
 
 tauri_panel! {
     panel!(SessionOverlayPanel {
@@ -18,16 +24,63 @@ tauri_panel! {
     })
 }
 
+impl OverlayRuntime for tauri::Wry {
+    fn configure_overlay(overlay: &WebviewWindow<Self>) -> Result<(), String> {
+        configure_wry(overlay)
+    }
+
+    fn show_overlay(app: &AppHandle<Self>, overlay: &WebviewWindow<Self>) -> Result<(), String> {
+        show_wry(app, overlay)
+    }
+
+    fn close_overlay(app: &AppHandle<Self>) -> Result<(), String> {
+        close_wry(app)
+    }
+}
+
+#[cfg(test)]
+impl OverlayRuntime for tauri::test::MockRuntime {
+    fn configure_overlay(_: &WebviewWindow<Self>) -> Result<(), String> {
+        Ok(())
+    }
+
+    fn show_overlay(_: &AppHandle<Self>, overlay: &WebviewWindow<Self>) -> Result<(), String> {
+        overlay.show().map_err(|error| error.to_string())
+    }
+
+    fn close_overlay(app: &AppHandle<Self>) -> Result<(), String> {
+        if let Some(window) = app.get_webview_window(OVERLAY_LABEL) {
+            window.close().map_err(|error| error.to_string())?;
+        }
+        Ok(())
+    }
+}
+
+pub fn configure<R: OverlayRuntime>(overlay: &WebviewWindow<R>) -> Result<(), String> {
+    R::configure_overlay(overlay)
+}
+
+pub fn show<R: OverlayRuntime>(
+    app: &AppHandle<R>,
+    overlay: &WebviewWindow<R>,
+) -> Result<(), String> {
+    R::show_overlay(app, overlay)
+}
+
+pub fn close<R: OverlayRuntime>(app: &AppHandle<R>) -> Result<(), String> {
+    R::close_overlay(app)
+}
+
 /// Fullscreen windows live in separate Spaces on macOS. Configure the overlay
 /// as a non-activating auxiliary panel before AppKit first shows it.
-pub fn configure(overlay: &tauri::WebviewWindow) -> Result<(), String> {
+fn configure_wry(overlay: &WebviewWindow) -> Result<(), String> {
     let app = overlay.app_handle().clone();
     let overlay = overlay.clone();
 
     run_on_main_thread(&app, move || configure_on_main_thread(&overlay))
 }
 
-fn configure_on_main_thread(overlay: &tauri::WebviewWindow) -> Result<(), String> {
+fn configure_on_main_thread(overlay: &WebviewWindow) -> Result<(), String> {
     let panel = overlay
         .to_panel::<SessionOverlayPanel>()
         .map_err(|error| error.to_string())?;
@@ -52,7 +105,7 @@ fn configure_on_main_thread(overlay: &tauri::WebviewWindow) -> Result<(), String
     Ok(())
 }
 
-pub fn show(app: &AppHandle, overlay: &tauri::WebviewWindow) -> Result<(), String> {
+fn show_wry(app: &AppHandle, overlay: &WebviewWindow) -> Result<(), String> {
     let app_for_task = app.clone();
     let overlay = overlay.clone();
 
@@ -66,7 +119,7 @@ pub fn show(app: &AppHandle, overlay: &tauri::WebviewWindow) -> Result<(), Strin
     })
 }
 
-pub fn close(app: &AppHandle) -> Result<(), String> {
+fn close_wry(app: &AppHandle) -> Result<(), String> {
     let app_for_task = app.clone();
 
     run_on_main_thread(app, move || {
@@ -96,6 +149,12 @@ where
     })
     .map_err(|error| error.to_string())?;
 
+    receive_main_thread_result(receiver)
+}
+
+pub(super) fn receive_main_thread_result<T>(
+    receiver: std::sync::mpsc::Receiver<Result<T, String>>,
+) -> Result<T, String> {
     receiver
         .recv()
         .map_err(|_| "macOS main-thread window task was cancelled".to_string())?

@@ -1,5 +1,4 @@
 import { HashRouter, Route, Routes } from "react-router";
-import LiveDashboardPage from "@/features/dashboard/LiveDashboardPage";
 import MainDashboardPage from "@/features/dashboard/MainDashboardPage";
 import MovementMappingRoutePage from "@/features/movement-mapping/MovementMappingRoutePage";
 import MovementRecognitionPage from "@/features/movement-recognition/MovementRecognitionPage";
@@ -9,6 +8,7 @@ import PresetSelectionPage from "@/features/presets/PresetSelectionPage";
 import DefaultPoseCalibrationPage from "@/features/presets/DefaultPoseCalibrationPage";
 import LiveSessionPage from "@/features/session/LiveSessionPage";
 import SessionOverlayWindow from "@/features/session/SessionOverlayWindow";
+import NotFoundPage from "./NotFoundPage";
 
 export default function App() {
   return (
@@ -38,10 +38,6 @@ export default function App() {
           element={<MovementMappingRoutePage />}
         />
         <Route
-          path="/patients/:patientId/presets/:presetId/dashboard"
-          element={<LiveDashboardPage />}
-        />
-        <Route
           path="/patients/:patientId/presets/:presetId/session"
           element={<LiveSessionPage />}
         />
@@ -49,6 +45,7 @@ export default function App() {
           path="/patients/:patientId/presets/:presetId/overlay"
           element={<SessionOverlayWindow />}
         />
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </HashRouter>
   );

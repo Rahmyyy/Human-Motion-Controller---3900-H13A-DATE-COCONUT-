@@ -1,7 +1,9 @@
-use std::sync::Mutex;
+use std::sync::{Mutex, MutexGuard};
 
 use serde::Serialize;
-use tauri::{AppHandle, Emitter, LogicalPosition, Manager, WebviewUrl, WebviewWindowBuilder};
+use tauri::{
+    AppHandle, Emitter, LogicalPosition, Manager, Runtime, WebviewUrl, WebviewWindowBuilder,
+};
 
 #[cfg(target_os = "macos")]
 #[path = "overlay/macos.rs"]
@@ -10,6 +12,8 @@ mod platform;
 #[cfg(not(target_os = "macos"))]
 #[path = "overlay/standard.rs"]
 mod platform;
+
+pub(crate) use platform::OverlayRuntime;
 
 use crate::native::contract::SessionSummaryDto;
 
@@ -37,15 +41,15 @@ const SCREEN_MARGIN: f64 = 24.0;
 /// building a webview window there deadlocks WebView2 on Windows — the window
 /// appears but never paints, and the event loop stops servicing anything else.
 #[tauri::command]
-pub async fn open_overlay(
-    app: AppHandle,
+pub async fn open_overlay<R: Runtime + platform::OverlayRuntime>(
+    app: AppHandle<R>,
     patient_id: String,
     preset_id: String,
     session_id: String,
 ) -> Result<(), String> {
     // Held for the whole command; there is no await inside, so it is never
     // held across a suspension point.
-    let _guard = OPEN_LOCK.lock().map_err(|e| e.to_string())?;
+    let _guard = lock_open(&OPEN_LOCK)?;
 
     if let Some(existing) = app.get_webview_window(OVERLAY_LABEL) {
         // Deliberately no set_focus: key presses are synthesised with enigo,
@@ -56,9 +60,7 @@ pub async fn open_overlay(
     }
 
     // HashRouter, so the route travels in the fragment of the shared entrypoint.
-    let url = format!(
-        "index.html#/patients/{patient_id}/presets/{preset_id}/overlay?sessionId={session_id}"
-    );
+    let url = overlay_url(&patient_id, &preset_id, &session_id);
 
     let overlay = WebviewWindowBuilder::new(&app, OVERLAY_LABEL, WebviewUrl::App(url.into()))
         .title("Human Controller Overlay")
@@ -97,8 +99,8 @@ pub async fn open_overlay(
 /// `async` for the same reason as [`open_overlay`]: window lifecycle work does
 /// not belong on the main thread.
 #[tauri::command]
-pub async fn close_overlay(
-    app: AppHandle,
+pub async fn close_overlay<R: Runtime + platform::OverlayRuntime>(
+    app: AppHandle<R>,
     session_id: String,
     summary: SessionSummaryDto,
 ) -> Result<(), String> {
@@ -129,7 +131,7 @@ struct SessionEndedEvent<'a> {
 /// Ties the overlay's lifetime to the main window. The overlay is hidden from
 /// the taskbar, so without this a user who closes the main window mid-session
 /// would leave the app running with no visible way to quit it.
-pub fn close_with_main_window(app: &AppHandle) {
+pub fn close_with_main_window<R: Runtime>(app: &AppHandle<R>) {
     let Some(main) = app.get_webview_window(MAIN_LABEL) else {
         return;
     };
@@ -137,17 +139,32 @@ pub fn close_with_main_window(app: &AppHandle) {
     let handle = app.clone();
     main.on_window_event(move |event| {
         if matches!(event, tauri::WindowEvent::CloseRequested { .. }) {
-            if let Some(overlay) = handle.get_webview_window(OVERLAY_LABEL) {
-                let _ = overlay.close();
-            }
+            close_overlay_window(&handle);
         }
     });
+}
+
+fn lock_open(lock: &Mutex<()>) -> Result<MutexGuard<'_, ()>, String> {
+    lock.lock().map_err(|error| error.to_string())
+}
+
+fn overlay_url(patient_id: &str, preset_id: &str, session_id: &str) -> String {
+    format!("index.html#/patients/{patient_id}/presets/{preset_id}/overlay?sessionId={session_id}")
+}
+
+fn close_overlay_window<R: Runtime>(app: &AppHandle<R>) -> bool {
+    if let Some(overlay) = app.get_webview_window(OVERLAY_LABEL) {
+        let _ = overlay.close();
+        true
+    } else {
+        false
+    }
 }
 
 /// Parks the overlay in the top-right corner of whichever monitor it opened on.
 /// Positioning is best effort — a failure here leaves a usable overlay in the
 /// default spot, so it must not fail the session.
-fn position_top_right(overlay: &tauri::WebviewWindow) {
+fn position_top_right<R: Runtime>(overlay: &tauri::WebviewWindow<R>) {
     let Ok(Some(monitor)) = overlay.current_monitor() else {
         return;
     };
@@ -156,10 +173,22 @@ fn position_top_right(overlay: &tauri::WebviewWindow) {
     let screen = monitor.size().to_logical::<f64>(scale);
     let origin = monitor.position().to_logical::<f64>(scale);
 
-    let x = origin.x + screen.width - OVERLAY_WIDTH - SCREEN_MARGIN;
-    let y = origin.y + SCREEN_MARGIN;
+    let position = top_right_position(origin, screen);
 
-    if let Err(error) = overlay.set_position(LogicalPosition::new(x, y)) {
+    if let Err(error) = overlay.set_position(position) {
         log::warn!("Failed to position overlay window: {error}");
     }
 }
+
+fn top_right_position(
+    origin: LogicalPosition<f64>,
+    screen: tauri::LogicalSize<f64>,
+) -> LogicalPosition<f64> {
+    LogicalPosition::new(
+        origin.x + screen.width - OVERLAY_WIDTH - SCREEN_MARGIN,
+        origin.y + SCREEN_MARGIN,
+    )
+}
+
+#[cfg(test)]
+mod tests;

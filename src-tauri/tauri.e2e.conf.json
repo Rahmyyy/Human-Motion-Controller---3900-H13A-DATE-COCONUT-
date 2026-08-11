@@ -1,0 +1,14 @@
+{
+  "build": {
+    "beforeBuildCommand": "npm run build -- --mode e2e"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "Human Controller",
+        "width": 800,
+        "height": 600
+      }
+    ]
+  }
+}

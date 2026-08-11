@@ -47,7 +47,7 @@ function MetricsSkeleton() {
   return (
     <section className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4" aria-hidden="true">
       {[0, 1, 2, 3].map((index) => (
-        <Card key={index} className="justify-center py-5 shadow-sm">
+        <Card key={index} className="justify-center bg-card/70 py-5 shadow-none ring-0">
           <CardContent className="flex items-center gap-4">
             <span className="size-12 shrink-0 animate-pulse rounded-full bg-muted" />
             <div className="w-full space-y-2">

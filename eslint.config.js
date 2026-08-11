@@ -21,6 +21,15 @@ export default defineConfig([
     },
   },
   {
+    files: ["e2e/**/*.ts", "wdio.conf.ts"],
+    languageOptions: {
+      globals: {
+        ...globals.mocha,
+        ...globals.node,
+      },
+    },
+  },
+  {
     files: ["src/modules/**/*.{ts,tsx}"],
     rules: {
       "no-restricted-imports": [

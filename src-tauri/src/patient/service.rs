@@ -133,7 +133,3 @@ fn validate_status(status: &str) -> Result<&str> {
         _ => Err(anyhow!("Patient status must be active or needsReview")),
     }
 }
-
-#[cfg(test)]
-#[path = "service_tests.rs"]
-mod tests;

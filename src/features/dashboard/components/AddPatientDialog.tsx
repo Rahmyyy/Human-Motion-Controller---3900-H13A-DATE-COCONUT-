@@ -27,7 +27,7 @@ export default function AddPatientDialog({ onPatientCreated }: AddPatientDialogP
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button type="button" variant="outline" className="gap-2">
+        <Button type="button" className="gap-2 shadow-sm">
           <UserPlus className="size-4" aria-hidden="true" />
           Add Patient
         </Button>

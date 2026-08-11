@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-use crate::{movement_mapping::repository, patient, preset, scheduled_session, session};
+use crate::{movement_mapping::model, patient, preset, scheduled_session, session};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -38,8 +38,8 @@ pub struct ScheduledSessionDto {
     pub scheduled_at_ms: i64,
 }
 
-impl From<scheduled_session::repository::ScheduledSession> for ScheduledSessionDto {
-    fn from(session: scheduled_session::repository::ScheduledSession) -> Self {
+impl From<scheduled_session::model::ScheduledSession> for ScheduledSessionDto {
+    fn from(session: scheduled_session::model::ScheduledSession) -> Self {
         Self {
             id: session.id,
             patient_id: session.patient_id,
@@ -57,8 +57,8 @@ pub struct DashboardOverviewDto {
     pub todays_schedule: Vec<ScheduledSessionDto>,
 }
 
-impl From<scheduled_session::repository::DashboardOverview> for DashboardOverviewDto {
-    fn from(overview: scheduled_session::repository::DashboardOverview) -> Self {
+impl From<scheduled_session::model::DashboardOverview> for DashboardOverviewDto {
+    fn from(overview: scheduled_session::model::DashboardOverview) -> Self {
         Self {
             active_patient_count: overview.active_patient_count,
             sessions_today_count: overview.sessions_today_count,
@@ -82,8 +82,8 @@ pub struct PresetDto {
     pub default_pose_frames_json: Option<String>,
 }
 
-impl From<preset::repository::Preset> for PresetDto {
-    fn from(preset: preset::repository::Preset) -> Self {
+impl From<preset::model::Preset> for PresetDto {
+    fn from(preset: preset::model::Preset) -> Self {
         Self {
             id: preset.id,
             patient_id: preset.patient_id,
@@ -108,8 +108,8 @@ pub struct MovementMappingSummaryDto {
     pub keypress_trigger_threshold_percentage: u32,
 }
 
-impl From<repository::MovementMappingSummary> for MovementMappingSummaryDto {
-    fn from(mapping: repository::MovementMappingSummary) -> Self {
+impl From<model::MovementMappingSummary> for MovementMappingSummaryDto {
+    fn from(mapping: model::MovementMappingSummary) -> Self {
         Self {
             id: mapping.id,
             name: mapping.name,
@@ -137,8 +137,8 @@ pub struct MovementMappingDetailsDto {
     pub keypress_trigger_threshold_percentage: u32,
 }
 
-impl From<repository::MovementMappingDetails> for MovementMappingDetailsDto {
-    fn from(mapping: repository::MovementMappingDetails) -> Self {
+impl From<model::MovementMappingDetails> for MovementMappingDetailsDto {
+    fn from(mapping: model::MovementMappingDetails) -> Self {
         Self {
             id: mapping.id,
             preset_id: mapping.preset_id,
@@ -173,8 +173,8 @@ pub struct SessionMappingStatDto {
     pub trigger_count: i64,
 }
 
-impl From<session::repository::SessionMappingStat> for SessionMappingStatDto {
-    fn from(stat: session::repository::SessionMappingStat) -> Self {
+impl From<session::model::SessionMappingStat> for SessionMappingStatDto {
+    fn from(stat: session::model::SessionMappingStat) -> Self {
         Self {
             mapping_id: stat.mapping_id,
             mapping_name: stat.mapping_name,
@@ -201,8 +201,8 @@ pub struct PatientSessionDto {
     pub mappings: Vec<SessionMappingStatDto>,
 }
 
-impl From<session::repository::PatientSession> for PatientSessionDto {
-    fn from(session: session::repository::PatientSession) -> Self {
+impl From<session::model::PatientSession> for PatientSessionDto {
+    fn from(session: session::model::PatientSession) -> Self {
         Self {
             id: session.id,
             preset_id: session.preset_id,

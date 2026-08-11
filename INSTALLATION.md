@@ -31,9 +31,10 @@ the image. It then runs:
 - Clippy
 - Rust tests with a coverage summary
 - Frontend tests with a coverage summary
+- Tauri end-to-end journeys against an isolated SQLite database
 
-Docker does not launch the interactive Tauri application or validate native webcam and keyboard
-integration.
+Docker launches the Tauri application inside a virtual display for the end-to-end journeys. It
+does not validate physical webcam access, operating-system permissions, or real keyboard input.
 
 ## Option 2: Run the application natively
 
@@ -138,6 +139,9 @@ npm run tauri dev
 
 # Build the native application
 npm run tauri build
+
+# Build and run the Tauri E2E journeys with isolated temporary app data
+npm run test:e2e
 ```
 
 For anything I missed it will probably be specific to your install, most likely a Tauri prerequisite that is missing.

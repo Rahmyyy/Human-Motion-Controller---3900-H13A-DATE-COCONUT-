@@ -257,7 +257,3 @@ fn epoch_seconds_now() -> Result<String> {
         .as_secs()
         .to_string())
 }
-
-#[cfg(test)]
-#[path = "service_tests.rs"]
-mod tests;

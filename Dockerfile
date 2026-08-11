@@ -17,6 +17,7 @@ RUN apt update && apt install -y \
   libclang-dev \
   libayatana-appindicator3-dev \
   librsvg2-dev \
+  xvfb \
   && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app

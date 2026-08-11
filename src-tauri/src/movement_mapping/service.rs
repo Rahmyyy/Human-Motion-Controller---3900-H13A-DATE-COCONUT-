@@ -1,25 +1,13 @@
-use super::repository::{self, MovementMappingDetails, MovementMappingSummary};
+use super::{
+    model::{MovementMappingDetails, MovementMappingSummary},
+    repository,
+    validation::{
+        serialize_selected_landmarks, validate_keypress_trigger_threshold, validate_keypress_type,
+    },
+};
 use anyhow::{anyhow, Result};
 use rusqlite::Connection;
 use std::time::{SystemTime, UNIX_EPOCH};
-
-// The body landmarks recognition can track. Kept in sync with TRACKED_LANDMARKS on the frontend.
-const TRACKED_LANDMARKS: [u32; 12] = [11, 12, 13, 14, 15, 16, 23, 24, 25, 26, 27, 28];
-const MIN_KEYPRESS_TRIGGER_THRESHOLD_PERCENTAGE: u32 = 30;
-const MAX_KEYPRESS_TRIGGER_THRESHOLD_PERCENTAGE: u32 = 100;
-
-/// Validate a landmark selection and encode it for storage. An empty selection is allowed and
-/// stored as `[]` — downstream (and the frontend) treat that as "all tracked landmarks".
-fn serialize_selected_landmarks(selected: &[u32]) -> Result<String> {
-    if let Some(invalid) = selected
-        .iter()
-        .find(|index| !TRACKED_LANDMARKS.contains(index))
-    {
-        return Err(anyhow!("Invalid landmark index: {invalid}"));
-    }
-
-    Ok(serde_json::to_string(selected)?)
-}
 
 #[allow(clippy::too_many_arguments)]
 pub fn create_movement_mapping(
@@ -156,27 +144,6 @@ pub fn update_movement_mapping(
     Ok(())
 }
 
-fn validate_keypress_trigger_threshold(threshold_percentage: u32) -> Result<()> {
-    if !(MIN_KEYPRESS_TRIGGER_THRESHOLD_PERCENTAGE..=MAX_KEYPRESS_TRIGGER_THRESHOLD_PERCENTAGE)
-        .contains(&threshold_percentage)
-    {
-        return Err(anyhow!(
-            "Keypress trigger threshold must be between 30 and 100"
-        ));
-    }
-
-    Ok(())
-}
-
-fn validate_keypress_type(keypress_type: &str) -> Result<()> {
-    match keypress_type.trim() {
-        "Toggle" | "Press" | "Release" | "Click" => Ok(()),
-        _ => Err(anyhow!(
-            "Keypress type must be one of Toggle, Press, Release, or Click"
-        )),
-    }
-}
-
 pub fn delete_movement_mapping(conn: &Connection, id: &str, preset_id: &str) -> Result<()> {
     let rows_affected = repository::delete_movement_mapping(conn, id, preset_id)?;
 
@@ -206,7 +173,3 @@ pub fn update_movement_mapping_threshold(
 
     Ok(())
 }
-
-#[cfg(test)]
-#[path = "service_tests.rs"]
-mod tests;

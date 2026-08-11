@@ -20,7 +20,7 @@ export default function PatientHistoryEmptyState({
   const navigate = useNavigate();
 
   return (
-    <Card className="mt-6 shadow-sm">
+    <Card className="mt-6 bg-card/70 shadow-none ring-0">
       <CardContent className="flex flex-col items-center gap-3 px-6 py-14 text-center">
         <span className="flex size-12 items-center justify-center rounded-full bg-primary/10 text-primary">
           <History className="size-6" aria-hidden="true" />
