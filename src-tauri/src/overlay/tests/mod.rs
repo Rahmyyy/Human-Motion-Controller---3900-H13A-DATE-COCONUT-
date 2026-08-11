@@ -1,5 +1,6 @@
 mod close;
 mod ipc;
+mod logic;
 mod open;
 mod platform;
 

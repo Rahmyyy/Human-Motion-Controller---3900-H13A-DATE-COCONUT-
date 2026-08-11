@@ -1,7 +1,5 @@
-import { LayoutDashboard } from "lucide-react";
-import { Link, useParams } from "react-router";
+import { useParams } from "react-router";
 import BackButton from "@/components/BackButton";
-import { Button } from "@/components/ui/button";
 import MediaPipePosePreview from "@/features/camera/MediaPipePosePreview";
 import RecognitionStatusPanel from "./components/RecognitionStatusPanel";
 import { useRecognitionRuntime } from "./hooks/useRecognitionRuntime";
@@ -12,21 +10,12 @@ export default function MovementRecognitionPage() {
 
   return (
     <main className="site-page-gutter grid h-screen w-full grid-rows-[auto_minmax(0,1fr)] gap-4 overflow-hidden bg-slate-50 py-8">
-      <header className="flex items-start justify-between gap-6">
-        <div>
+      <header>
+        <BackButton to={`/patients/${patientId}/presets/${presetId}/edit`} />
+        <div className="mt-6">
           <h1 className="text-3xl font-semibold tracking-tight text-foreground">
             Live Recognition
           </h1>
-          <p className="mt-2 text-sm text-muted-foreground">Current preset: {presetId}</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <Button asChild variant="outline">
-            <Link to={`/patients/${patientId}/presets/${presetId}/dashboard`}>
-              <LayoutDashboard className="size-4" aria-hidden="true" />
-              Dashboard
-            </Link>
-          </Button>
-          <BackButton to={`/patients/${patientId}/presets/${presetId}/edit`} />
         </div>
       </header>
 

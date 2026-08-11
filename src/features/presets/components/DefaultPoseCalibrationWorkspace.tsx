@@ -13,8 +13,9 @@ type Props = {
 export default function DefaultPoseCalibrationWorkspace({ backTo, calibration }: Props) {
   return (
     <main className="site-page-gutter grid h-screen w-full grid-rows-[auto_minmax(0,1fr)] gap-4 overflow-hidden bg-slate-50 py-8">
-      <header className="flex items-start justify-between gap-6">
-        <div>
+      <header>
+        <BackButton to={backTo} />
+        <div className="mt-6">
           <h1 className="text-3xl font-semibold tracking-tight text-foreground">
             Record Default Resting State
           </h1>
@@ -23,7 +24,6 @@ export default function DefaultPoseCalibrationWorkspace({ backTo, calibration }:
             calibration helps recognition separate rest from intentional movement.
           </p>
         </div>
-        <BackButton to={backTo} />
       </header>
 
       <div className="grid min-h-0 gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">

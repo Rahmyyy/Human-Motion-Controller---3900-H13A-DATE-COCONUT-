@@ -7,9 +7,6 @@ import App from "./App";
 vi.mock("@/features/dashboard/MainDashboardPage", () => ({
   default: () => <div>Main dashboard</div>,
 }));
-vi.mock("@/features/dashboard/LiveDashboardPage", () => ({
-  default: () => <div>Live dashboard</div>,
-}));
 vi.mock("@/features/presets/PresetSelectionPage", () => ({
   default: () => <div>Preset selection</div>,
 }));
@@ -59,7 +56,6 @@ describe("App routes", () => {
     [`${preset}/edit`, "Preset mappings"],
     [`${preset}/default-pose`, "Default pose"],
     [`${preset}/recognition`, "Recognition"],
-    [`${preset}/dashboard`, "Live dashboard"],
     [`${preset}/session`, "Live session"],
     [`${preset}/overlay`, "Session overlay"],
   ])("shows %s", (route, expected) => {

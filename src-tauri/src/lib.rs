@@ -59,6 +59,13 @@ fn configure_builder<R: Runtime + overlay::OverlayRuntime>(
         .plugin(log_plugin)
         .plugin(tauri_plugin_dialog::init());
 
+    // The embedded WebDriver server is compiled into explicit E2E builds only. Production builds
+    // therefore expose no automation endpoint.
+    #[cfg(feature = "e2e")]
+    let builder = builder
+        .plugin(tauri_plugin_wdio::init())
+        .plugin(tauri_plugin_wdio_webdriver::init());
+
     #[cfg(target_os = "macos")]
     let builder = builder.plugin(tauri_nspanel::init());
 
@@ -140,7 +147,14 @@ where
 pub fn run() {
     configure_builder(tauri::Builder::default(), logging_plugin(false))
         .setup(|app| {
+            #[cfg(feature = "e2e")]
+            let app_data_dir = std::env::var_os("HUMAN_CONTROLLER_E2E_DATA_DIR")
+                .map(std::path::PathBuf::from)
+                .unwrap_or(app.path().app_data_dir()?);
+
+            #[cfg(not(feature = "e2e"))]
             let app_data_dir = app.path().app_data_dir()?;
+
             initialize_app(
                 app,
                 &app_data_dir,

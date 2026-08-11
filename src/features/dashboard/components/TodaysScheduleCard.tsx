@@ -1,12 +1,16 @@
 import { CalendarDays, ChevronRight } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import type { Patient } from "@/modules/patient-presets";
 import type { ScheduledSession } from "@/modules/scheduling";
+import AddSessionDialog from "./AddSessionDialog";
 
 interface TodaysScheduleCardProps {
   error: string | null;
   isLoading: boolean;
+  onSessionCreated(): Promise<void>;
   onSelectSession(session: ScheduledSession): void;
+  patients: Patient[];
   sessions: ScheduledSession[];
 }
 
@@ -18,16 +22,21 @@ const timeFormatter = new Intl.DateTimeFormat(undefined, {
 export default function TodaysScheduleCard({
   error,
   isLoading,
+  onSessionCreated,
   onSelectSession,
+  patients,
   sessions,
 }: TodaysScheduleCardProps) {
   return (
     <Card className="shadow-sm">
       <CardHeader className="border-b">
-        <CardTitle className="flex items-center gap-2">
-          <CalendarDays className="size-5 text-primary" aria-hidden="true" />
-          Today&apos;s Schedule
-        </CardTitle>
+        <div className="flex items-center justify-between gap-3">
+          <CardTitle className="flex items-center gap-2">
+            <CalendarDays className="size-5 text-primary" aria-hidden="true" />
+            Today&apos;s Schedule
+          </CardTitle>
+          <AddSessionDialog patients={patients} onSessionCreated={onSessionCreated} />
+        </div>
       </CardHeader>
       <CardContent className="px-3">
         {isLoading ? (

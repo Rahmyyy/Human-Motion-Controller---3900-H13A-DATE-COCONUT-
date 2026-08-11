@@ -23,6 +23,7 @@ vi.mock("@/features/patients/components/RecentPatientsTable", () => ({
       {patients.map((row) => (
         <li key={row.id}>row {row.displayName}</li>
       ))}
+      {patients.length === 0 && <li>empty patient list</li>}
     </ul>
   ),
 }));
@@ -92,14 +93,12 @@ describe("MainDashboardPage", () => {
       expect(await screen.findByText("row Alex Smith")).toBeInTheDocument();
     });
 
-    it("invites the first patient when the list is empty", async () => {
+    it("passes an empty patient list to the table", async () => {
       listPatients.mockResolvedValue([]);
 
       renderPage();
 
-      expect(
-        await screen.findByText("No patients have been added yet. Add a patient to begin."),
-      ).toBeInTheDocument();
+      expect(await screen.findByText("empty patient list")).toBeInTheDocument();
     });
   });
 

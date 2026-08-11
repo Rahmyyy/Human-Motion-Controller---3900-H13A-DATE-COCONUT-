@@ -159,25 +159,15 @@ describe("CreatePresetDialog", () => {
     });
   });
 
-  /** Templates are not built yet; choosing one arms the button but creates nothing. */
+  /** Templates are not built yet, so the option remains visible but unavailable. */
   describe("a template preset", () => {
-    it("can continue without a name", async () => {
+    it("cannot be selected", async () => {
       renderDialog();
 
       await openDialog();
-      await userEvent.click(screen.getByRole("button", { name: /Use Existing Template/ }));
 
-      expect(screen.getByRole("button", { name: "Continue" })).toBeEnabled();
-    });
-
-    it("creates nothing yet", async () => {
-      const { onCreate } = renderDialog();
-
-      await openDialog();
-      await userEvent.click(screen.getByRole("button", { name: /Use Existing Template/ }));
-      await userEvent.click(screen.getByRole("button", { name: "Continue" }));
-
-      expect(onCreate).not.toHaveBeenCalled();
+      expect(screen.getByRole("button", { name: /Use Existing Template/ })).toBeDisabled();
+      expect(screen.getByRole("button", { name: "Continue" })).toBeDisabled();
     });
   });
 

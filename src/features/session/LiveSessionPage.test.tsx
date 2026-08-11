@@ -109,7 +109,7 @@ describe("LiveSessionPage", () => {
     it("offers a way back", async () => {
       renderPage({ error: "Preset has no default pose.", status: "error" });
 
-      await userEvent.click(screen.getByRole("button", { name: "Back to presets" }));
+      await userEvent.click(screen.getByRole("button", { name: "Back to dashboard" }));
 
       expect(screen.getByText("arrived at /")).toBeInTheDocument();
     });

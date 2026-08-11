@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import type { ReactNode } from "react";
 import { MemoryRouter } from "react-router";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { getPatients, type Patient } from "@/modules/patient-presets";
@@ -16,12 +17,15 @@ vi.mock("@/modules/scheduling", () => ({
 }));
 vi.mock("@/features/patients/components/ModifyPatientDialog", () => ({ default: () => null }));
 vi.mock("@/features/patients/components/RecentPatientsTable", () => ({
-  default: ({ patients }: { patients: Patient[] }) => (
-    <ul>
-      {patients.map((row) => (
-        <li key={row.id}>row {row.displayName}</li>
-      ))}
-    </ul>
+  default: ({ headerActions, patients }: { headerActions?: ReactNode; patients: Patient[] }) => (
+    <>
+      <div>{headerActions}</div>
+      <ul>
+        {patients.map((row) => (
+          <li key={row.id}>row {row.displayName}</li>
+        ))}
+      </ul>
+    </>
   ),
 }));
 vi.mock("./components/AddPatientDialog", () => ({

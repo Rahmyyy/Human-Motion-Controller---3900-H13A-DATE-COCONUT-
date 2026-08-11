@@ -2,11 +2,9 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router";
 import { describe, expect, it, vi } from "vitest";
-import { preset } from "../testPresets";
 import PresetPageHeader from "./PresetPageHeader";
 
-// Both have their own suites; stubs keep this one about the header's own layout and routing.
-vi.mock("./CreatePresetDialog", () => ({ default: () => <div data-testid="create-dialog" /> }));
+// The export button has its own suite; this stub keeps these tests focused on the header.
 vi.mock("./ExportPatientButton", () => ({
   default: ({ patientId }: { patientId: string | undefined }) => (
     <div data-testid="export-button" data-patient-id={patientId ?? "none"} />
@@ -28,16 +26,7 @@ function renderHeader(patientId?: string) {
       <Routes>
         <Route
           path="/presets"
-          element={
-            <PresetPageHeader
-              createError={null}
-              isCreating={false}
-              onClearCreateError={vi.fn()}
-              onCreatePreset={vi.fn(() => Promise.resolve(preset()))}
-              patientId={patientId}
-              patientName="Alex Smith"
-            />
-          }
+          element={<PresetPageHeader patientId={patientId} patientName="Alex Smith" />}
         />
         <Route path="/patients/:patientId/history" element={<Destination />} />
         <Route path="/" element={<Destination />} />
@@ -55,22 +44,9 @@ describe("PresetPageHeader", () => {
     expect(screen.getByText("Alex Smith")).toBeInTheDocument();
   });
 
-  it("explains what a preset is for", () => {
+  it("offers patient export", () => {
     renderHeader("patient-1");
 
-    expect(screen.getByRole("tooltip")).toHaveTextContent(
-      "Select a saved movement profile or create one to test recognition.",
-    );
-    expect(screen.getByRole("button", { name: "About preset selection" })).toHaveAttribute(
-      "aria-describedby",
-      "preset-page-help",
-    );
-  });
-
-  it("offers preset creation and patient export", () => {
-    renderHeader("patient-1");
-
-    expect(screen.getByTestId("create-dialog")).toBeInTheDocument();
     expect(screen.getByTestId("export-button")).toHaveAttribute("data-patient-id", "patient-1");
   });
 

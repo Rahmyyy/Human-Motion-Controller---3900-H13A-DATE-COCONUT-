@@ -1,0 +1,7 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "types": ["node", "mocha", "webdriverio", "@wdio/globals/types", "@wdio/tauri-service"]
+  },
+  "include": ["./**/*.ts", "../wdio.conf.ts"]
+}

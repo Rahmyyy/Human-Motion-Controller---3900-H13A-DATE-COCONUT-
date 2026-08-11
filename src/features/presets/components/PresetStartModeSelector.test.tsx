@@ -17,7 +17,9 @@ describe("PresetStartModeSelector", () => {
     renderSelector();
 
     expect(template()).toBeInTheDocument();
-    expect(screen.getByText("Start from a predefined movement mapping.")).toBeInTheDocument();
+    expect(
+      screen.getByText("Start from a predefined movement mapping. Coming soon."),
+    ).toBeInTheDocument();
     expect(custom()).toBeInTheDocument();
     expect(screen.getByText("Start from scratch with a blank configuration.")).toBeInTheDocument();
   });
@@ -37,15 +39,18 @@ describe("PresetStartModeSelector", () => {
     expect(template()).toHaveAttribute("aria-pressed", "false");
   });
 
-  it.each([
-    ["template", () => template()],
-    ["custom", () => custom()],
-  ] as const)("reports %s when it is chosen", async (mode, control) => {
+  it("keeps the unfinished template option disabled", () => {
+    renderSelector();
+
+    expect(template()).toBeDisabled();
+  });
+
+  it("reports custom when it is chosen", async () => {
     const { onSelectMode } = renderSelector();
 
-    await userEvent.click(control());
+    await userEvent.click(custom());
 
-    expect(onSelectMode).toHaveBeenCalledWith(mode);
+    expect(onSelectMode).toHaveBeenCalledWith("custom");
   });
 
   /** The tick repeats the pressed state, which is already announced. */

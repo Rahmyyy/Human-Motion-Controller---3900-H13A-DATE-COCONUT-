@@ -47,7 +47,6 @@ function renderPage(overrides: Partial<PresetRecognitionSnapshot> = {}) {
           path="/patients/:patientId/presets/:presetId/recognition"
           element={<MovementRecognitionPage />}
         />
-        <Route path="/patients/:patientId/presets/:presetId/dashboard" element={<Destination />} />
         <Route path="/patients/:patientId/presets/:presetId/edit" element={<Destination />} />
       </Routes>
     </MemoryRouter>,
@@ -59,11 +58,10 @@ beforeEach(() => {
 });
 
 describe("MovementRecognitionPage", () => {
-  it("titles the page and names the preset under test", () => {
+  it("titles the page", () => {
     renderPage();
 
     expect(screen.getByRole("heading", { name: "Live Recognition", level: 1 })).toBeInTheDocument();
-    expect(screen.getByText("Current preset: preset-1")).toBeInTheDocument();
   });
 
   it("runs the recogniser for the route it was opened on", () => {
@@ -101,16 +99,6 @@ describe("MovementRecognitionPage", () => {
   });
 
   describe("navigation", () => {
-    it("opens the live dashboard for this preset", async () => {
-      renderPage();
-
-      await userEvent.click(screen.getByRole("link", { name: "Dashboard" }));
-
-      expect(
-        screen.getByText("arrived at /patients/patient-1/presets/preset-1/dashboard"),
-      ).toBeInTheDocument();
-    });
-
     it("goes back to the preset being edited", async () => {
       renderPage();
 

@@ -17,17 +17,20 @@ const timeOf = (scheduledAtMs: number) =>
   new Intl.DateTimeFormat(undefined, { hour: "numeric", minute: "2-digit" }).format(scheduledAtMs);
 
 function renderCard(props: Partial<React.ComponentProps<typeof TodaysScheduleCard>> = {}) {
+  const onSessionCreated = vi.fn(() => Promise.resolve());
   const onSelectSession = vi.fn();
   render(
     <TodaysScheduleCard
       error={null}
       isLoading={false}
+      onSessionCreated={onSessionCreated}
       onSelectSession={onSelectSession}
+      patients={[]}
       sessions={[]}
       {...props}
     />,
   );
-  return { onSelectSession };
+  return { onSessionCreated, onSelectSession };
 }
 
 describe("TodaysScheduleCard", () => {
@@ -45,7 +48,8 @@ describe("TodaysScheduleCard", () => {
     });
     renderCard({ sessions: [session(), later] });
 
-    expect(screen.getAllByRole("button")).toHaveLength(2);
+    expect(screen.getByRole("button", { name: /Alex Smith/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Jo Lee/ })).toBeInTheDocument();
     expect(screen.getByText("Alex Smith")).toBeInTheDocument();
     expect(screen.getByText(timeOf(later.scheduledAtMs))).toBeInTheDocument();
   });
@@ -54,7 +58,7 @@ describe("TodaysScheduleCard", () => {
     const chosen = session();
     const { onSelectSession } = renderCard({ sessions: [chosen] });
 
-    await userEvent.click(screen.getByRole("button"));
+    await userEvent.click(screen.getByRole("button", { name: /Alex Smith/ }));
 
     expect(onSelectSession).toHaveBeenCalledWith(chosen);
   });
@@ -76,7 +80,7 @@ describe("TodaysScheduleCard", () => {
     renderCard({ error: "Failed to load dashboard summary.", sessions: [session()] });
 
     expect(screen.getByText("Failed to load dashboard summary.")).toBeInTheDocument();
-    expect(screen.queryByRole("button")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Alex Smith/ })).not.toBeInTheDocument();
   });
 
   /** A refresh in flight has not failed yet, so the loading note wins over the previous error. */

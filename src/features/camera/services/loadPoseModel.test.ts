@@ -2,7 +2,7 @@ import { FilesetResolver, PoseLandmarker } from "@mediapipe/tasks-vision";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { loadPoseModel } from "./loadPoseModel";
 
-// The real resolver downloads a WASM bundle and a model file; only the wiring is under test.
+// The real resolver loads the bundled WASM and model files; only the wiring is under test.
 vi.mock("@mediapipe/tasks-vision", () => ({
   FilesetResolver: { forVisionTasks: vi.fn() },
   PoseLandmarker: { createFromOptions: vi.fn() },
@@ -21,13 +21,10 @@ beforeEach(() => {
 });
 
 describe("loadPoseModel", () => {
-  /** The WASM bundle must match the installed package, or the model fails to instantiate. */
-  it("resolves the vision tasks from the pinned MediaPipe version", async () => {
+  it("resolves the vision tasks from the bundled MediaPipe files", async () => {
     await loadPoseModel();
 
-    expect(forVisionTasks).toHaveBeenCalledWith(
-      "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.35/wasm",
-    );
+    expect(forVisionTasks).toHaveBeenCalledWith("/mediapipe/wasm");
   });
 
   it("builds the landmarker on the resolved fileset", async () => {
@@ -40,9 +37,7 @@ describe("loadPoseModel", () => {
     await loadPoseModel();
 
     expect(createFromOptions.mock.calls[0]?.[1].baseOptions).toEqual({
-      modelAssetPath:
-        "https://storage.googleapis.com/mediapipe-models/pose_landmarker/" +
-        "pose_landmarker_lite/float16/latest/pose_landmarker_lite.task",
+      modelAssetPath: "/mediapipe/models/pose_landmarker_lite.task",
       delegate: "GPU",
     });
   });
