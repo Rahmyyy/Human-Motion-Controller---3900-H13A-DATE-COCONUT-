@@ -106,7 +106,7 @@ fn configure_builder<R: Runtime + overlay::OverlayRuntime>(
 fn install_app_menu<R: Runtime>(app: &App<R>) -> tauri::Result<()> {
     let app_menu = SubmenuBuilder::new(app, "Human Controller")
         .about(Some(AboutMetadata {
-            version: Some("1.0.0".into()),
+            version: Some(env!("CARGO_PKG_VERSION").into()),
             authors: Some(vec!["COMP3900 - H13A-DATE".into()]),
             name: Some("Human controller".into()),
             short_version: None,

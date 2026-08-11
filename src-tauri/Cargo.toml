@@ -1,6 +1,6 @@
 [package]
 name = "human-controller"
-version = "1.0.0"
+version = "1.0.1"
 description = "Webcam-based motion mapping software for accessible rehabilitation gaming"
 authors = ["you"]
 edition = "2021"
