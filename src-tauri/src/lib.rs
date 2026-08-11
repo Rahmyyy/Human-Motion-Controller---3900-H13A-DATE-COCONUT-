@@ -21,6 +21,7 @@ use tauri::{
     plugin::TauriPlugin,
     App, Builder, Manager, Runtime,
 };
+use tauri_plugin_dialog::DialogExt;
 
 type SetupResult = Result<(), Box<dyn Error>>;
 
@@ -132,11 +133,29 @@ fn initialize_app<R, I, M>(
 ) -> SetupResult
 where
     R: Runtime,
-    I: FnOnce(),
+    I: FnOnce() -> Result<(), ()>,
     M: FnOnce(&App<R>) -> tauri::Result<()>,
 {
     app.manage(db::init_db(app_data_dir)?);
-    initialize_input();
+    let enigo_initalized = initialize_input();
+    if enigo_initalized.is_err() {
+        let app_handle = app.handle();
+
+        let restart = app_handle
+            .dialog()
+            .message("Press OK once permissions have been granted to restart the application, or Cancel to exit.")
+            .title("Please grant permission for human-controller to control your computer")
+            .kind(tauri_plugin_dialog::MessageDialogKind::Warning)
+            .buttons(tauri_plugin_dialog::MessageDialogButtons::OkCancel)
+            .blocking_show();
+
+        if restart {
+            app_handle.restart();
+        } else {
+            app_handle.exit(1);
+        }
+    }
+
     install_menu(app)?;
     overlay::close_with_main_window(app.handle());
 
